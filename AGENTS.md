@@ -37,7 +37,7 @@ At the start of a new Codex session:
 3. Treat committed evaluation artifacts as evidence and do not reconstruct
    missing episode data.
 4. Verify live Brev state with `brev ls`; never infer it from an older document.
-5. Continue the numbered stage/sub-experiment hierarchy instead of rerunning a
+5. Continue the numbered stage/section hierarchy instead of rerunning a
    completed phase unless a regression or explicit reproduction requires it.
 
 ## Canonical commands
@@ -74,8 +74,9 @@ Isaac Launchable rather than old tutorial syntax.
 - Use `REMOTE_DRY_RUN=1` or `make show-*` when previewing without remote access.
 - Stream training output and preserve exact commands, configs, checkpoints,
   metrics, and conclusions in durable project records.
-- Keep transferable commands and experiment logic in numbered folders under
-  `experiments/`; keep Brev/Docker plumbing out of those learning steps.
+- Keep major stages in numbered folders under `experiments/`; keep short
+  experiment steps as numbered sections in the stage README, and keep
+  Brev/Docker plumbing out of the learning narrative.
 - Do not include credentials or secrets in command transcripts.
 
 ## Safety boundaries
