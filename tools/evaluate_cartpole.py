@@ -93,7 +93,7 @@ def main() -> None:
         from skrl.utils.runner.torch import Runner
 
         raw_env = gym.make(args_cli.task, cfg=env_cfg)
-        action_shape = raw_env.single_action_space.shape
+        action_shape = raw_env.unwrapped.single_action_space.shape
         env = SkrlVecEnvWrapper(raw_env, ml_framework="torch")
 
         runner = None
