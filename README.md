@@ -25,10 +25,39 @@ It is not checkpoint-compatible or directly metric-comparable with
 converge and are recorded as failed experiments rather than presented as the
 trained result.
 
-Phase 1 now has one precise goal: train skrl PPO from scratch on the same
-manager-based task and pass the same numerical and visual acceptance gates.
-No custom robot, camera pipeline, VLA, or Hugging Face integration is part of
-that reproduction step.
+## Next milestone
+
+Phase 1 has one precise goal: train skrl PPO from scratch on the same
+manager-based `Isaac-Cartpole-v0` task and reproduce the official checkpoint's
+behavior.
+
+The locally trained checkpoint must reach at least 250 mean episode steps,
+finish at least 20/25 fixed-seed episodes by time limit, achieve positive mean
+reward, and pass a final Viewer check. This keeps the next paid GPU session
+focused: reproduce one known baseline before changing the environment, reward,
+or model.
+
+## Long-term learning path
+
+Isaac CartPole is only the entry point. The repository is intended to build a
+transferable robotics-ML workflow that progresses from reinforcement learning
+fundamentals to manipulation, imitation learning, vision, and VLA
+post-training.
+
+| Phase | Goal | Deliverable |
+| --- | --- | --- |
+| 0 — Simulator loop | Prove Brev, Isaac, evaluation, and Viewer plumbing | Random-versus-pretrained CartPole result — complete |
+| 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Locally trained checkpoint passing fixed-seed gates — next |
+| 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible ablations and regression thresholds |
+| 3 — Robot-arm control | Move from CartPole to Franka reach and cube lift | State-based manipulation baseline |
+| 4 — Imitation learning | Build a demonstration pipeline and train BC, ACT, or Diffusion Policy | Versioned demonstrations and closed-loop success evaluation |
+| 5 — Vision and multimodality | Add RGB observations and visual representations | Vision-policy baseline with failure analysis |
+| 6 — VLA post-training | Add language-conditioned tasks and a lightweight VLA/action head | Reproducible VLA fine-tuning and checkpoint provenance |
+| 7 — Failure-driven iteration | Mine rollout failures and target the next data/training round | Held-out scenario suite and measurable improvement |
+| 8 — Real-robot bridge | Add hardware only after simulation behavior is reliable | Safety-gated, optional low-cost sim-to-real experiment |
+
+The detailed [roadmap](docs/ROADMAP.md) defines the acceptance gate for each
+phase. We do not advance based only on an attractive Viewer clip.
 
 ## Local commands
 
@@ -53,5 +82,11 @@ installed task config controls the training horizon; set it only for an
 intentional bounded experiment. Set `ISAAC_CHECKPOINT` to an exact checkpoint
 path before `make eval`.
 
-See [the roadmap](docs/ROADMAP.md), [runbook](docs/RUNBOOK.md), and
-[lessons learned](docs/LESSONS_LEARNED.md) before the next paid run.
+## Project records
+
+- [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
+- [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
+- [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered
+- [Experiments](docs/EXPERIMENTS.md): successful and failed runs
+- [Environment](docs/ENVIRONMENT.md): pinned local and remote versions
+- [Status](docs/STATUS.md): current infrastructure and milestone state
