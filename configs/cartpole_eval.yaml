@@ -1,0 +1,12 @@
+task: Isaac-Cartpole-v0
+rl_library: skrl
+algorithm: PPO
+seeds:
+  - 101
+  - 202
+  - 303
+  - 404
+  - 505
+episodes_per_policy: 25
+num_envs: 64
+visualizer: none

@@ -1,0 +1,36 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Isaac Sim / Isaac Lab generated data
+cache/
+logs/
+outputs/
+runs/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+
+# Generated artifacts
+artifacts/*
+!artifacts/README.md
+!artifacts/evaluations/
+artifacts/evaluations/*
+!artifacts/evaluations/.gitkeep
+!artifacts/evaluations/phase0_acceptance_summary.json
+
+# macOS and editors
+.DS_Store
+.idea/
+.vscode/
