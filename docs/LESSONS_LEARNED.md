@@ -40,6 +40,29 @@ transitions under the matching task/config contract passed in 68.43 seconds,
 while the longer Direct runs did not. The meaning of the data is determined by
 the MDP and optimizer contract, not by transition count alone.
 
+## Early PPO checkpoints can be worse than random
+
+In the fixed-seed manager-based learning curve, the 0.98M- and 1.97M-transition
+checkpoints balanced for only about 0.24-0.25 seconds, compared with 3.13
+seconds for uniform random actions. The policy had already learned a
+coordinated but harmful action pattern before it learned to balance.
+
+Always include a measured random baseline and intermediate checkpoints. A
+single final checkpoint cannot reveal this initial degradation or the sharp
+improvement between roughly 3 and 5 million transitions.
+
+## PPO checkpoint quality is not monotonic
+
+The curve reached `24/25` time-limit episodes at 6.88M transitions, dropped to
+`22/25` at 7.86M, then returned to `24/25`. Optimization noise and a finite
+evaluation sample make temporary regressions normal. Do not select a deployment
+checkpoint solely because it is the last one or because its training step is
+higher.
+
+The trainer-selected `best_agent.pt` also reached `22/25`, while the final
+numbered checkpoint reached `24/25` under the independent evaluator. The
+trainer's internal ranking metric is not identical to the acceptance metric.
+
 ## Compare policies with one evaluation contract
 
 Viewer behavior is useful but qualitative. Random and trained policies must use:

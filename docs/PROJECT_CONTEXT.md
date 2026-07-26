@@ -31,6 +31,10 @@ lightweight VLA post-training, and optional real hardware.
   at 60 Hz, with `22/25` episodes reaching the five-second time limit.
 - Visual acceptance: complete; the policy balanced stably with relatively
   sparse cart corrections.
+- Checkpoint learning curve: complete; ten checkpoints show a sharp improvement
+  around 3-5M transitions and a plateau near 4.8 seconds after about 6.9M.
+- Final numbered checkpoint: `24/25` time-limit episodes, outperforming the
+  trainer-selected `best_agent.pt` under the fixed-seed acceptance metric.
 - Brev `isaac-launchable-f150a5`: stopped; persistent disk retained.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
@@ -39,15 +43,12 @@ settings across them.
 
 ## Immediate next work
 
-The next experiment is the numbered checkpoint learning curve in
-`experiments/02_checkpoint_learning_curve/`.
+The checkpoint learning curve in
+`experiments/01_cartpole_ppo/02_checkpoint_learning_curve/` is complete.
 
-1. Evaluate `agent_240.pt` through `agent_2400.pt` with the same fixed seeds.
-2. Plot mean balance seconds and time-limit success against training
-   transitions.
-3. Add control-style telemetry locally.
-4. Repeat the unchanged baseline with two additional training seeds.
-5. Only then run the `cart_vel.weight: -0.01 -> 0.0` reward ablation.
+1. Add control-style telemetry locally.
+2. Repeat the unchanged baseline with two additional training seeds.
+3. Only then run the `cart_vel.weight: -0.01 -> 0.0` reward ablation.
 
 No GPU should be started for local code, tests, documentation, or chart
 rendering. Any remote run requires a new cost quote, explicit approval, and

@@ -22,9 +22,10 @@ are recorded under `docs/PHASE1_PPO_REPRODUCTION.md` and
 `artifacts/evaluations/phase1_reproduction_summary.json`.
 
 The Brev instance is stopped; persistent storage is retained. Checkpoint
-learning-curve tooling is prepared, but the actual remote sweep has not run.
-The immediate zero-cost task is control telemetry. The next paid window
-requires fresh explicit approval.
+learning-curve evaluation is complete: all ten numbered checkpoints were
+evaluated with the canonical fixed seeds, and the reviewed JSON/SVG are
+committed under `artifacts/`. The immediate zero-cost task is control telemetry.
+The next paid window requires fresh explicit approval.
 
 ## Session startup
 
@@ -36,8 +37,8 @@ At the start of a new Codex session:
 3. Treat committed evaluation artifacts as evidence and do not reconstruct
    missing episode data.
 4. Verify live Brev state with `brev ls`; never infer it from an older document.
-5. Continue the numbered experiment sequence instead of rerunning a completed
-   phase unless a regression or explicit reproduction requires it.
+5. Continue the numbered stage/sub-experiment hierarchy instead of rerunning a
+   completed phase unless a regression or explicit reproduction requires it.
 
 ## Canonical commands
 

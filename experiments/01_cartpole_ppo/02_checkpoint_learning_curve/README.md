@@ -1,4 +1,4 @@
-# Step 02: Checkpoint Learning Curve
+# CartPole PPO 02: Checkpoint Learning Curve
 
 ## Question
 
@@ -69,8 +69,39 @@ evaluated on the same seeds.
 Do not assume the curve must rise monotonically. PPO checkpoints can regress
 temporarily because optimization and finite-sample evaluation are noisy.
 
-## Current status
+## Result
 
-The tools and commands are prepared locally. The numbered checkpoints remain
-on stopped persistent storage, so the actual JSON and SVG require a newly
-approved short GPU window.
+![CartPole checkpoint learning curve](../../../artifacts/plots/phase1_learning_curve.svg)
+
+| Vector steps | Training transitions | Mean balance time | Time-limit episodes |
+| ---: | ---: | ---: | ---: |
+| random | — | 3.125 s | 0 / 25 |
+| 240 | 983,040 | 0.234 s | 0 / 25 |
+| 480 | 1,966,080 | 0.253 s | 0 / 25 |
+| 720 | 2,949,120 | 0.935 s | 0 / 25 |
+| 960 | 3,932,160 | 3.861 s | 18 / 25 |
+| 1200 | 4,915,200 | 4.491 s | 22 / 25 |
+| 1440 | 5,898,240 | 4.487 s | 22 / 25 |
+| 1680 | 6,881,280 | 4.824 s | 24 / 25 |
+| 1920 | 7,864,320 | 4.500 s | 22 / 25 |
+| 2160 | 8,847,360 | 4.825 s | 24 / 25 |
+| 2400 | 9,830,400 | 4.823 s | 24 / 25 |
+
+The early learned policies were worse than the uniform-random reference. The
+large behavioral transition occurred between roughly 3 and 5 million
+transitions, followed by a plateau near 4.8 seconds. The dip at 7.86 million
+transitions confirms that individual PPO checkpoints need not improve
+monotonically.
+
+The final numbered checkpoint reached `24/25` time-limit episodes, while
+`best_agent.pt` previously reached `22/25` under the same evaluator. The
+trainer's best-checkpoint criterion therefore does not exactly match the
+fixed-seed behavioral acceptance metric.
+
+## Evidence
+
+- Episode-level JSON:
+  `artifacts/evaluations/phase1_learning_curve.json`
+- Rendered SVG: `artifacts/plots/phase1_learning_curve.svg`
+- Exact sweep command: `artifacts/commands/phase1_learning_curve.log`
+- Training logs and resolved configs: `artifacts/training/phase1/`

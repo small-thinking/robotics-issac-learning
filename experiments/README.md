@@ -1,21 +1,19 @@
-# Experiment Steps
+# Experiment Hierarchy
 
-This directory is the learning path through the repository. Each numbered
-folder contains the transferable robotics-ML commands, hypothesis, outputs, and
-acceptance rule for one experiment.
+This directory is the learning path through the repository. Top-level numbered
+folders are major stages. A stage may contain numbered sub-experiments with
+their own commands, hypothesis, outputs, and acceptance rules.
 
 Cloud provisioning, Docker, repository sync, and secure Viewer plumbing remain
 in `scripts/brev/` and `docs/COMMANDS.md`; they are deliberately not the
 learning narrative.
 
-| Step | Question | Status |
+| Stage | Question | Status |
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
-| [`01_ppo_reproduction`](01_ppo_reproduction/README.md) | Can the official PPO recipe be reproduced from scratch? | complete |
-| [`02_checkpoint_learning_curve`](02_checkpoint_learning_curve/README.md) | How does fixed-seed ability change with training transitions? | prepared; remote evaluation pending |
-| [`03_reward_ablation`](03_reward_ablation/README.md) | Does cart-velocity shaping explain the learned control style? | planned |
+| [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | in progress; reproduction and learning curve complete |
 
-Every step should leave:
+Every sub-experiment should leave:
 
 - exact task/config/checkpoint provenance;
 - a machine-readable result;

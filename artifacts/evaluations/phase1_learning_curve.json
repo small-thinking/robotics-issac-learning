@@ -1,0 +1,1981 @@
+{
+  "artifact_type": "checkpoint_learning_curve",
+  "control_hz": 60.0,
+  "episode_limit_seconds": 5,
+  "episodes_per_seed": 5,
+  "evaluations": [
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_240.pt",
+      "checkpoint_vector_steps": 240,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 14,
+          "reward": 0.004828214645385742,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.0068122223019599915,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.06674215942621231,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.05116450786590576,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.07470990717411041,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.05654469504952431,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.2161080688238144,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.08927653729915619,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.043025240302085876,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.033465467393398285,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.06511390209197998,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.08915559947490692,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.1196330264210701,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.04546421393752098,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.09980499744415283,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.029023192822933197,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.005946069955825806,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.058138635009527206,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.11189251393079758,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10275526344776154,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.22600354254245758,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.09539653360843658,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.23355193436145782,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.09840932488441467,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": -0.10472168773412704,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        }
+      ],
+      "mean_balance_seconds": 0.23399999999999999,
+      "mean_episode_length": 14.04,
+      "mean_episode_reward": -0.03519561305642128,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 0.19595917942265426,
+      "std_episode_reward": 0.09875978716570766,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 25
+      },
+      "time_limit_episode_count": 0,
+      "time_limit_fraction": 0.0,
+      "training_transitions": 983040
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_480.pt",
+      "checkpoint_vector_steps": 480,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 14,
+          "reward": 0.10372910648584366,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10993891954421997,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 16,
+          "reward": 0.1187206283211708,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 16,
+          "reward": 0.10914994776248932,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 16,
+          "reward": 0.11478740721940994,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10611584782600403,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.11444579064846039,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 16,
+          "reward": 0.11701526492834091,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 17,
+          "reward": 0.1107841357588768,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 18,
+          "reward": 0.11835679411888123,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 13,
+          "reward": 0.10224862396717072,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.09748131036758423,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.11493904888629913,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 16,
+          "reward": 0.10598708689212799,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 17,
+          "reward": 0.10851997137069702,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.10567876696586609,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.1180986538529396,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10662879049777985,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10636669397354126,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.11655367910861969,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.10645654797554016,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 14,
+          "reward": 0.1099475622177124,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10700007528066635,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.1258268505334854,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 15,
+          "reward": 0.10722911357879639,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        }
+      ],
+      "mean_balance_seconds": 0.25266666666666665,
+      "mean_episode_length": 15.16,
+      "mean_episode_reward": 0.11048026472330093,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 1.12,
+      "std_episode_reward": 0.006257034675558549,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 25
+      },
+      "time_limit_episode_count": 0,
+      "time_limit_fraction": 0.0,
+      "training_transitions": 1966080
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_720.pt",
+      "checkpoint_vector_steps": 720,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 50,
+          "reward": 0.6923072338104248,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 61,
+          "reward": 0.8504084348678589,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 70,
+          "reward": 0.9912876486778259,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 74,
+          "reward": 1.0148171186447144,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 78,
+          "reward": 1.1499589681625366,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 42,
+          "reward": 0.5406103134155273,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 50,
+          "reward": 0.6903184652328491,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 54,
+          "reward": 0.7220369577407837,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 61,
+          "reward": 0.8085488677024841,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 69,
+          "reward": 1.0226445198059082,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 50,
+          "reward": 0.7075919508934021,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 54,
+          "reward": 0.7319348454475403,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 63,
+          "reward": 0.8725959658622742,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 68,
+          "reward": 1.0070210695266724,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 72,
+          "reward": 1.0384631156921387,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 37,
+          "reward": 0.4140843152999878,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 43,
+          "reward": 0.5146350860595703,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 47,
+          "reward": 0.6269957423210144,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 49,
+          "reward": 0.6256529688835144,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 56,
+          "reward": 0.7813921570777893,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 45,
+          "reward": 0.5796161890029907,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 48,
+          "reward": 0.6166489124298096,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 52,
+          "reward": 0.6613419651985168,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 52,
+          "reward": 0.726607084274292,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 58,
+          "reward": 0.8538384437561035,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        }
+      ],
+      "mean_balance_seconds": 0.9353333333333332,
+      "mean_episode_length": 56.12,
+      "mean_episode_reward": 0.7696543335914612,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 10.704466357553748,
+      "std_episode_reward": 0.18441919290547307,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 25
+      },
+      "time_limit_episode_count": 0,
+      "time_limit_fraction": 0.0,
+      "training_transitions": 2949120
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_960.pt",
+      "checkpoint_vector_steps": 960,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 62,
+          "reward": 0.8844184279441833,
+          "seed": 101,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.826913833618164,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.980823993682861,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.993437767028809,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.950659275054932,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 46,
+          "reward": 0.624271035194397,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.994448661804199,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.83894157409668,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.933398246765137,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.985713481903076,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 66,
+          "reward": 0.9667150974273682,
+          "seed": 303,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.9922027587890625,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.747964859008789,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.976016044616699,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.989993095397949,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 37,
+          "reward": 0.45899221301078796,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 47,
+          "reward": 0.6171593070030212,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.775661945343018,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.994779586791992,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.836263179779053,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 61,
+          "reward": 0.8504704833030701,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 72,
+          "reward": 1.0043848752975464,
+          "seed": 505,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.916522026062012,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.942244529724121,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.753596782684326,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 3.8606666666666665,
+      "mean_episode_length": 231.64,
+      "mean_episode_reward": 3.75343972325325,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 109.79467382346013,
+      "std_episode_reward": 1.8632662209773816,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 7,
+        "time_limit": 18
+      },
+      "time_limit_episode_count": 18,
+      "time_limit_fraction": 0.72,
+      "training_transitions": 3932160
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_1200.pt",
+      "checkpoint_vector_steps": 1200,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.7918195724487305,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.955531120300293,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9819207191467285,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9187750816345215,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9618682861328125,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 50,
+          "reward": 0.6801574230194092,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.978168487548828,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.811122417449951,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.899919509887695,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.969292163848877,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9755964279174805,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.715093612670898,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9631876945495605,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.979647636413574,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.981774806976318,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 36,
+          "reward": 0.44835710525512695,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 50,
+          "reward": 0.6592027544975281,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.773410320281982,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.993808746337891,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.789880752563477,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.889924049377441,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.931763172149658,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.720740795135498,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.925005912780762,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.824649810791016,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.490666666666667,
+      "mean_episode_length": 269.44,
+      "mean_episode_reward": 4.3808247351646425,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 82.78844363798609,
+      "std_episode_reward": 1.400684108938918,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 3,
+        "time_limit": 22
+      },
+      "time_limit_episode_count": 22,
+      "time_limit_fraction": 0.88,
+      "training_transitions": 4915200
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_1440.pt",
+      "checkpoint_vector_steps": 1440,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.821401119232178,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.940516948699951,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.968075275421143,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.903411388397217,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.96934700012207,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 47,
+          "reward": 0.6297879815101624,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.962893962860107,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.785744667053223,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8815388679504395,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.954151153564453,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.957841873168945,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.741604328155518,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.952758312225342,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9613189697265625,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.975405216217041,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 36,
+          "reward": 0.44268327951431274,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 48,
+          "reward": 0.6214407682418823,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.746266841888428,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.980196952819824,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.812960147857666,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.871272563934326,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.948750972747803,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.7466044425964355,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.924476623535156,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.804128170013428,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.487333333333334,
+      "mean_episode_length": 269.24,
+      "mean_episode_reward": 4.372183113098145,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 83.31975996124808,
+      "std_episode_reward": 1.4084895617755753,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 3,
+        "time_limit": 22
+      },
+      "time_limit_episode_count": 22,
+      "time_limit_fraction": 0.88,
+      "training_transitions": 5898240
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_1680.pt",
+      "checkpoint_vector_steps": 1680,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.770720481872559,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.854238510131836,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8835835456848145,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.82349967956543,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.919267177581787,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.881627559661865,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.7481207847595215,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.829652309417725,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.872254848480225,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.806125640869141,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.894055366516113,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.689342975616455,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.861197471618652,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.906940460205078,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.915485382080078,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 36,
+          "reward": 0.44068077206611633,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.698336601257324,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9158616065979,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.77449369430542,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.899728775024414,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.810491561889648,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.881962776184082,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.693178653717041,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.893712520599365,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.736566066741943,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.824,
+      "mean_episode_length": 289.44,
+      "mean_episode_reward": 4.656045008897781,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 51.73322336758072,
+      "std_episode_reward": 0.8635196001388146,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 1,
+        "time_limit": 24
+      },
+      "time_limit_episode_count": 24,
+      "time_limit_fraction": 0.96,
+      "training_transitions": 6881280
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_1920.pt",
+      "checkpoint_vector_steps": 1920,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.784234523773193,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.872236728668213,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.910048961639404,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8387017250061035,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.940341472625732,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 56,
+          "reward": 0.7915593385696411,
+          "seed": 202,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.902834892272949,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.772701263427734,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.844489097595215,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8964362144470215,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.906733512878418,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.701918601989746,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.892109394073486,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.917806148529053,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.936577796936035,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 38,
+          "reward": 0.48954933881759644,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 56,
+          "reward": 0.7684311270713806,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.729199409484863,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.935215473175049,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.780813217163086,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.824394226074219,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.914043426513672,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.7052693367004395,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.909848690032959,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.764864444732666,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.5,
+      "mean_episode_length": 270.0,
+      "mean_episode_reward": 4.349214334487915,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 81.29354217894556,
+      "std_episode_reward": 1.3565231250596286,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 3,
+        "time_limit": 22
+      },
+      "time_limit_episode_count": 22,
+      "time_limit_fraction": 0.88,
+      "training_transitions": 7864320
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_2160.pt",
+      "checkpoint_vector_steps": 2160,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.834323883056641,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8974609375,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9181694984436035,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.877128601074219,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.934115886688232,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.91357421875,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.801627159118652,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.864418983459473,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.904930591583252,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.864457607269287,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.909862518310547,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.772489070892334,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.902772903442383,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.913739204406738,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.931721210479736,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 38,
+          "reward": 0.4549470841884613,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.780076026916504,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.933330059051514,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8352370262146,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.91184663772583,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.856112957000732,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.917582988739014,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.7730584144592285,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.910368919372559,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.819756507873535,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.825333333333333,
+      "mean_episode_length": 289.52,
+      "mean_episode_reward": 4.697324355840683,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 51.34130500873541,
+      "std_episode_reward": 0.8674697494095317,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 1,
+        "time_limit": 24
+      },
+      "time_limit_episode_count": 24,
+      "time_limit_fraction": 0.96,
+      "training_transitions": 8847360
+    },
+    {
+      "checkpoint": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_2400.pt",
+      "checkpoint_vector_steps": 2400,
+      "control_hz": 60.0,
+      "episode_count": 25,
+      "episodes": [
+        {
+          "length": 300,
+          "reward": 4.815311431884766,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.902195930480957,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.912829875946045,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.88859748840332,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9193644523620605,
+          "seed": 101,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.908905029296875,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.801882743835449,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.862826347351074,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.898568630218506,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.858729362487793,
+          "seed": 202,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.898688793182373,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.756582736968994,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.898462772369385,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.898393154144287,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.91913366317749,
+          "seed": 303,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 34,
+          "reward": 0.3722950220108032,
+          "seed": 404,
+          "termination_reason": "out_of_bounds"
+        },
+        {
+          "length": 300,
+          "reward": 4.781913757324219,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.923040390014648,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.813830852508545,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.896158218383789,
+          "seed": 404,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.864381313323975,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.9045586585998535,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.756667613983154,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.894548416137695,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        },
+        {
+          "length": 300,
+          "reward": 4.8347859382629395,
+          "seed": 505,
+          "termination_reason": "time_limit"
+        }
+      ],
+      "mean_balance_seconds": 4.822666666666667,
+      "mean_episode_length": 289.36,
+      "mean_episode_reward": 4.6873061037063595,
+      "policy": "trained",
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "std_episode_length": 52.12514172642603,
+      "std_episode_reward": 0.8822416384100537,
+      "task": "Isaac-Cartpole-v0",
+      "termination_reason_counts": {
+        "out_of_bounds": 1,
+        "time_limit": 24
+      },
+      "time_limit_episode_count": 24,
+      "time_limit_fraction": 0.96,
+      "training_transitions": 9830400
+    }
+  ],
+  "random_baseline": {
+    "checkpoint": null,
+    "control_hz": 60.0,
+    "episode_count": 25,
+    "episodes": [
+      {
+        "length": 139,
+        "reward": -10.913273811340332,
+        "seed": 101,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 150,
+        "reward": -10.092340469360352,
+        "seed": 101,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 154,
+        "reward": -7.886099338531494,
+        "seed": 101,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 200,
+        "reward": -15.282604217529297,
+        "seed": 101,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 213,
+        "reward": -12.784512519836426,
+        "seed": 101,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 92,
+        "reward": -3.6057021617889404,
+        "seed": 202,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 162,
+        "reward": -12.498250961303711,
+        "seed": 202,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 164,
+        "reward": -12.505084991455078,
+        "seed": 202,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 181,
+        "reward": -13.252751350402832,
+        "seed": 202,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 244,
+        "reward": -14.101984977722168,
+        "seed": 202,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 93,
+        "reward": -3.520758628845215,
+        "seed": 303,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 174,
+        "reward": -8.989104270935059,
+        "seed": 303,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 231,
+        "reward": -5.247981548309326,
+        "seed": 303,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 236,
+        "reward": -20.44440460205078,
+        "seed": 303,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 238,
+        "reward": -14.696379661560059,
+        "seed": 303,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 131,
+        "reward": -7.53443717956543,
+        "seed": 404,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 142,
+        "reward": -9.171215057373047,
+        "seed": 404,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 232,
+        "reward": -17.136295318603516,
+        "seed": 404,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 244,
+        "reward": -17.040016174316406,
+        "seed": 404,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 289,
+        "reward": -25.90032386779785,
+        "seed": 404,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 146,
+        "reward": -14.119818687438965,
+        "seed": 505,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 168,
+        "reward": -10.909514427185059,
+        "seed": 505,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 199,
+        "reward": -13.92866039276123,
+        "seed": 505,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 218,
+        "reward": -21.61511993408203,
+        "seed": 505,
+        "termination_reason": "out_of_bounds"
+      },
+      {
+        "length": 248,
+        "reward": -18.86981201171875,
+        "seed": 505,
+        "termination_reason": "out_of_bounds"
+      }
+    ],
+    "mean_balance_seconds": 3.1253333333333333,
+    "mean_episode_length": 187.52,
+    "mean_episode_reward": -12.881857862472534,
+    "policy": "random",
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505
+    ],
+    "std_episode_length": 50.08562268755376,
+    "std_episode_reward": 5.358256870926674,
+    "task": "Isaac-Cartpole-v0",
+    "termination_reason_counts": {
+      "out_of_bounds": 25
+    },
+    "time_limit_episode_count": 0,
+    "time_limit_fraction": 0.0
+  },
+  "schema_version": 1,
+  "seeds": [
+    101,
+    202,
+    303,
+    404,
+    505
+  ],
+  "task": "Isaac-Cartpole-v0",
+  "training_num_envs": 4096
+}

@@ -1,4 +1,4 @@
-# Step 03: Cart-Velocity Reward Ablation
+# CartPole PPO 03: Cart-Velocity Reward Ablation
 
 ## Question
 
