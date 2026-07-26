@@ -1,4 +1,4 @@
-# Step 02: Checkpoint Learning Curve
+# CartPole PPO 02: Checkpoint Learning Curve
 
 ## Question
 

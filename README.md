@@ -87,8 +87,8 @@ path before `make eval`.
 
 ## Project records
 
-- [Numbered experiment steps](experiments/README.md): the key robotics-ML
-  commands, questions, outputs, and acceptance rules in execution order
+- [Experiment hierarchy](experiments/README.md): major learning stages with
+  numbered sub-experiments, key commands, outputs, and acceptance rules
 - [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
 - [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
 - [Transferable robotics-ML commands](docs/ROBOTICS_ML_COMMANDS.md): the

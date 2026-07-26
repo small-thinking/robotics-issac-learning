@@ -33,7 +33,7 @@ artifacts/evaluations/*
 !artifacts/evaluations/phase1_learning_curve.json
 !artifacts/plots/
 artifacts/plots/*
-!artifacts/plots/.gitkeep
+!artifacts/plots/README.md
 
 # macOS and editors
 .DS_Store
