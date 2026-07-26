@@ -160,12 +160,11 @@ def main() -> None:
                     f"within {args_cli.max_steps_per_seed} steps"
                 )
 
+        result = summarize(args_cli.policy, args_cli.task, args_cli.checkpoint, seeds, episodes)
+        args_cli.output.parent.mkdir(parents=True, exist_ok=True)
+        args_cli.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+        print(json.dumps({key: value for key, value in result.items() if key != "episodes"}, indent=2))
         env.close()
-
-    result = summarize(args_cli.policy, args_cli.task, args_cli.checkpoint, seeds, episodes)
-    args_cli.output.parent.mkdir(parents=True, exist_ok=True)
-    args_cli.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({key: value for key, value in result.items() if key != "episodes"}, indent=2))
 
 
 if __name__ == "__main__":
