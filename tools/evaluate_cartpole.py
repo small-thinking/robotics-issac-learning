@@ -103,13 +103,18 @@ def main() -> None:
 
         runner = None
         if args_cli.policy == "trained":
-            if args_cli.legacy_state_preprocessor:
-                experiment_cfg["agent"]["observation_preprocessor"] = None
             experiment_cfg["trainer"]["close_environment_at_exit"] = False
             experiment_cfg["agent"]["experiment"]["write_interval"] = 0
             experiment_cfg["agent"]["experiment"]["checkpoint_interval"] = 0
             runner = Runner(env, experiment_cfg)
             runner.agent.load(str(args_cli.checkpoint.resolve()))
+            if args_cli.legacy_state_preprocessor:
+                checkpoint_data = torch.load(
+                    args_cli.checkpoint.resolve(), map_location="cpu", weights_only=False
+                )
+                runner.agent.observation_preprocessor.load_state_dict(
+                    checkpoint_data["state_preprocessor"]
+                )
             runner.agent.enable_training_mode(False, apply_to_models=True)
 
         episodes: list[dict] = []
