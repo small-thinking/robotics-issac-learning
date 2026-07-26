@@ -1,9 +1,10 @@
 # Status
 
 - Updated: 2026-07-26 America/Los_Angeles
-- Completed phase: Phase 1 — fresh manager-based PPO reproduction
-- Next experiment: fixed-seed checkpoint learning curve, then Phase 1 seed
-  robustness and Phase 2 controlled RL
+- Completed phase: Phase 1 — fresh manager-based PPO reproduction and
+  checkpoint learning curve
+- Next experiment: zero-cost control telemetry, then Phase 1 seed robustness
+  and Phase 2 controlled RL
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified after `brev refresh`
 - Billable GPU compute still running: no
@@ -34,11 +35,19 @@
 
 - Numbered checkpoints retained remotely: `agent_240.pt` through
   `agent_2400.pt`
-- Fixed-seed sweep tool: implemented and locally tested
+- Fixed-seed sweep: complete; 25 episodes per checkpoint using the canonical
+  five seeds
 - Plot metrics: mean balance seconds and five-second time-limit fraction
 - Random policy treatment: horizontal reference baseline, not a synthetic
   step-zero checkpoint
-- Actual sweep JSON and SVG: pending a newly approved remote window
+- Learning transition: from 0.935 seconds at 2.95M transitions to 4.491 seconds
+  at 4.92M transitions
+- Plateau: approximately 4.8 seconds and `24/25` time-limit episodes from
+  6.88M transitions onward, with one temporary dip
+- Actual sweep JSON:
+  `artifacts/evaluations/phase1_learning_curve.json`
+- Actual plot: `artifacts/plots/phase1_learning_curve.svg`
+- Preserved training logs and configs: `artifacts/training/phase1/`
 - GPU requirement now: none; the instance remains stopped
 
 ## Phase 0 acceptance
@@ -80,7 +89,7 @@
 
 ## Exact next action
 
-Review and merge the prepared learning-curve tooling. After a fresh cost quote
-and explicit approval, use one short remote window to evaluate the retained
-checkpoints. Control telemetry and additional training seeds follow after the
-curve is verified.
+Add action and state telemetry to the local evaluator so the current policy's
+sparse corrective behavior can be measured. Additional training seeds require
+a fresh cost quote and explicit approval; no GPU is needed for the telemetry
+implementation.

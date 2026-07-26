@@ -90,3 +90,15 @@ panel.
 
 A uniform-random policy is a horizontal reference baseline. It is not labeled
 as training step zero because it is not the freshly initialized PPO network.
+
+## 2026-07-26 — Select checkpoints with the acceptance evaluator
+
+Use the canonical fixed-seed behavioral evaluator when choosing the checkpoint
+for comparison or playback. Preserve `best_agent.pt` as trainer output, but do
+not assume its internal selection metric matches mean balance time or
+time-limit success.
+
+In the seed-42 run, `best_agent.pt` reached `22/25` time-limit episodes, while
+the final numbered checkpoint reached `24/25` under the same evaluation
+contract. Both remain valid artifacts; claims about “best” must name the metric
+used.

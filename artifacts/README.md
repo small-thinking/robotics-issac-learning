@@ -1,12 +1,17 @@
 # Artifacts
 
-Large checkpoints, videos, caches, and logs remain in the Brev persistent
-workspace and are not committed.
+Large checkpoints, videos, and caches remain in the Brev persistent workspace
+and are not committed.
 
 Small evaluation summaries may be recorded under `artifacts/evaluations/`.
 `phase0_acceptance_summary.json` contains only aggregate metrics captured from
 the remote evaluator; it intentionally does not reconstruct or invent
 per-episode records that were not copied before the instance stopped.
+
+Compact, reviewed training evidence may be stored under `artifacts/training/`.
+Phase 1 preserves the exact console log, raw TensorBoard scalar stream, and
+resolved agent/environment configs. Checkpoints remain remote because they are
+large model binaries.
 
 Reviewed learning-curve figures may be stored under `artifacts/plots/`. The
 corresponding JSON remains the source of truth; plots must be rendered from
