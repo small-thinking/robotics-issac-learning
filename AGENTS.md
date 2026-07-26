@@ -36,8 +36,8 @@ At the start of a new Codex session:
 3. Treat committed evaluation artifacts as evidence and do not reconstruct
    missing episode data.
 4. Verify live Brev state with `brev ls`; never infer it from an older document.
-5. Continue the numbered experiment sequence instead of rerunning a completed
-   phase unless a regression or explicit reproduction requires it.
+5. Continue the numbered stage/sub-experiment hierarchy instead of rerunning a
+   completed phase unless a regression or explicit reproduction requires it.
 
 ## Canonical commands
 

@@ -40,7 +40,7 @@ settings across them.
 ## Immediate next work
 
 The next experiment is the numbered checkpoint learning curve in
-`experiments/02_checkpoint_learning_curve/`.
+`experiments/01_cartpole_ppo/02_checkpoint_learning_curve/`.
 
 1. Evaluate `agent_240.pt` through `agent_2400.pt` with the same fixed seeds.
 2. Plot mean balance seconds and time-limit success against training
