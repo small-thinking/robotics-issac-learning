@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_url="${PROJECT_GIT_URL:-https://github.com/small-thinking/robotics-issac-learning.git}"
-branch="${PROJECT_GIT_BRANCH:-codex/phase-0-1-bootstrap}"
+branch="${PROJECT_GIT_BRANCH:-main}"
 project_dir="${REMOTE_PROJECT_DIR:-/workspace/robotics-issac-learning}"
 
 printf -v quoted_repo_url '%q' "$repo_url"

@@ -3,7 +3,7 @@ rl_library: skrl
 algorithm: PPO
 seed: 42
 num_envs: 4096
-# null means use the installed task config. The verified 150-iteration Direct
-# smoke budget was insufficient and must not become the convergence default.
+# null means use the installed manager-based task config. In the matching
+# v3.0.0-beta2.patch1 source that is 2400 vector steps with rollout length 16.
 max_iterations: null
 visualizer: none

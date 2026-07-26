@@ -6,7 +6,7 @@ rl_library="${ISAAC_RL_LIBRARY:-skrl}"
 seed="${ISAAC_TRAIN_SEED:-42}"
 num_envs="${ISAAC_NUM_ENVS:-4096}"
 max_iterations="${ISAAC_MAX_ITERATIONS:-}"
-log_path="${ISAAC_TRAIN_LOG:-/workspace/phase0/artifacts/logs/train_cartpole.log}"
+log_path="${ISAAC_TRAIN_LOG:-/workspace/phase1/artifacts/logs/train_cartpole_manager.log}"
 
 printf -v quoted_task '%q' "$task"
 printf -v quoted_rl_library '%q' "$rl_library"

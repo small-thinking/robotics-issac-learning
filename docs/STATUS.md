@@ -1,6 +1,6 @@
 # Status
 
-- Updated: 2026-07-25 America/Los_Angeles
+- Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 0 — visible random-to-pretrained CartPole loop
 - Next phase: Phase 1 — reproduce manager-based skrl PPO from scratch
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
@@ -9,6 +9,22 @@
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
+
+## Phase 1 preparation
+
+- Observable remote-command wrapper: implemented and locally tested
+- Dry-run previews: `make show-inspect-config`, `make show-train`,
+  `make show-eval`
+- Reproduction contract:
+  `docs/PHASE1_PPO_REPRODUCTION.md`
+- Official source comparison: manager-based config uses rollout 16,
+  2400 vector steps, learning rate `3e-4`, no state/value scaler, and reward
+  scale `1.0`
+- Existing stopped hardware live price checked 2026-07-26:
+  `$1.59/hour` compute plus approximately `$0.04/hour` persistent storage
+- Proposed paid window: at most 30 minutes, approximately `$0.80` compute
+  (`$0.82` including a half hour of storage)
+- Restart approval for this new paid window: pending
 
 ## Phase 0 acceptance
 
@@ -46,7 +62,7 @@
 
 ## Exact next action
 
-Obtain explicit approval to restart the stopped L4 instance, then run Phase 1
-on `Isaac-Cartpole-v0` using the installed official skrl PPO horizon and the
-fixed-seed acceptance gates in `docs/ROADMAP.md`. Do not restart or create
-billable compute without that approval.
+Obtain explicit approval to restart the stopped L4 instance, inspect the exact
+installed manager-based skrl config, then run the locked reproduction in
+`docs/PHASE1_PPO_REPRODUCTION.md`. Do not restart or create billable compute
+without that approval.

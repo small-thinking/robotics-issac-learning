@@ -35,19 +35,28 @@ The user does not need to type remote commands or operate VS Code.
 Before spending:
 
 1. Read `docs/LESSONS_LEARNED.md`.
-2. Confirm the instance is stopped with `make status`.
-3. Record an explicit restart approval and session cost cap.
-4. Restart only `isaac-launchable-f150a5`; never create a second instance for
+2. Read `docs/PHASE1_PPO_REPRODUCTION.md`.
+3. Preview the commands with `make show-inspect-config`, `make show-train`, and
+   `make show-eval`.
+4. Confirm the instance is stopped with `make status`.
+5. Record an explicit restart approval and session cost cap.
+6. Restart only `isaac-launchable-f150a5`; never create a second instance for
    this experiment.
 
 On the running instance:
 
 ```bash
+export BREV_INSTANCE_NAME=isaac-launchable-f150a5
+export PROJECT_GIT_BRANCH=codex/phase1-observable-ppo
+export REMOTE_COMMAND_LOG=artifacts/commands/phase1.log
+
 make sync
 make remote-setup
+make inspect-config
 ISAAC_TASK=Isaac-Cartpole-v0 make smoke
 ISAAC_TASK=Isaac-Cartpole-v0 \
 ISAAC_NUM_ENVS=4096 \
+ISAAC_TRAIN_LOG=/workspace/phase1/artifacts/logs/train_cartpole_manager.log \
 make train
 ```
 
@@ -78,6 +87,10 @@ Accept the from-scratch run only when:
 
 Save the resolved config, log path, checkpoint path, metrics, elapsed time,
 transition count, and Git commit. Then run `make stop` and verify `STOPPED`.
+
+Every remote wrapper prints the outer Brev command and inner container command
+before execution. See `docs/COMMANDS.md` for preview, tracing, transcript, and
+optional interactive-shell usage.
 
 ## Checkpoint provenance labels
 

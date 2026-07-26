@@ -73,6 +73,8 @@ make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
 make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
+make show-train # print the exact remote training command without running it
+make show-eval  # print the exact evaluation commands without running them
 ```
 
 Set `BREV_INSTANCE_NAME` to the exact active instance name. Training and
@@ -86,6 +88,10 @@ path before `make eval`.
 
 - [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
 - [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
+- [Command visibility](docs/COMMANDS.md): how local, VM, and container commands
+  are displayed and recorded
+- [Phase 1 PPO reproduction](docs/PHASE1_PPO_REPRODUCTION.md): locked
+  manager-based config, diagnosis, commands, and acceptance gates
 - [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered
 - [Experiments](docs/EXPERIMENTS.md): successful and failed runs
 - [Environment](docs/ENVIRONMENT.md): pinned local and remote versions

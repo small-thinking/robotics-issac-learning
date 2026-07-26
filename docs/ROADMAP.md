@@ -25,8 +25,8 @@ same behavior.
 2. Capture the resolved environment and skrl PPO config before training.
 3. Evaluate random policy with the existing 25-episode fixed-seed protocol.
 4. Train one seed headlessly with 4096 vectorized environments, using the
-   installed task's official training horizon rather than the failed
-   150-iteration smoke cap.
+   installed manager-based task's official PPO config rather than carrying over
+   Direct-task rollout, normalization, reward-scale, or learning-rate settings.
 5. Evaluate every retained checkpoint on the same task and seeds.
 6. Play only the best qualifying checkpoint in the secure Viewer.
 7. Repeat with two more training seeds after the one-seed MVP passes.

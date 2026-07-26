@@ -42,6 +42,16 @@ a separate environment implementation and must not be used as a drop-in
 checkpoint or metric comparison. Keep wrappers aligned with the installed
 Isaac Launchable rather than old tutorial syntax.
 
+## Command visibility
+
+- Before each remote action, show the exact local Brev command and container
+  command to the user.
+- Use the checked-in remote wrappers, which print commands before execution.
+- Use `REMOTE_DRY_RUN=1` or `make show-*` when previewing without remote access.
+- Stream training output and preserve exact commands, configs, checkpoints,
+  metrics, and conclusions in durable project records.
+- Do not include credentials or secrets in command transcripts.
+
 ## Safety boundaries
 
 - Never create a billable instance without explicit cost approval.

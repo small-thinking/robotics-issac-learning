@@ -58,3 +58,14 @@ The former 150-iteration override is retained only in the experiment record; it
 is not the canonical convergence budget. `ISAAC_MAX_ITERATIONS` is empty by
 default so the installed task's official PPO config controls the run. A manual
 cap must be labeled as a bounded experiment and evaluated independently.
+
+## 2026-07-26 — Reproduce the manager-based PPO recipe before tuning
+
+The first Phase 1 run uses `Isaac-Cartpole-v0`, skrl PPO, seed 42, 4096
+environments, and the installed manager-based YAML with no iteration override
+or resume checkpoint.
+
+The earlier Direct runs differed in rollout length, learning rate,
+normalization, reward scale, trainer horizon, and task semantics. Increasing
+their duration did not test the accepted manager-based recipe. Configuration
+inspection and checkpoint provenance therefore precede any new tuning.
