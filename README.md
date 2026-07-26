@@ -88,10 +88,12 @@ path before `make eval`.
 
 - [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
 - [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
-- [Command visibility](docs/COMMANDS.md): how local, VM, and container commands
-  are displayed and recorded
+- [Transferable robotics-ML commands](docs/ROBOTICS_ML_COMMANDS.md): the
+  task-to-baseline-to-training-to-evaluation workflow worth learning
 - [Phase 1 PPO reproduction](docs/PHASE1_PPO_REPRODUCTION.md): locked
   manager-based config, diagnosis, commands, and acceptance gates
+- [Operator command visibility](docs/COMMANDS.md): Brev/container preview and
+  transcript details
 - [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered
 - [Experiments](docs/EXPERIMENTS.md): successful and failed runs
 - [Environment](docs/ENVIRONMENT.md): pinned local and remote versions

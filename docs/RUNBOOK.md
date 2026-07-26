@@ -35,12 +35,13 @@ The user does not need to type remote commands or operate VS Code.
 Before spending:
 
 1. Read `docs/LESSONS_LEARNED.md`.
-2. Read `docs/PHASE1_PPO_REPRODUCTION.md`.
-3. Preview the commands with `make show-inspect-config`, `make show-train`, and
+2. Read `docs/ROBOTICS_ML_COMMANDS.md`.
+3. Read `docs/PHASE1_PPO_REPRODUCTION.md`.
+4. Preview the commands with `make show-inspect-config`, `make show-train`, and
    `make show-eval`.
-4. Confirm the instance is stopped with `make status`.
-5. Record an explicit restart approval and session cost cap.
-6. Restart only `isaac-launchable-f150a5`; never create a second instance for
+5. Confirm the instance is stopped with `make status`.
+6. Record an explicit restart approval and session cost cap.
+7. Restart only `isaac-launchable-f150a5`; never create a second instance for
    this experiment.
 
 On the running instance:

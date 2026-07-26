@@ -44,9 +44,12 @@ Isaac Launchable rather than old tutorial syntax.
 
 ## Command visibility
 
-- Before each remote action, show the exact local Brev command and container
-  command to the user.
-- Use the checked-in remote wrappers, which print commands before execution.
+- Surface the commands that teach transferable robotics-ML workflow:
+  task/MDP inspection, random baseline, PPO training, checkpoint selection,
+  fixed-seed evaluation, and policy playback.
+- Summarize Brev, Docker, sync, and other platform plumbing unless it is itself
+  under diagnosis; do not make it the learning narrative.
+- Use the checked-in remote wrappers for operational reproducibility.
 - Use `REMOTE_DRY_RUN=1` or `make show-*` when previewing without remote access.
 - Stream training output and preserve exact commands, configs, checkpoints,
   metrics, and conclusions in durable project records.

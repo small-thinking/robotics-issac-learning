@@ -1,4 +1,7 @@
-# Command Visibility and Learning Guide
+# Operator Command Visibility
+
+This file covers platform operations and debugging. The learning-oriented
+workflow is in `docs/ROBOTICS_ML_COMMANDS.md`.
 
 Codex operates the remote simulator through the CLI. It does not require VS
 Code and normally does not type commands into an interactive shell.
