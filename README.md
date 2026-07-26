@@ -9,17 +9,26 @@ spelling **Isaac**.
 
 ## Current milestone
 
-Phase 0 proves the smallest visible learning loop:
+Phase 0 is complete. One Brev L4 instance ran the official Isaac Launchable,
+showed a visibly unstable random CartPole policy, and then showed a nearly
+stable policy from NVIDIA's official skrl PPO checkpoint. The fixed-seed
+manager-based evaluation measured:
 
-1. launch the official Isaac environment on one Brev GPU;
-2. view an untrained/random CartPole policy through the streamed Isaac Sim UI;
-3. train a minimal PPO policy headlessly;
-4. view the trained policy and confirm the behavioral difference;
-5. save the commands, versions, logs, checkpoint path, and evaluation summary;
-6. stop the billable instance.
+| Policy | Mean episode length | Time-limit episodes |
+| --- | ---: | ---: |
+| random | 188.44 | 0 / 25 |
+| official pretrained PPO | 268.88 | 22 / 25 |
 
-No custom robot, camera pipeline, VLA, or Hugging Face integration is included
-in Phase 0.
+The successful task was `Isaac-Cartpole-v0`, a **manager-based** environment.
+It is not checkpoint-compatible or directly metric-comparable with
+`Isaac-Cartpole-Direct-v0`. Short local PPO attempts on the Direct task did not
+converge and are recorded as failed experiments rather than presented as the
+trained result.
+
+Phase 1 now has one precise goal: train skrl PPO from scratch on the same
+manager-based task and pass the same numerical and visual acceptance gates.
+No custom robot, camera pipeline, VLA, or Hugging Face integration is part of
+that reproduction step.
 
 ## Local commands
 
@@ -38,8 +47,11 @@ make stop       # stop, but never delete, the configured instance
 ```
 
 Set `BREV_INSTANCE_NAME` to the exact active instance name. Training and
-playback default to the installed `Isaac-Cartpole-Direct-v0` task and the
-official skrl PPO configuration. Set `ISAAC_CHECKPOINT` to an exact checkpoint
+playback default to the installed `Isaac-Cartpole-v0` task and its official
+skrl PPO configuration. `ISAAC_MAX_ITERATIONS` is empty by default so the
+installed task config controls the training horizon; set it only for an
+intentional bounded experiment. Set `ISAAC_CHECKPOINT` to an exact checkpoint
 path before `make eval`.
 
-See [the runbook](docs/RUNBOOK.md) for the operator and user-visible flow.
+See [the roadmap](docs/ROADMAP.md), [runbook](docs/RUNBOOK.md), and
+[lessons learned](docs/LESSONS_LEARNED.md) before the next paid run.

@@ -3,6 +3,7 @@ set -euo pipefail
 
 project_dir="${REMOTE_PROJECT_DIR:-/workspace/robotics-issac-learning}"
 isaaclab_dir="${ISAACLAB_DIR:-/workspace/isaaclab}"
+task="${ISAAC_TASK:-Isaac-Cartpole-v0}"
 checkpoint="${ISAAC_CHECKPOINT:-}"
 
 if [[ -z "$checkpoint" ]]; then
@@ -12,6 +13,7 @@ fi
 
 printf -v quoted_project_dir '%q' "$project_dir"
 printf -v quoted_isaaclab_dir '%q' "$isaaclab_dir"
+printf -v quoted_task '%q' "$task"
 printf -v quoted_checkpoint '%q' "$checkpoint"
 
 remote_command="
@@ -19,7 +21,7 @@ set -euo pipefail
 cd $quoted_isaaclab_dir
 ./isaaclab.sh -p $quoted_project_dir/tools/evaluate_cartpole.py \
   --policy=random \
-  --task=Isaac-Cartpole-Direct-v0 \
+  --task=$quoted_task \
   --seeds=101,202,303,404,505 \
   --episodes-per-seed=5 \
   --num-envs=64 \
@@ -27,7 +29,7 @@ cd $quoted_isaaclab_dir
   --viz none
 ./isaaclab.sh -p $quoted_project_dir/tools/evaluate_cartpole.py \
   --policy=trained \
-  --task=Isaac-Cartpole-Direct-v0 \
+  --task=$quoted_task \
   --checkpoint=$quoted_checkpoint \
   --seeds=101,202,303,404,505 \
   --episodes-per-seed=5 \

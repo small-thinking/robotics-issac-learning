@@ -25,7 +25,7 @@ with contextlib.suppress(ImportError):
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--policy", choices=("random", "trained"), required=True)
-parser.add_argument("--task", default="Isaac-Cartpole-Direct-v0")
+parser.add_argument("--task", default="Isaac-Cartpole-v0")
 parser.add_argument("--checkpoint", type=Path)
 parser.add_argument(
     "--legacy-state-preprocessor",

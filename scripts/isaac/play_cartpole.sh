@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-task="${ISAAC_TASK:-Isaac-Cartpole-Direct-v0}"
+task="${ISAAC_TASK:-Isaac-Cartpole-v0}"
 rl_library="${ISAAC_RL_LIBRARY:-skrl}"
 checkpoint="${ISAAC_CHECKPOINT:-}"
 log_path="${ISAAC_PLAY_LOG:-/workspace/phase0/artifacts/logs/trained_cartpole.log}"

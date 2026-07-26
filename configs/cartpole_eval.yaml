@@ -1,4 +1,4 @@
-task: Isaac-Cartpole-Direct-v0
+task: Isaac-Cartpole-v0
 rl_library: skrl
 algorithm: PPO
 seeds:

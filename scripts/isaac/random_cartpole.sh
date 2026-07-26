@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-task="${ISAAC_TASK:-Isaac-Cartpole-Direct-v0}"
+task="${ISAAC_TASK:-Isaac-Cartpole-v0}"
 num_envs="${ISAAC_PLAY_NUM_ENVS:-1}"
 log_path="${ISAAC_RANDOM_LOG:-/workspace/phase0/artifacts/logs/random_cartpole.log}"
 

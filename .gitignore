@@ -28,6 +28,7 @@ artifacts/*
 !artifacts/evaluations/
 artifacts/evaluations/*
 !artifacts/evaluations/.gitkeep
+!artifacts/evaluations/phase0_acceptance_summary.json
 
 # macOS and editors
 .DS_Store

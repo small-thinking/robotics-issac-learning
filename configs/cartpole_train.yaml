@@ -1,7 +1,9 @@
-task: Isaac-Cartpole-Direct-v0
+task: Isaac-Cartpole-v0
 rl_library: skrl
 algorithm: PPO
 seed: 42
 num_envs: 4096
-max_iterations: 150
+# null means use the installed task config. The verified 150-iteration Direct
+# smoke budget was insufficient and must not become the convergence default.
+max_iterations: null
 visualizer: none

@@ -15,8 +15,10 @@ VS Code is not required.
 
 ## Current phase
 
-Phase 0: prove a visually inspectable random-policy to trained-policy CartPole
-loop using the official Isaac Launchable.
+Phase 0 is complete: the official manager-based CartPole PPO checkpoint passed
+fixed-seed evaluation and visual inspection. The immediate next milestone is
+Phase 1: reproduce that behavior by training PPO from scratch on the exact same
+task and software image.
 
 ## Canonical commands
 
@@ -34,9 +36,11 @@ make status
 make stop
 ```
 
-The verified Phase 0 task is `Isaac-Cartpole-Direct-v0`; the RL backend is skrl
-PPO. Keep wrappers aligned with the installed Isaac Launchable rather than old
-tutorial syntax.
+The canonical training/evaluation task is the manager-based
+`Isaac-Cartpole-v0`; the RL backend is skrl PPO. `Isaac-Cartpole-Direct-v0` is
+a separate environment implementation and must not be used as a drop-in
+checkpoint or metric comparison. Keep wrappers aligned with the installed
+Isaac Launchable rather than old tutorial syntax.
 
 ## Safety boundaries
 
