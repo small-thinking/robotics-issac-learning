@@ -43,8 +43,8 @@ settings across them.
 
 ## Immediate next work
 
-The checkpoint learning curve in
-`experiments/01_cartpole_ppo/02_checkpoint_learning_curve/` is complete.
+The checkpoint learning-curve section in
+`experiments/01_cartpole_ppo/README.md` is complete.
 
 1. Add control-style telemetry locally.
 2. Repeat the unchanged baseline with two additional training seeds.
