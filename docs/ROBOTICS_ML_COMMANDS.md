@@ -131,3 +131,22 @@ The locally trained policy passes when all of these hold:
 - mean reward is positive;
 - checkpoint provenance is `local_trained`;
 - stable corrective behavior is visually confirmed.
+
+## Phase 1 worked result
+
+The first clean run of this workflow needed no tuning:
+
+- seed: `42`
+- parallel environments: `4096`
+- vector steps: `2400`
+- collected transitions: `9,830,400`
+- wall-clock training time on one L4: `68.43` seconds
+- fixed-seed mean episode length: `269.44`
+- time-limit episodes: `22/25`
+- official-checkpoint comparison: `268.88` mean length and `22/25`
+  time-limit episodes
+
+The useful lesson is not that these numbers transfer to every robot. The
+transferable part is the experimental sequence: lock one task/config contract,
+train without hidden resume state, evaluate the exact checkpoint under fixed
+seeds, and only then use visual behavior to diagnose what metrics conceal.

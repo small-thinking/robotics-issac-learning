@@ -69,3 +69,14 @@ The earlier Direct runs differed in rollout length, learning rate,
 normalization, reward scale, trainer horizon, and task semantics. Increasing
 their duration did not test the accepted manager-based recipe. Configuration
 inspection and checkpoint provenance therefore precede any new tuning.
+
+## 2026-07-26 — Treat the failed Direct runs as a contract mismatch
+
+The clean manager-based reproduction passed its quantitative gates in 68.43
+seconds without hyperparameter tuning. This establishes that the earlier
+failure was not evidence that PPO, the L4, 4096 parallel environments, or the
+overall Isaac training path was broken.
+
+Future debugging starts by matching task ID, observation/action interface,
+reward and termination semantics, preprocessing, rollout length, and training
+horizon. More compute is considered only after those contracts match.

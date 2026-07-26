@@ -1,0 +1,61 @@
+{
+  "artifact_type": "aggregate_training_and_evaluation_summary",
+  "evaluation_date_utc": "2026-07-26",
+  "environment": {
+    "isaac_lab_image": "nvcr.io/nvidia/isaac-lab:3.0.0-beta2-post1",
+    "task": "Isaac-Cartpole-v0",
+    "workflow": "manager_based"
+  },
+  "training": {
+    "algorithm": "PPO",
+    "checkpoint": "logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/best_agent.pt",
+    "learning_rate": 0.0003,
+    "manual_horizon_override": false,
+    "num_environments": 4096,
+    "provenance": "local_trained",
+    "resume_checkpoint": null,
+    "rl_library": "skrl",
+    "rollout_length": 16,
+    "seed": 42,
+    "training_seconds": 68.43,
+    "transitions": 9830400,
+    "vector_steps": 2400
+  },
+  "evaluation": {
+    "episode_count": 25,
+    "episodes_per_seed": 5,
+    "mean_episode_length": 269.44,
+    "mean_episode_reward": 4.380518758296967,
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505
+    ],
+    "std_episode_length": 82.78844363798609,
+    "std_episode_reward": 1.4007005185494263,
+    "termination_reason_counts": {
+      "out_of_bounds": 3,
+      "time_limit": 22
+    }
+  },
+  "official_checkpoint_comparison": {
+    "mean_episode_length": 268.88,
+    "mean_episode_reward": 3.8110712456703184,
+    "termination_reason_counts": {
+      "out_of_bounds": 3,
+      "time_limit": 22
+    }
+  },
+  "result": {
+    "mean_episode_length_gate": true,
+    "phase1_passed": true,
+    "positive_mean_reward_gate": true,
+    "provenance_gate": true,
+    "quantitative_gates_passed": true,
+    "time_limit_episode_gate": true,
+    "user_visual_confirmation": "The locally trained policy remained stable and used comparatively sparse, anticipatory cart corrections to keep the pole close to vertical."
+  },
+  "schema_version": 1
+}

@@ -1,8 +1,8 @@
 # Status
 
 - Updated: 2026-07-26 America/Los_Angeles
-- Completed phase: Phase 0 — visible random-to-pretrained CartPole loop
-- Next phase: Phase 1 — reproduce manager-based skrl PPO from scratch
+- Completed phase: Phase 1 — fresh manager-based PPO reproduction
+- Next phase: Phase 1 robustness, then Phase 2 controlled RL understanding
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified after `brev refresh`
 - Billable GPU compute still running: no
@@ -10,21 +10,24 @@
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 
-## Phase 1 preparation
+## Phase 1 result
 
 - Observable remote-command wrapper: implemented and locally tested
 - Dry-run previews: `make show-inspect-config`, `make show-train`,
   `make show-eval`
-- Reproduction contract:
-  `docs/PHASE1_PPO_REPRODUCTION.md`
-- Official source comparison: manager-based config uses rollout 16,
-  2400 vector steps, learning rate `3e-4`, no state/value scaler, and reward
-  scale `1.0`
-- Existing stopped hardware live price checked 2026-07-26:
-  `$1.59/hour` compute plus approximately `$0.04/hour` persistent storage
-- Proposed paid window: at most 30 minutes, approximately `$0.80` compute
-  (`$0.82` including a half hour of storage)
-- Restart approval for this new paid window: pending
+- Fresh training: complete, seed `42`, no resume checkpoint
+- Configuration: 4096 environments, rollout 16, 2400 vector steps,
+  9,830,400 transitions, learning rate `3e-4`
+- Runtime: `68.43` seconds
+- Checkpoint:
+  `logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/best_agent.pt`
+- Fixed-seed result: mean reward `4.3805`, mean length `269.44`,
+  `time_limit=22`, `out_of_bounds=3`
+- Quantitative gate: passed
+- User visual confirmation: passed; stable balancing with comparatively sparse,
+  anticipatory cart corrections
+- Compute price: `$1.59/hour` plus approximately `$0.04/hour` persistent
+  storage
 
 ## Phase 0 acceptance
 
@@ -49,7 +52,8 @@
 - Direct RL-Games PPO, 150 epochs: did not establish fixed-seed convergence
 - Official legacy Direct checkpoint: loaded with compatibility handling but did
   not produce the expected behavior
-- Locally trained manager-based checkpoint: not yet produced
+- Locally trained manager-based checkpoint: produced and passed the independent
+  fixed-seed quantitative gates
 
 ## Persistent remote artifacts
 
@@ -59,10 +63,11 @@
 - Direct RL-Games logs/checkpoints:
   `/workspace/isaaclab/logs/rl_games/cartpole_direct/`
 - Phase 0 logs: `/workspace/phase0/artifacts/logs/`
+- Phase 1 training log:
+  `/workspace/phase1/artifacts/logs/train_cartpole_manager.log`
 
 ## Exact next action
 
-Obtain explicit approval to restart the stopped L4 instance, inspect the exact
-installed manager-based skrl config, then run the locked reproduction in
-`docs/PHASE1_PPO_REPRODUCTION.md`. Do not restart or create billable compute
-without that approval.
+Implement and locally test control-style telemetry without starting Brev. The
+next paid window can then reproduce with two additional training seeds and run
+the first single-variable Phase 2 reward ablation after explicit approval.

@@ -16,7 +16,7 @@ Acceptance evidence: on `Isaac-Cartpole-v0`, the official checkpoint reached
 for random. The user confirmed the trained pole was almost continuously
 balanced.
 
-## Phase 1 — Reproduce PPO from scratch (next)
+## Phase 1 — Reproduce PPO from scratch (one-seed MVP complete)
 
 Goal: prove that our own training run, not a downloaded checkpoint, reaches the
 same behavior.
@@ -40,15 +40,17 @@ One-seed acceptance gates:
 - visually stable behavior confirmed in the secure Viewer.
 
 The target is equivalent behavior, not identical weights or an identical
-learning curve. If the first run fails, inspect the learning curve and resolved
-config before increasing compute.
+learning curve. The seed-42 run passed with mean episode length `269.44`,
+`22/25` time-limit episodes, positive mean reward, local provenance, and user
+visual confirmation. The remaining robustness check is to repeat unchanged
+training with two additional seeds.
 
 ### What 4096 parallel environments means
 
 It is 4096 independent simulator states sharing one policy, not a batch of 4096
 pre-existing examples and not 4096 separately trained models. With the
-observed skrl rollout length of 32, one collection cycle yields
-`4096 x 32 = 131,072` transitions. PPO computes returns/advantages along each
+manager-based skrl rollout length of 16, one collection cycle yields
+`4096 x 16 = 65,536` transitions. PPO computes returns/advantages along each
 environment's time axis with termination masks, flattens the transitions,
 shuffles them into minibatches, and applies all gradient updates to one shared
 actor-critic.
@@ -61,6 +63,11 @@ actor-critic.
 - Add checkpoint selection and regression thresholds to the CLI workflow.
 - Persist compact metrics and config snapshots in Git; keep large checkpoints
   on remote storage or an artifact store.
+
+The first planned ablation is `cart_vel.weight: -0.01 -> 0.0`. It tests whether
+the cart-velocity shaping term explains the difference between sparse,
+anticipatory corrections and more continuous movement. See
+`docs/PHASE2_CONTROLLED_RL.md`.
 
 ## Phase 3 — Robot-arm state-based control
 

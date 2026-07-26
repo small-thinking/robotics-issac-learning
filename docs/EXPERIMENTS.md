@@ -100,3 +100,33 @@
 - Summary artifact: `artifacts/evaluations/phase0_acceptance_summary.json`
 - Conclusion: Phase 0 plumbing and behavior acceptance passed; PPO-from-scratch
   reproduction remains Phase 1
+
+## 2026-07-26 — Fresh manager-based skrl PPO passed Phase 1
+
+- Git commit: `c0ae102` at remote sync
+- Environment: Isaac Launchable `3.0.0-beta2-post1`, 1x L4
+- Task: `Isaac-Cartpole-v0` (manager-based)
+- Model: skrl PPO using the installed official task config
+- Provenance: trained locally from scratch; no resume or pretrained checkpoint
+- Training configuration: seed `42`, 4096 environments, rollout length `16`,
+  2400 vector steps, 9,830,400 transitions, learning rate `3e-4`
+- Runtime: `68.43` seconds
+- Run:
+  `logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch`
+- Evaluated checkpoint:
+  `logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/best_agent.pt`
+- Evaluation protocol: 25 episodes; seeds `101, 202, 303, 404, 505`; five
+  episodes per seed
+- Mean reward: `4.380518758296967`
+- Reward standard deviation: `1.4007005185494263`
+- Mean episode length: `269.44`
+- Length standard deviation: `82.78844363798609`
+- Termination reasons: `time_limit=22`, `out_of_bounds=3`
+- Comparison: the official checkpoint produced mean reward `3.8111`, mean
+  length `268.88`, and the same `22/25` time-limit count
+- Visual result: the user confirmed stable balancing and observed fewer, more
+  anticipatory cart movements that kept the pole close to vertical
+- Summary artifact:
+  `artifacts/evaluations/phase1_reproduction_summary.json`
+- Conclusion: the local-from-scratch checkpoint passed every quantitative and
+  visual Phase 1 gate

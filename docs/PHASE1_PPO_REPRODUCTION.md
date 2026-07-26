@@ -107,3 +107,30 @@ If the locked first run fails:
 Do not switch to Direct, change RL libraries, add a legacy preprocessor, resume
 an old checkpoint, or increase the horizon until the locked reproduction has
 been correctly executed and diagnosed.
+
+## Reproduction result
+
+The locked first run completed on 2026-07-26 without changing the task,
+algorithm, installed config, or training horizon.
+
+| Field | Result |
+| --- | ---: |
+| training time | 68.43 seconds |
+| transitions | 9,830,400 |
+| evaluated episodes | 25 |
+| mean reward | 4.3805 |
+| mean episode length | 269.44 |
+| time-limit episodes | 22 / 25 |
+| out-of-bounds episodes | 3 / 25 |
+
+The evaluated local checkpoint is:
+
+```text
+logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/best_agent.pt
+```
+
+All quantitative gates passed. The result closely matched the official
+checkpoint's mean length of `268.88` and identical `22/25` time-limit count.
+The user then confirmed stable behavior in the Viewer, with comparatively
+sparse, anticipatory cart corrections that kept the pole close to vertical.
+Phase 1 passed.
