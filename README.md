@@ -25,17 +25,17 @@ It is not checkpoint-compatible or directly metric-comparable with
 converge and are recorded as failed experiments rather than presented as the
 trained result.
 
-## Next milestone
+## Current milestone
 
-Phase 1 has one precise goal: train skrl PPO from scratch on the same
-manager-based `Isaac-Cartpole-v0` task and reproduce the official checkpoint's
-behavior.
+Phase 1 trained skrl PPO from scratch on the same manager-based
+`Isaac-Cartpole-v0` task. The local checkpoint reached `269.44` mean episode
+steps, `22/25` time-limit episodes, and `4.3805` mean reward in the fixed-seed
+evaluation, closely matching the official checkpoint.
 
-The locally trained checkpoint must reach at least 250 mean episode steps,
-finish at least 20/25 fixed-seed episodes by time limit, achieve positive mean
-reward, and pass a final Viewer check. This keeps the next paid GPU session
-focused: reproduce one known baseline before changing the environment, reward,
-or model.
+The user also confirmed stable behavior in the Viewer: this locally trained
+policy kept the pole close to vertical with comparatively sparse, anticipatory
+cart corrections. Phase 1 is complete. The next short verification is to repeat
+training with two more seeds before changing the learning problem in Phase 2.
 
 ## Long-term learning path
 
@@ -47,7 +47,7 @@ post-training.
 | Phase | Goal | Deliverable |
 | --- | --- | --- |
 | 0 — Simulator loop | Prove Brev, Isaac, evaluation, and Viewer plumbing | Random-versus-pretrained CartPole result — complete |
-| 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Locally trained checkpoint passing fixed-seed gates — next |
+| 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Local checkpoint passed quantitative and visual gates — complete |
 | 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible ablations and regression thresholds |
 | 3 — Robot-arm control | Move from CartPole to Franka reach and cube lift | State-based manipulation baseline |
 | 4 — Imitation learning | Build a demonstration pipeline and train BC, ACT, or Diffusion Policy | Versioned demonstrations and closed-loop success evaluation |
@@ -71,8 +71,11 @@ make smoke      # start random CartPole through the secure viewer
 make train      # run headless skrl PPO and save a checkpoint
 make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
+make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
 make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
+make show-train # print the exact remote training command without running it
+make show-eval  # print the exact evaluation commands without running them
 ```
 
 Set `BREV_INSTANCE_NAME` to the exact active instance name. Training and
@@ -84,8 +87,18 @@ path before `make eval`.
 
 ## Project records
 
+- [Numbered experiment steps](experiments/README.md): the key robotics-ML
+  commands, questions, outputs, and acceptance rules in execution order
 - [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
 - [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
+- [Transferable robotics-ML commands](docs/ROBOTICS_ML_COMMANDS.md): the
+  task-to-baseline-to-training-to-evaluation workflow worth learning
+- [Phase 1 PPO reproduction](docs/PHASE1_PPO_REPRODUCTION.md): locked
+  manager-based config, diagnosis, commands, and acceptance gates
+- [Phase 2 controlled RL](docs/PHASE2_CONTROLLED_RL.md): seed robustness,
+  control telemetry, and the first single-reward ablation
+- [Operator command visibility](docs/COMMANDS.md): Brev/container preview and
+  transcript details
 - [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered
 - [Experiments](docs/EXPERIMENTS.md): successful and failed runs
 - [Environment](docs/ENVIRONMENT.md): pinned local and remote versions

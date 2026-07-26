@@ -16,7 +16,7 @@ Acceptance evidence: on `Isaac-Cartpole-v0`, the official checkpoint reached
 for random. The user confirmed the trained pole was almost continuously
 balanced.
 
-## Phase 1 — Reproduce PPO from scratch (next)
+## Phase 1 — Reproduce PPO from scratch (one-seed MVP complete)
 
 Goal: prove that our own training run, not a downloaded checkpoint, reaches the
 same behavior.
@@ -25,8 +25,8 @@ same behavior.
 2. Capture the resolved environment and skrl PPO config before training.
 3. Evaluate random policy with the existing 25-episode fixed-seed protocol.
 4. Train one seed headlessly with 4096 vectorized environments, using the
-   installed task's official training horizon rather than the failed
-   150-iteration smoke cap.
+   installed manager-based task's official PPO config rather than carrying over
+   Direct-task rollout, normalization, reward-scale, or learning-rate settings.
 5. Evaluate every retained checkpoint on the same task and seeds.
 6. Play only the best qualifying checkpoint in the secure Viewer.
 7. Repeat with two more training seeds after the one-seed MVP passes.
@@ -40,15 +40,22 @@ One-seed acceptance gates:
 - visually stable behavior confirmed in the secure Viewer.
 
 The target is equivalent behavior, not identical weights or an identical
-learning curve. If the first run fails, inspect the learning curve and resolved
-config before increasing compute.
+learning curve. The seed-42 run passed with mean episode length `269.44`,
+`22/25` time-limit episodes, positive mean reward, local provenance, and user
+visual confirmation. The remaining robustness check is to repeat unchanged
+training with two additional seeds.
+
+Before the seed repetitions, evaluate the retained numbered checkpoints to
+produce a fixed-seed learning curve. Plot mean balance seconds and time-limit
+success against training transitions. This is a follow-up measurement, not a
+reason to revoke the completed one-seed acceptance gate.
 
 ### What 4096 parallel environments means
 
 It is 4096 independent simulator states sharing one policy, not a batch of 4096
 pre-existing examples and not 4096 separately trained models. With the
-observed skrl rollout length of 32, one collection cycle yields
-`4096 x 32 = 131,072` transitions. PPO computes returns/advantages along each
+manager-based skrl rollout length of 16, one collection cycle yields
+`4096 x 16 = 65,536` transitions. PPO computes returns/advantages along each
 environment's time axis with termination masks, flattens the transitions,
 shuffles them into minibatches, and applies all gradient updates to one shared
 actor-critic.
@@ -61,6 +68,11 @@ actor-critic.
 - Add checkpoint selection and regression thresholds to the CLI workflow.
 - Persist compact metrics and config snapshots in Git; keep large checkpoints
   on remote storage or an artifact store.
+
+The first planned ablation is `cart_vel.weight: -0.01 -> 0.0`. It tests whether
+the cart-velocity shaping term explains the difference between sparse,
+anticipatory corrections and more continuous movement. See
+`docs/PHASE2_CONTROLLED_RL.md`.
 
 ## Phase 3 — Robot-arm state-based control
 

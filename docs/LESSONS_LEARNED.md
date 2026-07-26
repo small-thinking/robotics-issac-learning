@@ -35,6 +35,11 @@ Treat iteration caps as experimental variables. First inspect the resolved
 official config, learning curve, resets, advantage statistics, and checkpoint
 evaluation; do not assume that “millions of samples” means convergence.
 
+The clean manager-based reproduction sharpened this lesson: 9,830,400
+transitions under the matching task/config contract passed in 68.43 seconds,
+while the longer Direct runs did not. The meaning of the data is determined by
+the MDP and optimizer contract, not by transition count alone.
+
 ## Compare policies with one evaluation contract
 
 Viewer behavior is useful but qualitative. Random and trained policies must use:

@@ -58,3 +58,35 @@ The former 150-iteration override is retained only in the experiment record; it
 is not the canonical convergence budget. `ISAAC_MAX_ITERATIONS` is empty by
 default so the installed task's official PPO config controls the run. A manual
 cap must be labeled as a bounded experiment and evaluated independently.
+
+## 2026-07-26 — Reproduce the manager-based PPO recipe before tuning
+
+The first Phase 1 run uses `Isaac-Cartpole-v0`, skrl PPO, seed 42, 4096
+environments, and the installed manager-based YAML with no iteration override
+or resume checkpoint.
+
+The earlier Direct runs differed in rollout length, learning rate,
+normalization, reward scale, trainer horizon, and task semantics. Increasing
+their duration did not test the accepted manager-based recipe. Configuration
+inspection and checkpoint provenance therefore precede any new tuning.
+
+## 2026-07-26 — Treat the failed Direct runs as a contract mismatch
+
+The clean manager-based reproduction passed its quantitative gates in 68.43
+seconds without hyperparameter tuning. This establishes that the earlier
+failure was not evidence that PPO, the L4, 4096 parallel environments, or the
+overall Isaac training path was broken.
+
+Future debugging starts by matching task ID, observation/action interface,
+reward and termination semantics, preprocessing, rollout length, and training
+horizon. More compute is considered only after those contracts match.
+
+## 2026-07-26 — Use fixed-seed checkpoint sweeps for learning curves
+
+Plot independently evaluated numbered checkpoints rather than treating noisy
+trainer-console statistics as the final behavioral curve. The primary metric
+is mean balance seconds, with five-second time-limit fraction as a second
+panel.
+
+A uniform-random policy is a horizontal reference baseline. It is not labeled
+as training step zero because it is not the freshly initialized PPO network.
