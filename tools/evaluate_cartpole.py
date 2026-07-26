@@ -27,6 +27,11 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--policy", choices=("random", "trained"), required=True)
 parser.add_argument("--task", default="Isaac-Cartpole-Direct-v0")
 parser.add_argument("--checkpoint", type=Path)
+parser.add_argument(
+    "--legacy-state-preprocessor",
+    action="store_true",
+    help="Load checkpoints that store skrl's pre-2.1 state_preprocessor module.",
+)
 parser.add_argument("--seeds", default="101,202,303,404,505")
 parser.add_argument("--episodes-per-seed", type=int, default=5)
 parser.add_argument("--num-envs", type=int, default=64)
@@ -98,6 +103,8 @@ def main() -> None:
 
         runner = None
         if args_cli.policy == "trained":
+            if args_cli.legacy_state_preprocessor:
+                experiment_cfg["agent"]["observation_preprocessor"] = None
             experiment_cfg["trainer"]["close_environment_at_exit"] = False
             experiment_cfg["agent"]["experiment"]["write_interval"] = 0
             experiment_cfg["agent"]["experiment"]["checkpoint_interval"] = 0
