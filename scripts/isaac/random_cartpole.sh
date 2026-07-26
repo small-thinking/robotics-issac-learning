@@ -11,7 +11,10 @@ printf -v quoted_log_path '%q' "$log_path"
 remote_command="
 set -euo pipefail
 mkdir -p \"\$(dirname $quoted_log_path)\"
-pkill -f '[r]andom_agent.py.*--task=$task' 2>/dev/null || true
+stale_pids=\"\$(ps -eo pid=,comm=,args= | awk '\$2 ~ /^python/ && (\$0 ~ /random_agent.py/ || \$0 ~ /reinforcement_learning\\/play.py/) {print \$1}')\"
+if [[ -n \"\$stale_pids\" ]]; then
+  kill \$stale_pids 2>/dev/null || true
+fi
 nohup ./isaaclab.sh -p scripts/environments/random_agent.py \
   --task=$quoted_task \
   --num_envs=$num_envs \
