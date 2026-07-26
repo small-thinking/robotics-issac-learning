@@ -112,7 +112,7 @@ def main() -> None:
                 checkpoint_data = torch.load(
                     args_cli.checkpoint.resolve(), map_location="cpu", weights_only=False
                 )
-                runner.agent.observation_preprocessor.load_state_dict(
+                runner.agent._observation_preprocessor.load_state_dict(
                     checkpoint_data["state_preprocessor"]
                 )
             runner.agent.enable_training_mode(False, apply_to_models=True)
