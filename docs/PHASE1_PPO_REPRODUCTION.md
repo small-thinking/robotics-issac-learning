@@ -138,16 +138,20 @@ Phase 1 passed.
 ## Learning-curve follow-up
 
 The run also retained numbered checkpoints from `agent_240.pt` through
-`agent_2400.pt`. They have not yet been independently evaluated, so no formal
-training-progress graph exists.
+`agent_2400.pt`. All ten were independently evaluated under the same fixed-seed
+protocol.
 
-The prepared sweep will load all numbered checkpoints in one Isaac process and
-evaluate each on the same seeds. At 60 Hz, mean episode length converts to
-balance time with `seconds = control steps / 60`. The graph will show:
+The sweep loaded all numbered checkpoints in one Isaac process. At 60 Hz, mean
+episode length converts to balance time with
+`seconds = control steps / 60`. The graph shows:
 
 - mean balance seconds versus training transitions;
 - fraction of episodes reaching the five-second time limit;
 - a horizontal random-policy reference.
 
-Trainer-console metrics may still be inspected, but they are not substituted
-for this controlled checkpoint comparison.
+The policy improved sharply between about 3 and 5 million transitions and
+plateaued near 4.8 seconds after about 6.9 million transitions. The final
+numbered checkpoint reached `24/25` time-limit episodes, versus `22/25` for the
+trainer-selected `best_agent.pt`. Trainer-console metrics and the trainer's
+checkpoint-ranking criterion remain useful diagnostics, but neither substitutes
+for the controlled behavioral comparison.

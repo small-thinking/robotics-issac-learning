@@ -34,6 +34,16 @@ artifacts/evaluations/*
 !artifacts/plots/
 artifacts/plots/*
 !artifacts/plots/README.md
+!artifacts/plots/phase1_learning_curve.svg
+!artifacts/training/
+artifacts/training/*
+!artifacts/training/phase1/
+artifacts/training/phase1/*
+!artifacts/training/phase1/README.md
+!artifacts/training/phase1/agent.yaml
+!artifacts/training/phase1/env.yaml
+!artifacts/training/phase1/events.out.tfevents.1785082190.brev-92xbacz46.605.0
+!artifacts/training/phase1/train_console.log
 
 # macOS and editors
 .DS_Store

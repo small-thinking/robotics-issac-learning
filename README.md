@@ -7,7 +7,7 @@ The repository name intentionally preserves the historical spelling
 `robotics-issac-learning`. Source code and documentation use the correct
 spelling **Isaac**.
 
-## Current milestone
+## Phase 0 baseline
 
 Phase 0 is complete. One Brev L4 instance ran the official Isaac Launchable,
 showed a visibly unstable random CartPole policy, and then showed a nearly
@@ -34,8 +34,16 @@ evaluation, closely matching the official checkpoint.
 
 The user also confirmed stable behavior in the Viewer: this locally trained
 policy kept the pole close to vertical with comparatively sparse, anticipatory
-cart corrections. Phase 1 is complete. The next short verification is to repeat
-training with two more seeds before changing the learning problem in Phase 2.
+cart corrections.
+
+The same run's ten numbered checkpoints now form a fixed-seed learning curve.
+Behavior was worse than random through about 2M transitions, improved sharply
+between roughly 3M and 5M, and plateaued near 4.8 balance seconds after about
+6.9M. The final numbered checkpoint reached `24/25` time-limit episodes.
+
+Phase 1 reproduction and its checkpoint curve are complete. Next we will add
+control telemetry, repeat the baseline with two more training seeds, and then
+make the first single-reward ablation.
 
 ## Long-term learning path
 

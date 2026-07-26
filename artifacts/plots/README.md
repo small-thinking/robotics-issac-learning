@@ -1,10 +1,15 @@
 # Plots
 
-No real checkpoint learning-curve plot has been generated yet.
+`phase1_learning_curve.svg` is the real fixed-seed checkpoint learning curve
+from the fresh seed-42 PPO run.
 
-The expected future artifact is `phase1_learning_curve.svg`, rendered from the
-reviewed `artifacts/evaluations/phase1_learning_curve.json`. Both require
-fixed-seed evaluation of the retained remote checkpoints.
+It was rendered from the reviewed
+`artifacts/evaluations/phase1_learning_curve.json` after evaluating all ten
+numbered checkpoints from `agent_240.pt` through `agent_2400.pt`. Every point
+uses seeds `101, 202, 303, 404, 505`, five episodes per seed, and the same
+manager-based `Isaac-Cartpole-v0` contract.
 
-Do not add a placeholder curve or infer missing intermediate values from the
-random and final-policy aggregates.
+The upper panel reports mean balance seconds at 60 Hz. The lower panel reports
+the fraction of episodes reaching the five-second time limit. The dashed random
+baseline was measured under the same protocol and is not a synthetic
+checkpoint.
