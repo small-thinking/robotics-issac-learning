@@ -1,0 +1,7 @@
+task: Isaac-Cartpole-Direct-v0
+rl_library: skrl
+algorithm: PPO
+seed: 42
+num_envs: 4096
+max_iterations: 150
+visualizer: none

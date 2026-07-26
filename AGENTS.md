@@ -24,12 +24,19 @@ loop using the official Isaac Launchable.
 make doctor
 make search
 make provision
+make sync
+make remote-setup
+make smoke
+make train
+make play
+make eval
 make status
 make stop
 ```
 
-Training, playback, and evaluation commands must be recorded only after
-verifying the installed Isaac Lab version, paths, task names, and RL backends.
+The verified Phase 0 task is `Isaac-Cartpole-Direct-v0`; the RL backend is skrl
+PPO. Keep wrappers aligned with the installed Isaac Launchable rather than old
+tutorial syntax.
 
 ## Safety boundaries
 
