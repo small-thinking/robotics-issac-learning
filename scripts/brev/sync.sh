@@ -13,8 +13,12 @@ remote_command="
 set -euo pipefail
 if [[ -d $quoted_project_dir/.git ]]; then
   git -C $quoted_project_dir fetch origin $quoted_branch
-  git -C $quoted_project_dir checkout $quoted_branch
-  git -C $quoted_project_dir pull --ff-only origin $quoted_branch
+  if git -C $quoted_project_dir show-ref --verify --quiet refs/heads/$quoted_branch; then
+    git -C $quoted_project_dir checkout $quoted_branch
+    git -C $quoted_project_dir merge --ff-only FETCH_HEAD
+  else
+    git -C $quoted_project_dir checkout -b $quoted_branch FETCH_HEAD
+  fi
 else
   git clone --branch $quoted_branch --single-branch $quoted_repo_url $quoted_project_dir
 fi
