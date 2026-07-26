@@ -91,6 +91,19 @@ Command transcripts are operational scratch data. After reviewing them, record
 the canonical command, Git commit, task, resolved config, checkpoint, metrics,
 and conclusion in `docs/EXPERIMENTS.md`.
 
+Preview the checkpoint sweep without starting remote work:
+
+```bash
+make show-learning-curve
+```
+
+Run it only after the instance has been explicitly approved and started:
+
+```bash
+ISAAC_CHECKPOINT_DIR=logs/skrl/cartpole/<run>/checkpoints \
+make learning-curve
+```
+
 ## Optional interactive learning
 
 If a human wants to explore the VM manually, the equivalent sequence is:

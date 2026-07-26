@@ -71,6 +71,7 @@ make smoke      # start random CartPole through the secure viewer
 make train      # run headless skrl PPO and save a checkpoint
 make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
+make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
 make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
 make show-train # print the exact remote training command without running it
@@ -86,6 +87,8 @@ path before `make eval`.
 
 ## Project records
 
+- [Numbered experiment steps](experiments/README.md): the key robotics-ML
+  commands, questions, outputs, and acceptance rules in execution order
 - [Roadmap](docs/ROADMAP.md): detailed phases and acceptance gates
 - [Runbook](docs/RUNBOOK.md): exact operator and user-intervention flow
 - [Transferable robotics-ML commands](docs/ROBOTICS_ML_COMMANDS.md): the

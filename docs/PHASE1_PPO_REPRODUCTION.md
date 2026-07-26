@@ -134,3 +134,20 @@ checkpoint's mean length of `268.88` and identical `22/25` time-limit count.
 The user then confirmed stable behavior in the Viewer, with comparatively
 sparse, anticipatory cart corrections that kept the pole close to vertical.
 Phase 1 passed.
+
+## Learning-curve follow-up
+
+The run also retained numbered checkpoints from `agent_240.pt` through
+`agent_2400.pt`. They have not yet been independently evaluated, so no formal
+training-progress graph exists.
+
+The prepared sweep will load all numbered checkpoints in one Isaac process and
+evaluate each on the same seeds. At 60 Hz, mean episode length converts to
+balance time with `seconds = control steps / 60`. The graph will show:
+
+- mean balance seconds versus training transitions;
+- fraction of episodes reaching the five-second time limit;
+- a horizontal random-policy reference.
+
+Trainer-console metrics may still be inspected, but they are not substituted
+for this controlled checkpoint comparison.

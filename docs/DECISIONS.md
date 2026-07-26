@@ -80,3 +80,13 @@ overall Isaac training path was broken.
 Future debugging starts by matching task ID, observation/action interface,
 reward and termination semantics, preprocessing, rollout length, and training
 horizon. More compute is considered only after those contracts match.
+
+## 2026-07-26 — Use fixed-seed checkpoint sweeps for learning curves
+
+Plot independently evaluated numbered checkpoints rather than treating noisy
+trainer-console statistics as the final behavioral curve. The primary metric
+is mean balance seconds, with five-second time-limit fraction as a second
+panel.
+
+A uniform-random policy is a horizontal reference baseline. It is not labeled
+as training step zero because it is not the freshly initialized PPO network.

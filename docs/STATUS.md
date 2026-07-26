@@ -2,7 +2,8 @@
 
 - Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 1 — fresh manager-based PPO reproduction
-- Next phase: Phase 1 robustness, then Phase 2 controlled RL understanding
+- Next experiment: fixed-seed checkpoint learning curve, then Phase 1 seed
+  robustness and Phase 2 controlled RL
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified after `brev refresh`
 - Billable GPU compute still running: no
@@ -28,6 +29,17 @@
   anticipatory cart corrections
 - Compute price: `$1.59/hour` plus approximately `$0.04/hour` persistent
   storage
+
+## Checkpoint learning curve
+
+- Numbered checkpoints retained remotely: `agent_240.pt` through
+  `agent_2400.pt`
+- Fixed-seed sweep tool: implemented and locally tested
+- Plot metrics: mean balance seconds and five-second time-limit fraction
+- Random policy treatment: horizontal reference baseline, not a synthetic
+  step-zero checkpoint
+- Actual sweep JSON and SVG: pending a newly approved remote window
+- GPU requirement now: none; the instance remains stopped
 
 ## Phase 0 acceptance
 
@@ -68,6 +80,7 @@
 
 ## Exact next action
 
-Implement and locally test control-style telemetry without starting Brev. The
-next paid window can then reproduce with two additional training seeds and run
-the first single-variable Phase 2 reward ablation after explicit approval.
+Review and merge the prepared learning-curve tooling. After a fresh cost quote
+and explicit approval, use one short remote window to evaluate the retained
+checkpoints. Control telemetry and additional training seeds follow after the
+curve is verified.

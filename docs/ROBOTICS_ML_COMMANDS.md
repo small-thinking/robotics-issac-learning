@@ -104,7 +104,33 @@ termination definitions.
 Transferable question: *Does behavior improve under a controlled evaluation
 contract rather than only in the training log?*
 
-## 6. Play the evaluated policy
+## 6. Evaluate the learning curve
+
+Evaluate every numbered checkpoint under the same fixed seeds:
+
+```bash
+./isaaclab.sh -p \
+  /workspace/robotics-issac-learning/tools/evaluate_cartpole.py \
+  --policy=sweep \
+  --task=Isaac-Cartpole-v0 \
+  --checkpoint-dir=logs/skrl/cartpole/<run>/checkpoints \
+  --training-num-envs=4096 \
+  --include-random-baseline \
+  --seeds=101,202,303,404,505 \
+  --episodes-per-seed=5 \
+  --num-envs=64 \
+  --output=/workspace/robotics-issac-learning/artifacts/evaluations/phase1_learning_curve.json \
+  --viz none
+```
+
+The curve reports mean balance seconds and time-limit success against collected
+training transitions. It is more trustworthy than connecting trainer-console
+metrics because every checkpoint sees the same evaluation contract.
+
+Transferable question: *How much independent behavioral improvement did each
+additional unit of training data buy?*
+
+## 7. Play the evaluated policy
 
 ```bash
 ./isaaclab.sh -p scripts/reinforcement_learning/play.py \

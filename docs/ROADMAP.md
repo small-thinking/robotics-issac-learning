@@ -45,6 +45,11 @@ learning curve. The seed-42 run passed with mean episode length `269.44`,
 visual confirmation. The remaining robustness check is to repeat unchanged
 training with two additional seeds.
 
+Before the seed repetitions, evaluate the retained numbered checkpoints to
+produce a fixed-seed learning curve. Plot mean balance seconds and time-limit
+success against training transitions. This is a follow-up measurement, not a
+reason to revoke the completed one-seed acceptance gate.
+
 ### What 4096 parallel environments means
 
 It is 4096 independent simulator states sharing one policy, not a batch of 4096

@@ -30,6 +30,10 @@ artifacts/evaluations/*
 !artifacts/evaluations/.gitkeep
 !artifacts/evaluations/phase0_acceptance_summary.json
 !artifacts/evaluations/phase1_reproduction_summary.json
+!artifacts/evaluations/phase1_learning_curve.json
+!artifacts/plots/
+artifacts/plots/*
+!artifacts/plots/.gitkeep
 
 # macOS and editors
 .DS_Store

@@ -1,8 +1,8 @@
 SHELL := /bin/bash
 
-.PHONY: doctor search provision sync remote-setup smoke train play eval status stop \
+.PHONY: doctor search provision sync remote-setup smoke train play eval learning-curve status stop \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
-	show-train show-play show-eval test
+	show-train show-play show-eval show-learning-curve test
 
 doctor:
 	@./scripts/local/doctor.sh
@@ -34,6 +34,9 @@ play:
 eval:
 	@./scripts/isaac/eval_cartpole.sh
 
+learning-curve:
+	@./scripts/isaac/eval_learning_curve.sh
+
 status:
 	@./scripts/brev/status.sh
 
@@ -63,5 +66,12 @@ show-eval:
 	 ISAAC_CHECKPOINT="$${ISAAC_CHECKPOINT:-/absolute/remote/checkpoint.pt}" \
 	 ./scripts/isaac/eval_cartpole.sh
 
+show-learning-curve:
+	@REMOTE_DRY_RUN=1 \
+	 ISAAC_CHECKPOINT_DIR="$${ISAAC_CHECKPOINT_DIR:-/absolute/remote/checkpoints}" \
+	 ./scripts/isaac/eval_learning_curve.sh
+
 test:
 	@./tests/test_remote_command_preview.sh
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python -m unittest tests/test_learning_curve.py
