@@ -113,6 +113,7 @@ show-study-run:
 	 --dry-run
 
 test:
+	@bash ./tests/test_git_lfs_attributes.sh
 	@./tests/test_remote_command_preview.sh
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
 	 uv run --python 3.12 python -m unittest discover -s tests -p "test_*.py"
