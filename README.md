@@ -41,9 +41,11 @@ Behavior was worse than random through about 2M transitions, improved sharply
 between roughly 3M and 5M, and plateaued near 4.8 balance seconds after about
 6.9M. The final numbered checkpoint reached `24/25` time-limit episodes.
 
-Phase 1 reproduction and its checkpoint curve are complete. Next we will add
-control telemetry, repeat the baseline with two more training seeds, and then
-make the first single-reward ablation.
+Phase 1 reproduction and its checkpoint curve are complete. Phase 2 is now
+preregistered as a 9-variant, 3-training-seed controlled study covering
+observation, reward, action authority, and training termination. Its evaluator,
+run manifests, data tables, and paper-style figures are defined before paid
+execution.
 
 ## Long-term learning path
 
@@ -80,6 +82,10 @@ make train      # run headless skrl PPO and save a checkpoint
 make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
 make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
+make study-validate # validate the Phase 2 variants and 27-cell run matrix
+make study-matrix # print every planned/reused Phase 2 training cell
+make show-variant # preview one variant's train/eval Hydra overrides
+make show-manifest # preview the immutable pre-run record
 make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
 make show-train # print the exact remote training command without running it
@@ -103,8 +109,8 @@ path before `make eval`.
   task-to-baseline-to-training-to-evaluation workflow worth learning
 - [Phase 1 PPO reproduction](docs/PHASE1_PPO_REPRODUCTION.md): locked
   manager-based config, diagnosis, commands, and acceptance gates
-- [Phase 2 controlled RL](docs/PHASE2_CONTROLLED_RL.md): seed robustness,
-  control telemetry, and the first single-reward ablation
+- [Phase 2 study protocol](docs/PHASE2_STUDY_PROTOCOL.md): preregistered
+  matrix, hypotheses, evaluation, artifacts, charts, report, and cost gates
 - [Operator command visibility](docs/COMMANDS.md): Brev/container preview and
   transcript details
 - [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered

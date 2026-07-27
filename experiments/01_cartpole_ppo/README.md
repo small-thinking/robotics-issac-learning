@@ -9,7 +9,7 @@ folders.
 | --- | --- | --- |
 | 01 — Reproduction | Can PPO learn the accepted behavior from scratch? | complete |
 | 02 — Checkpoint learning curve | How does ability change during that same training run? | complete |
-| 03 — Reward ablation | How does one reward term change the learned control style? | planned |
+| 03 — Controlled factor study | How do observation, reward, action authority, and termination change learned control? | preregistered |
 
 The stage is complete only after we can reproduce learning, measure how it
 develops, and explain at least one controlled behavior change.
@@ -169,39 +169,48 @@ fixed-seed behavioral acceptance metric.
 - Exact sweep command: `artifacts/commands/phase1_learning_curve.log`
 - Training logs and resolved configs: `artifacts/training/phase1/`
 
-## 03 — Cart-velocity reward ablation
+## 03 — Controlled factor study
 
 ### Question
 
-Does the cart-velocity penalty explain why one successful policy makes sparse,
-anticipatory corrections while another moves more continuously?
+How do observation information, cart-velocity reward, action authority, and
+training termination change robustness and control style after PPO already
+solves the basic task?
 
-### Controlled change
+### Design
 
-Keep the task, observations, actions, terminations, PPO config, seeds, training
-horizon, and evaluation protocol fixed. Change only:
-
-```text
-baseline: cart_vel.weight = -0.01
-ablation: cart_vel.weight = 0.0
-```
+The preregistered matrix has nine configurations: one shared official baseline
+and two levels for each of four factors. It runs in a seed-42 screening wave
+followed by confirmation with seeds 7 and 123. Final checkpoints share a
+30-second stress evaluation.
 
 ### Measurements
 
-- mean balance seconds;
-- five-second time-limit fraction;
-- mean absolute pole angle;
-- mean absolute cart velocity;
-- mean absolute action and action change;
-- action sign changes per second.
+- robust 30-second success and upright fraction;
+- longest upright interval and wrapped pole-angle RMS;
+- cart displacement and velocity;
+- normalized action, requested effort, action variation, and sign changes;
+- out-of-bounds and time-limit outcomes.
 
 ### Hypothesis
 
-Removing the cart-velocity penalty increases movement and corrective activity
-without necessarily improving survival. The hypothesis is accepted only if the
-control telemetry changes consistently across training seeds.
+Each variant has a locked, falsifiable hypothesis in
+[`variants.json`](variants.json). Raw reward is not compared across reward
+variants because the reward definition itself changes.
 
 ### Current status
 
-The experiment design is locked, but the reward override and control telemetry
-are not yet implemented. Do not start a paid run until both are locally tested.
+The study is preregistered in
+[`docs/PHASE2_STUDY_PROTOCOL.md`](../../docs/PHASE2_STUDY_PROTOCOL.md). The
+registry can be inspected without Isaac or a GPU:
+
+```bash
+make study-validate
+make study-matrix
+VARIANT=O_H4 SCOPE=train make show-variant
+VARIANT=R_CV0 SCOPE=eval PROFILE=stress30 make show-variant
+VARIANT=A_E50 TRAINING_SEED=7 make show-manifest
+```
+
+The first paid action is still gated on a remote override/telemetry smoke test,
+a current price check, and explicit approval.

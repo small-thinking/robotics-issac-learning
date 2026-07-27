@@ -76,6 +76,19 @@ Viewer behavior is useful but qualitative. Random and trained policies must use:
 For Phase 1 the canonical protocol is five seeds, five episodes per seed, with
 episode reward, length, and termination reason recorded.
 
+## Parallel evaluation must not select the first failures
+
+The original evaluator launched 64 parallel environments and retained the
+first five episodes that finished. In a long stress evaluation, policies that
+fail early finish before successful environments, so this creates a
+failure-selection bias.
+
+The study evaluator preselects fixed environment IDs and records exactly the
+first episode from each selected environment. It waits for all of those IDs,
+even if non-selected environments terminate earlier. Phase 1 learning-curve
+numbers remain historical evidence, but the Phase 2 baseline must be
+re-evaluated under the corrected sampler before comparison.
+
 ## Version drift can silently invalidate checkpoints
 
 The official Direct skrl checkpoint used legacy `state_preprocessor` keys while

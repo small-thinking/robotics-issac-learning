@@ -3,11 +3,20 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from tools.cartpole_metrics import checkpoint_vector_steps, summarize_episodes
+from tools.cartpole_metrics import (
+    checkpoint_vector_steps,
+    fixed_episode_env_ids,
+    summarize_episodes,
+)
 from tools.render_learning_curve import render_svg
 
 
 class CartpoleMetricsTest(unittest.TestCase):
+    def test_fixed_episode_sample_uses_preselected_environment_ids(self) -> None:
+        self.assertEqual(fixed_episode_env_ids(64, 5), (0, 1, 2, 3, 4))
+        with self.assertRaisesRegex(ValueError, "at least"):
+            fixed_episode_env_ids(4, 5)
+
     def test_checkpoint_vector_steps(self) -> None:
         self.assertEqual(checkpoint_vector_steps("agent_240.pt"), 240)
         self.assertEqual(checkpoint_vector_steps("agent_2400.pt"), 2400)
@@ -33,6 +42,38 @@ class CartpoleMetricsTest(unittest.TestCase):
         self.assertAlmostEqual(result["time_limit_fraction"], 0.5)
         self.assertEqual(result["checkpoint_vector_steps"], 240)
         self.assertEqual(result["training_transitions"], 983_040)
+
+    def test_summary_aggregates_control_metrics_when_present(self) -> None:
+        episodes = [
+            {
+                "reward": 1.0,
+                "length": 300,
+                "termination_reason": "time_limit",
+                "upright_fraction_12deg": 0.98,
+                "mean_abs_normalized_action": 0.2,
+                "robust_success": True,
+            },
+            {
+                "reward": 1.0,
+                "length": 300,
+                "termination_reason": "time_limit",
+                "upright_fraction_12deg": 0.92,
+                "mean_abs_normalized_action": 0.4,
+                "robust_success": False,
+            },
+        ]
+        result = summarize_episodes(
+            policy="trained",
+            task="Isaac-Cartpole-v0",
+            checkpoint=None,
+            seeds=[101],
+            episodes=episodes,
+            control_hz=60.0,
+        )
+
+        self.assertAlmostEqual(result["mean_upright_fraction_12deg"], 0.95)
+        self.assertAlmostEqual(result["mean_abs_normalized_action"], 0.3)
+        self.assertAlmostEqual(result["robust_success_fraction"], 0.5)
 
 
 class LearningCurveSvgTest(unittest.TestCase):

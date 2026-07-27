@@ -2,7 +2,8 @@ SHELL := /bin/bash
 
 .PHONY: doctor search provision sync remote-setup smoke train play eval learning-curve status stop \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
-	show-train show-play show-eval show-learning-curve test
+	show-train show-play show-eval show-learning-curve study-validate study-matrix \
+	show-variant show-manifest test
 
 doctor:
 	@./scripts/local/doctor.sh
@@ -71,7 +72,25 @@ show-learning-curve:
 	 ISAAC_CHECKPOINT_DIR="$${ISAAC_CHECKPOINT_DIR:-/absolute/remote/checkpoints}" \
 	 ./scripts/isaac/eval_learning_curve.sh
 
+study-validate:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/cartpole_variants.py validate
+
+study-matrix:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/cartpole_variants.py matrix
+
+show-variant:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/cartpole_variants.py show \
+	 "$${VARIANT:-B0}" --scope "$${SCOPE:-train}" $${PROFILE:+--profile "$${PROFILE}"}
+
+show-manifest:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/cartpole_variants.py manifest \
+	 "$${VARIANT:-B0}" --training-seed "$${TRAINING_SEED:-42}"
+
 test:
 	@./tests/test_remote_command_preview.sh
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
-	 uv run --python 3.12 python -m unittest tests/test_learning_curve.py
+	 uv run --python 3.12 python -m unittest discover -s tests -p "test_*.py"

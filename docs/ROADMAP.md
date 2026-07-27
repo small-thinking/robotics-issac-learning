@@ -62,17 +62,24 @@ actor-critic.
 
 ## Phase 2 — Controlled RL understanding
 
-- Make one observation, action, reward, or termination change at a time.
-- Compare PPO learning curves and fixed-seed outcomes against the Phase 1
-  baseline.
-- Add checkpoint selection and regression thresholds to the CLI workflow.
-- Persist compact metrics and config snapshots in Git; keep large checkpoints
-  on remote storage or an artifact store.
+- Run a shared-baseline, one-factor-at-a-time study over observation
+  information, cart-velocity reward, action authority, and training
+  termination.
+- Screen all nine configurations with training seed 42 and checkpoint learning
+  curves, then confirm final policies with seeds 7 and 123.
+- Evaluate final checkpoints for 30 seconds using fixed environment IDs and
+  common canonical termination semantics.
+- Measure upright robustness, pole/cart motion, action/effort, and failure
+  composition rather than relying on task reward or Viewer impressions.
+- Record every planned, successful, partial, and failed run with immutable
+  manifests, raw episode rows, derived tables, and checksums.
+- Publish a paper-style report with individual training seeds, mean ± SD,
+  paired effects, representative traces, trade-off plots, and limitations.
 
-The first planned ablation is `cart_vel.weight: -0.01 -> 0.0`. It tests whether
-the cart-velocity shaping term explains the difference between sparse,
-anticipatory corrections and more continuous movement. See
-`docs/PHASE2_CONTROLLED_RL.md`.
+The locked matrix and report contract are in
+`docs/PHASE2_STUDY_PROTOCOL.md`. Phase 2 ends when every plotted value is
+regenerable from saved data and the study gives an evidence-based reason either
+to refine one controller or move to Franka state-based manipulation.
 
 ## Phase 3 — Robot-arm state-based control
 

@@ -1,5 +1,12 @@
 # Phase 2: Controlled RL Understanding
 
+The original one-reward-term proposal has been expanded into a preregistered,
+paper-style sensitivity study. The canonical plan, 9-variant matrix, metrics,
+data contract, charts, execution waves, and cost gates are in
+[`PHASE2_STUDY_PROTOCOL.md`](PHASE2_STUDY_PROTOCOL.md). The machine-readable
+matrix is
+[`experiments/01_cartpole_ppo/variants.json`](../experiments/01_cartpole_ppo/variants.json).
+
 ## Goal
 
 Turn a visible policy-style difference into a controlled experiment about how
@@ -42,7 +49,7 @@ For each run, record:
 This separates a repeatable effect from one seed's policy style before changing
 the reward.
 
-## Step 3: Run one reward ablation
+## Step 3: Run the controlled factor study
 
 The installed manager-based CartPole config contains:
 
@@ -54,7 +61,7 @@ cart_vel = RewTerm(
 )
 ```
 
-Keep every other setting fixed and compare:
+The reward comparison remains part of the study:
 
 - baseline: `cart_vel.weight = -0.01`;
 - ablation: `cart_vel.weight = 0.0`.
@@ -62,25 +69,31 @@ Keep every other setting fixed and compare:
 Hypothesis: removing the cart-velocity penalty will preserve much of the
 balancing success while increasing cart velocity and corrective activity.
 
-The hypothesis fails if the telemetry does not show a consistent movement
-increase across seeds. A more active Viewer clip alone is not enough.
+It is joined by controlled observation, action-authority, and training-boundary
+comparisons. Each factor has three levels including the shared baseline, and
+all final results use three training seeds. The hypothesis fails if the
+telemetry does not show a consistent movement increase across seeds. A more
+active Viewer clip alone is not enough.
 
 Source:
 [Isaac Lab v3.0.0-beta2.patch1 manager-based CartPole config](https://github.com/isaac-sim/IsaacLab/blob/v3.0.0-beta2.patch1/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py)
 
 ## Acceptance
 
-Phase 2A is complete when:
+Phase 2 is complete when:
 
 - the unchanged baseline has results from three training seeds;
-- baseline and ablation use the same evaluation protocol;
+- all nine variants use the preregistered common evaluation protocol;
 - the new control metrics are saved in machine-readable artifacts;
 - the observed difference is reported with per-seed values, not only an
   aggregate mean;
+- failed/missing runs remain visible in the run registry;
+- every chart can be regenerated from committed derived data;
 - one Viewer comparison is used to interpret, not replace, the measurements.
 
 ## Cost gate
 
 Implement and test telemetry locally before restarting Brev. The next paid
-window should run the prepared seed repetitions and ablation only after a new
-explicit approval, then stop the instance immediately after validation.
+window should first run one override/telemetry smoke test. The complete matrix
+starts only after that smoke passes, a live price is checked, and the user gives
+new explicit approval. Stop compute immediately after artifact validation.

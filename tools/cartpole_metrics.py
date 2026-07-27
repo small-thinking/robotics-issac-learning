@@ -9,6 +9,22 @@ from pathlib import Path
 from typing import Any
 
 
+def fixed_episode_env_ids(num_envs: int, episodes_per_seed: int) -> tuple[int, ...]:
+    """Select environments whose first episode forms the evaluation sample.
+
+    Preselecting IDs avoids bias toward whichever parallel environments fail
+    first. Each selected environment must contribute exactly one episode.
+    """
+
+    if num_envs <= 0:
+        raise ValueError("num_envs must be positive")
+    if episodes_per_seed <= 0:
+        raise ValueError("episodes_per_seed must be positive")
+    if num_envs < episodes_per_seed:
+        raise ValueError("num_envs must be at least episodes_per_seed")
+    return tuple(range(episodes_per_seed))
+
+
 def checkpoint_vector_steps(checkpoint: Path | str) -> int | None:
     """Read skrl's vector-step counter from an ``agent_<step>.pt`` filename."""
 
@@ -61,6 +77,31 @@ def summarize_episodes(
         "termination_reason_counts": dict(sorted(reasons.items())),
         "episodes": records,
     }
+
+    aggregate_metrics = {
+        "mean_upright_fraction_12deg": "upright_fraction_12deg",
+        "mean_longest_upright_seconds": "longest_upright_seconds",
+        "mean_pole_angle_rms_radians": "pole_angle_rms_radians",
+        "mean_cart_position_rms": "cart_position_rms",
+        "mean_max_abs_cart_position": "max_abs_cart_position",
+        "mean_abs_cart_velocity": "mean_abs_cart_velocity",
+        "mean_pole_angular_velocity_rms": "pole_angular_velocity_rms",
+        "mean_abs_normalized_action": "mean_abs_normalized_action",
+        "mean_abs_requested_effort": "mean_abs_requested_effort",
+        "mean_abs_action_delta": "mean_abs_action_delta",
+        "mean_action_total_variation": "action_total_variation",
+        "mean_action_sign_changes_per_second": "action_sign_changes_per_second",
+        "mean_action_saturation_fraction": "action_saturation_fraction",
+    }
+    for output_name, episode_name in aggregate_metrics.items():
+        if all(episode_name in record for record in records):
+            result[output_name] = statistics.fmean(
+                float(record[episode_name]) for record in records
+            )
+    if all("robust_success" in record for record in records):
+        result["robust_success_fraction"] = statistics.fmean(
+            float(record["robust_success"]) for record in records
+        )
 
     if checkpoint is not None:
         vector_steps = checkpoint_vector_steps(checkpoint)

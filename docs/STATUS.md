@@ -3,8 +3,8 @@
 - Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 1 — fresh manager-based PPO reproduction and
   checkpoint learning curve
-- Next experiment: zero-cost control telemetry, then Phase 1 seed robustness
-  and Phase 2 controlled RL
+- Next experiment: one paid Phase 2 override/telemetry smoke test, then the
+  preregistered controlled study after review
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified after `brev refresh`
 - Billable GPU compute still running: no
@@ -50,6 +50,24 @@
 - Preserved training logs and configs: `artifacts/training/phase1/`
 - GPU requirement now: none; the instance remains stopped
 
+## Phase 2 preparation
+
+- Study design: preregistered, 9 variants × 3 training seeds = 27 cells
+- Existing reusable cell: `B0`, seed `42`; planned new training runs: 26
+- Factors: observation, cart-velocity reward, action effort scale, and training
+  out-of-bounds threshold
+- Evaluation: five fixed environment IDs for each of five evaluation seeds;
+  final common 30-second stress profile
+- Evaluator: control telemetry implemented; first-completion sampling bias
+  removed
+- Run provenance: allowlisted override registry, deterministic run IDs, and
+  manifest schema implemented
+- Reporting contract: derived tables and nine planned figure families locked
+- Local validation: 14 tests, targeted Ruff, JSON parsing, shell syntax, and
+  command previews passed
+- Remote validation: not yet performed; Hydra overrides, joint telemetry, and
+  30-second execution require one smoke run
+
 ## Phase 0 acceptance
 
 - Hardware: AWS `g6.4xlarge`, 1x NVIDIA L4, 16 vCPU, 64 GiB RAM
@@ -89,7 +107,8 @@
 
 ## Exact next action
 
-Add action and state telemetry to the local evaluator so the current policy's
-sparse corrective behavior can be measured. Additional training seeds require
-a fresh cost quote and explicit approval; no GPU is needed for the telemetry
-implementation.
+Review the Phase 2 planning PR. After it is merged, recheck the live Brev price
+and request explicit approval for a short paid smoke window. The smoke must
+verify resolved config diffs, observation shape, checkpoint compatibility,
+telemetry fields, fixed-environment episode collection, and artifact
+persistence before the 26-run matrix starts.

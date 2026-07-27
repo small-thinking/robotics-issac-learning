@@ -44,6 +44,9 @@ artifacts/training/phase1/*
 !artifacts/training/phase1/env.yaml
 !artifacts/training/phase1/events.out.tfevents.1785082190.brev-92xbacz46.605.0
 !artifacts/training/phase1/train_console.log
+!artifacts/phase2/
+artifacts/phase2/*
+!artifacts/phase2/README.md
 
 # macOS and editors
 .DS_Store
