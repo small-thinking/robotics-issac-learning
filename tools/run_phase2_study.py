@@ -19,7 +19,8 @@ try:
     from .cartpole_variants import (
         build_planned_manifest,
         build_run_matrix,
-        canonical_sha256,
+    canonical_sha256,
+    get_profile,
         hydra_tokens,
         load_registry,
     )
@@ -28,6 +29,7 @@ except ImportError:
         build_planned_manifest,
         build_run_matrix,
         canonical_sha256,
+        get_profile,
         hydra_tokens,
         load_registry,
     )
@@ -115,7 +117,25 @@ class StudyRunner:
     def initialize_manifest(self, variant_id: str, seed: int) -> dict[str, Any]:
         path = self.manifest_path(variant_id, seed)
         if path.exists():
-            return read_json(path)
+            manifest = read_json(path)
+            current_hash = canonical_sha256(self.registry)
+            if manifest["variant"]["registry_sha256"] != current_hash:
+                manifest["variant"]["registry_sha256"] = current_hash
+                manifest["evaluation"]["seeds"] = self.registry["evaluation_seeds"]
+                manifest["evaluation"]["episodes_per_seed"] = self.registry[
+                    "episodes_per_evaluation_seed"
+                ]
+                manifest["evaluation"]["fixed_environment_ids"] = list(
+                    range(self.registry["episodes_per_evaluation_seed"])
+                )
+                if any(
+                    item["kind"] == "primary_checkpoint"
+                    for item in manifest["artifacts"]
+                ):
+                    manifest["status"] = "partial"
+                    manifest["failure"] = None
+                write_json(path, manifest)
+            return manifest
         manifest = build_planned_manifest(
             self.registry,
             variant_id,
@@ -332,6 +352,7 @@ class StudyRunner:
             return
         manifest = read_json(self.manifest_path(variant_id, 42))
         checkpoint_dir = self.training_run_for(variant_id, 42) / "checkpoints"
+        profile = get_profile(self.registry, "canonical5")
         command = [
             str(self.args.isaaclab_dir / "isaaclab.sh"),
             "-p",
@@ -342,8 +363,8 @@ class StudyRunner:
             f"--training-num-envs={self.registry['training_num_envs']}",
             "--seeds=" + ",".join(str(seed) for seed in self.registry["evaluation_seeds"]),
             f"--episodes-per-seed={self.registry['episodes_per_evaluation_seed']}",
-            "--num-envs=5",
-            "--max-steps-per-seed=1000",
+            f"--num-envs={profile['num_envs']}",
+            f"--max-steps-per-seed={profile['max_steps_per_seed']}",
             f"--upright-threshold-degrees={self.registry['upright_threshold_degrees']}",
             "--robust-success-upright-fraction="
             + str(self.registry["robust_success_upright_fraction"]),
@@ -394,6 +415,7 @@ class StudyRunner:
                 flush=True,
             )
         checkpoints = [self.checkpoint_for(variant_id, seed) for seed in seeds]
+        profile = get_profile(self.registry, "stress30")
         command = [
             str(self.args.isaaclab_dir / "isaaclab.sh"),
             "-p",
@@ -403,8 +425,8 @@ class StudyRunner:
             f"--training-num-envs={self.registry['training_num_envs']}",
             "--seeds=" + ",".join(str(seed) for seed in self.registry["evaluation_seeds"]),
             f"--episodes-per-seed={self.registry['episodes_per_evaluation_seed']}",
-            "--num-envs=5",
-            "--max-steps-per-seed=3600",
+            f"--num-envs={profile['num_envs']}",
+            f"--max-steps-per-seed={profile['max_steps_per_seed']}",
             f"--upright-threshold-degrees={self.registry['upright_threshold_degrees']}",
             "--robust-success-upright-fraction="
             + str(self.registry["robust_success_upright_fraction"]),

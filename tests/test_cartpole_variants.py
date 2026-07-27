@@ -85,7 +85,10 @@ class CartpoleVariantRegistryTest(unittest.TestCase):
             "phase2_cartpole_controlled_ablation__A_E50__seed7",
         )
         self.assertEqual(manifest["status"], "planned")
-        self.assertEqual(manifest["evaluation"]["fixed_environment_ids"], [0, 1, 2, 3, 4])
+        self.assertEqual(
+            manifest["evaluation"]["fixed_environment_ids"],
+            list(range(25)),
+        )
         self.assertEqual(
             manifest["variant"]["expected_diff"],
             [{"path": "env.actions.joint_effort.scale", "value": 50.0}],

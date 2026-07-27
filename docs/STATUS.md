@@ -56,7 +56,7 @@
 - Existing reusable cell: `B0`, seed `42`; planned new training runs: 26
 - Factors: observation, cart-velocity reward, action effort scale, and training
   out-of-bounds threshold
-- Evaluation: five fixed environment IDs for each of five evaluation seeds;
+- Evaluation: 25 fixed parallel environment IDs under deterministic seed 101;
   final common 30-second stress profile
 - Evaluator: control telemetry implemented; first-completion sampling bias
   removed

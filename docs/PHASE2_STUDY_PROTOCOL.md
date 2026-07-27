@@ -75,8 +75,8 @@ approval are still required before starting Brev.
 - Training horizon: five seconds.
 - Training seeds: `42`, `7`, `123`.
 - Final checkpoint: numbered vector step `2400`.
-- Evaluation seeds: `101`, `202`, `303`, `404`, `505`.
-- Episodes: five per evaluation seed.
+- Evaluation seed: `101`.
+- Episodes: 25 deterministic parallel environments.
 - Statistical unit: one trained policy, identified by its training seed.
 - Screening: canonical five-second evaluation at each numbered checkpoint.
 - Final comparison: common 30-second stress evaluation.
@@ -85,9 +85,21 @@ approval are still required before starting Brev.
   termination.
 - Action sign deadband: `0.05`.
 
-Evaluation preselects environment IDs `0..4` and records exactly the first
-episode from each. It must not take the first five environments that happen to
-finish, because that selects early failures in long stress tests.
+Evaluation preselects environment IDs `0..24` and records exactly the first
+episode from each. It must not select whichever 25 environments happen to
+finish first, because that selects early failures in long stress tests.
+
+### Protocol amendment: parallel evaluation
+
+The original preregistration used five evaluation seeds with five parallel
+environments each. The pre-matrix smoke measured about 90 seconds for one
+stable 30-second policy, which would push the complete study beyond the
+approved compute window. Before any cross-variant result was collected, the
+contract was amended to one fixed seed (`101`) with 25 parallel environment
+IDs. Episode count remains 25, initial states remain deterministic and
+independently sampled across vectorized environments, and the statistical unit
+remains the trained policy/training seed. The original O_H4 smoke evaluation is
+retained as diagnostic evidence but excluded from formal comparisons.
 
 Interface changes (observation and action) apply during both training and
 evaluation. Objective changes (reward and training boundary) apply only during

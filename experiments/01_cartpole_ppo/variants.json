@@ -11,13 +11,9 @@
     123
   ],
   "evaluation_seeds": [
-    101,
-    202,
-    303,
-    404,
-    505
+    101
   ],
-  "episodes_per_evaluation_seed": 5,
+  "episodes_per_evaluation_seed": 25,
   "upright_threshold_degrees": 12.0,
   "robust_success_upright_fraction": 0.95,
   "action_sign_deadband": 0.05,
@@ -63,18 +59,18 @@
   "evaluation_profiles": [
     {
       "id": "canonical5",
-      "description": "Five-second compatibility evaluation using fixed environment IDs.",
+      "description": "Five-second evaluation using 25 deterministic parallel environment IDs.",
       "episode_length_seconds": 5.0,
       "max_steps_per_seed": 1000,
-      "num_envs": 5,
+      "num_envs": 25,
       "overrides": []
     },
     {
       "id": "stress30",
-      "description": "Thirty-second common stress evaluation for final checkpoints.",
+      "description": "Thirty-second common stress evaluation using 25 deterministic parallel environment IDs.",
       "episode_length_seconds": 30.0,
       "max_steps_per_seed": 3600,
-      "num_envs": 5,
+      "num_envs": 25,
       "overrides": [
         {
           "path": "env.episode_length_s",
