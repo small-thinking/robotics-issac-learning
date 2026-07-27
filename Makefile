@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .PHONY: doctor search provision sync remote-setup smoke train play eval learning-curve status stop \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
-	show-variant show-manifest test
+	show-variant show-manifest show-study-run test
 
 doctor:
 	@./scripts/local/doctor.sh
@@ -89,6 +89,15 @@ show-manifest:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
 	 uv run --python 3.12 python tools/cartpole_variants.py manifest \
 	 "$${VARIANT:-B0}" --training-seed "$${TRAINING_SEED:-42}"
+
+show-study-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/run_phase2_study.py \
+	 --study-dir /tmp/phase2-study-preview \
+	 --phase "$${PHASE:-train}" \
+	 --variants "$${VARIANTS:-O_POS}" \
+	 --training-seeds "$${TRAINING_SEEDS:-42}" \
+	 --dry-run
 
 test:
 	@./tests/test_remote_command_preview.sh
