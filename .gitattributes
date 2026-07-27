@@ -1,0 +1,44 @@
+# Keep diffable vector artwork in regular Git.
+*.[sS][vV][gG] text
+
+# Store binary image assets in Git LFS, regardless of extension casing.
+*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][eE][gG] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][eE] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][fF][iI][fF] filter=lfs diff=lfs merge=lfs -text
+*.[gG][iI][fF] filter=lfs diff=lfs merge=lfs -text
+*.[wW][eE][bB][pP] filter=lfs diff=lfs merge=lfs -text
+*.[bB][mM][pP] filter=lfs diff=lfs merge=lfs -text
+*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
+*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
+*.[tT][iI][fF][fF] filter=lfs diff=lfs merge=lfs -text
+*.[hH][eE][iI][cC] filter=lfs diff=lfs merge=lfs -text
+*.[hH][eE][iI][fF] filter=lfs diff=lfs merge=lfs -text
+*.[aA][vV][iI][fF] filter=lfs diff=lfs merge=lfs -text
+*.[iI][cC][oO] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP]2 filter=lfs diff=lfs merge=lfs -text
+*.[jJ]2[kK] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][fF] filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][xX] filter=lfs diff=lfs merge=lfs -text
+*.[eE][xX][rR] filter=lfs diff=lfs merge=lfs -text
+*.[hH][dD][rR] filter=lfs diff=lfs merge=lfs -text
+*.[dD][dD][sS] filter=lfs diff=lfs merge=lfs -text
+*.[kK][tT][xX] filter=lfs diff=lfs merge=lfs -text
+*.[kK][tT][xX]2 filter=lfs diff=lfs merge=lfs -text
+*.[qQ][oO][iI] filter=lfs diff=lfs merge=lfs -text
+*.[sS][vV][gG][zZ] filter=lfs diff=lfs merge=lfs -text
+*.[pP][sS][dD] filter=lfs diff=lfs merge=lfs -text
+*.[xX][cC][fF] filter=lfs diff=lfs merge=lfs -text
+*.[pP][bB][mM] filter=lfs diff=lfs merge=lfs -text
+*.[pP][gG][mM] filter=lfs diff=lfs merge=lfs -text
+*.[pP][pP][mM] filter=lfs diff=lfs merge=lfs -text
+*.[pP][nN][mM] filter=lfs diff=lfs merge=lfs -text
+*.[dD][nN][gG] filter=lfs diff=lfs merge=lfs -text
+*.[cC][rR]2 filter=lfs diff=lfs merge=lfs -text
+*.[cC][rR]3 filter=lfs diff=lfs merge=lfs -text
+*.[nN][eE][fF] filter=lfs diff=lfs merge=lfs -text
+*.[aA][rR][wW] filter=lfs diff=lfs merge=lfs -text
+*.[rR][aA][fF] filter=lfs diff=lfs merge=lfs -text
+*.[oO][rR][fF] filter=lfs diff=lfs merge=lfs -text
+*.[rR][wW]2 filter=lfs diff=lfs merge=lfs -text
