@@ -201,7 +201,7 @@ def collect_episodes(
             previous_nonzero_sign = torch.where(
                 current_sign != 0, current_sign, previous_nonzero_sign
             )
-            previous_action = scalar_action
+            previous_action.copy_(scalar_action)
             has_previous_action.fill_(True)
             action_saturation_steps += scalar_action.abs() >= 0.999
 

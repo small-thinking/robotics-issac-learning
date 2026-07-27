@@ -132,6 +132,22 @@ class StudyRunner:
         seed = manifest["training"]["seed"]
         write_json(self.manifest_path(variant_id, seed), manifest)
 
+    def fail_manifest(
+        self, manifest: dict[str, Any], *, stage: str, message: str
+    ) -> None:
+        manifest["status"] = "failed"
+        manifest["failure"] = {
+            "stage": stage,
+            "message": message,
+            "last_completed_step": self.registry["primary_checkpoint_vector_step"]
+            if any(
+                item["kind"] == "primary_checkpoint"
+                for item in manifest["artifacts"]
+            )
+            else None,
+        }
+        self.save_manifest(manifest)
+
     def append_artifact(
         self, manifest: dict[str, Any], kind: str, path: Path
     ) -> None:
@@ -349,6 +365,13 @@ class StudyRunner:
             log_path=self.study_dir / "evaluation_logs" / f"screening_{variant_id}.log",
             manifest=manifest,
         )
+        if not output.is_file():
+            self.fail_manifest(
+                manifest,
+                stage=f"screening_{variant_id}",
+                message="evaluator exited without writing the required JSON output",
+            )
+            raise RuntimeError(f"screening evaluator did not write {output}")
         self.append_artifact(manifest, "screening_evaluation", output)
         self.save_manifest(manifest)
 
@@ -406,6 +429,15 @@ class StudyRunner:
             stage=f"final_{variant_id}",
             log_path=self.study_dir / "evaluation_logs" / f"final_{variant_id}.log",
         )
+        if not output.is_file():
+            for seed in seeds:
+                manifest = read_json(self.manifest_path(variant_id, seed))
+                self.fail_manifest(
+                    manifest,
+                    stage=f"final_{variant_id}",
+                    message="evaluator exited without writing the required JSON output",
+                )
+            raise RuntimeError(f"final evaluator did not write {output}")
         for seed in seeds:
             manifest = read_json(self.manifest_path(variant_id, seed))
             self.append_artifact(manifest, "final_evaluation", output)
