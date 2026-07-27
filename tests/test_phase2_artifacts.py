@@ -4,10 +4,11 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from tools.build_phase2_artifacts import (
-    render_control_sensitivity,
-    render_final_performance,
+    render_action_ablation,
     render_learning_dynamics,
-    render_sensitivity,
+    render_observation_ablation,
+    render_reward_ablation,
+    render_termination_ablation,
     render_tradeoff,
 )
 
@@ -16,6 +17,7 @@ def _run_row(variant_id: str, factor: str, offset: float) -> dict[str, object]:
     return {
         "variant_id": variant_id,
         "factor": factor,
+        "training_seed": int(offset * 100),
         "robust_success_fraction": 0.8 + offset,
         "mean_upright_fraction_12deg": 0.9 + offset / 2,
         "mean_pole_angle_rms_radians": 0.08 - offset / 4,
@@ -56,9 +58,10 @@ class Phase2SvgTest(unittest.TestCase):
     def test_all_phase2_figures_are_valid_svg(self) -> None:
         figures = [
             render_learning_dynamics(self.curve_rows),
-            render_final_performance(self.run_rows),
-            render_sensitivity(self.run_rows),
-            render_control_sensitivity(self.run_rows),
+            render_observation_ablation(self.run_rows),
+            render_reward_ablation(self.run_rows),
+            render_action_ablation(self.run_rows),
+            render_termination_ablation(self.run_rows),
             render_tradeoff(self.run_rows),
         ]
         for figure in figures:
@@ -67,11 +70,18 @@ class Phase2SvgTest(unittest.TestCase):
                 "{http://www.w3.org/2000/svg}svg",
             )
 
-    def test_final_figure_exposes_uncertainty_contract(self) -> None:
-        svg = render_final_performance(self.run_rows)
-        self.assertIn("whiskers ± SD", svg)
-        self.assertIn("Robust success", svg)
-        self.assertIn("Pole-angle RMS", svg)
+    def test_factor_figures_expose_one_variable_and_seed_contract(self) -> None:
+        figures = {
+            "Observation supplied to policy": render_observation_ablation(self.run_rows),
+            "Cart-velocity reward weight": render_reward_ablation(self.run_rows),
+            "Maximum requested effort scale": render_action_ablation(self.run_rows),
+            "Training cart-position bound": render_termination_ablation(self.run_rows),
+        }
+        for x_label, svg in figures.items():
+            self.assertIn(x_label, svg)
+            self.assertIn("30-second robust success", svg)
+            self.assertIn("individual PPO seed", svg)
+            self.assertIn("mean of 3 seeds", svg)
 
 
 if __name__ == "__main__":

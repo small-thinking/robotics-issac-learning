@@ -206,7 +206,17 @@ Four-frame position history recovered two of three seeds but remained brittle
 (`66.7% ± 57.7%`). Reward and action variants remained close to the task
 ceiling, while a wide training boundary produced one catastrophic seed.
 
-![Final performance](../../artifacts/phase2/plots/final_performance.svg)
+The result is split into four one-factor-at-a-time figures. In every figure,
+the x-axis is the factor value, open circles are individual training seeds, and
+the filled circle plus line is the three-seed mean.
+
+![Observation ablation](../../artifacts/phase2/plots/observation_ablation.svg)
+
+![Reward ablation](../../artifacts/phase2/plots/reward_ablation.svg)
+
+![Action ablation](../../artifacts/phase2/plots/action_ablation.svg)
+
+![Termination ablation](../../artifacts/phase2/plots/termination_ablation.svg)
 
 The complete methods, tables, figures, limitations, and conclusions are in the
 [`Phase 2 results report`](../../artifacts/phase2/report/README.md). The

@@ -21,6 +21,15 @@ These are descriptive sensitivity results from three independently trained
 policies per condition, not significance-tested or causal claims beyond the
 controlled one-factor task contract.
 
+## How to read the ablation figures
+
+Each figure changes only one factor. The x-axis is the factor value, the left
+panel is always 30-second robust success, and the right panel is the behavior
+metric most directly related to that factor. Each open circle is one
+independently trained PPO seed; the filled circle and connecting line are the
+three-seed mean. Observation is categorical, so its line shows ordering rather
+than a fitted numeric trend.
+
 ## Observation choice dominated final reliability
 
 Removing velocity made the MDP partially observable and almost eliminated
@@ -28,7 +37,7 @@ robust success. Four frames of position history recovered much of the missing
 state, but its `66.7% ± 57.7%` result is the average of two fully successful
 policies and one failed policy—not a uniformly medium-quality controller.
 
-![Final 30-second performance](../plots/final_performance.svg)
+![Observation ablation](../plots/observation_ablation.svg)
 
 The open points in the figure are individual training seeds. Their spread is
 the main evidence: `n=3` is too small for a mean alone to be trustworthy.
@@ -64,7 +73,7 @@ This is evidence against selecting a policy solely by final step or training
 reward. The curve is a single-training-seed diagnostic; the 30-second result
 above is the cross-seed comparison.
 
-## Objective and interface changes altered control style
+## Reward changed movement, not survival
 
 Reward weights `0`, `-0.01`, and `-0.02` all retained 100% mean robust success.
 The stronger penalty reduced mean absolute cart velocity from `0.112` at the
@@ -73,14 +82,24 @@ the policy compensated for greater authority by outputting smaller normalized
 actions. This is why action scale and actual requested effort must be recorded
 separately.
 
-![Control-style sensitivity](../plots/control_sensitivity.svg)
+![Reward ablation](../plots/reward_ablation.svg)
 
-The reward and action conclusions are primarily about motion and effort, not
-survival. The termination result is different: widening the training boundary
-to `6` made the result strongly seed-dependent and exposed a true reliability
-failure under the common evaluation boundary.
+## Action authority changed learned effort
 
-![One-factor sensitivity](../plots/factor_sensitivity.svg)
+All three effort scales were highly reliable, although scale `50` had one
+policy with `92%` robust success. Raising the scale to `200` did not cause the
+controller to use more requested effort: the policy learned smaller normalized
+actions, reducing the three-seed mean requested effort to `0.53`.
+
+![Action ablation](../plots/action_ablation.svg)
+
+## A wide training boundary was seed-sensitive
+
+The narrow (`±1.5`) and baseline (`±3.0`) training boundaries remained near
+ceiling. At `±6.0`, two seeds were usable but seed `42` failed, lowering mean
+robust success to `65.3%` and mean upright time to `72.0%`.
+
+![Termination ablation](../plots/termination_ablation.svg)
 
 ## Failed policies occupy a distinct effort-error regime
 

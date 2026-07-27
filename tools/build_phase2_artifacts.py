@@ -426,268 +426,63 @@ def render_learning_dynamics(rows: list[dict[str, Any]]) -> str:
     return "\n".join(elements) + "\n"
 
 
-def render_final_performance(rows: list[dict[str, Any]]) -> str:
-    width, height = 1180, 650
-    elements = _svg_header(
-        width,
-        height,
-        "Final 30-second control performance",
-        "Three PPO seeds; filled dots are means, whiskers ± SD, open dots trained policies",
-    )
+def _render_factor_ablation(
+    rows: list[dict[str, Any]],
+    *,
+    factor: str,
+    title: str,
+    subtitle: str,
+    levels: list[tuple[str, float, str]],
+    x_label: str,
+    secondary_metric: str,
+    secondary_label: str,
+    secondary_formatter: Any,
+    secondary_y_max: float | None = None,
+) -> str:
+    """Render one factor at a time, preserving the three training-seed observations."""
+
+    width, height = 1120, 610
+    elements = _svg_header(width, height, title, subtitle)
     panels = [
-        ("robust_success_fraction", "Robust success", 1.0, lambda value: f"{value:.0%}"),
         (
-            "mean_upright_fraction_12deg",
-            "Upright fraction",
+            "robust_success_fraction",
+            "30-second robust success",
             1.0,
             lambda value: f"{value:.0%}",
         ),
         (
-            "mean_pole_angle_rms_radians",
-            "Pole-angle RMS",
-            max(float(row["mean_pole_angle_rms_radians"]) for row in rows) * 1.15,
-            lambda value: f"{math.degrees(value):.1f}°",
+            secondary_metric,
+            secondary_label,
+            secondary_y_max,
+            secondary_formatter,
         ),
     ]
-    panel_w, panel_h, gap = 330.0, 430.0, 48.0
-    start_x, top = 70.0, 125.0
+    panel_w, panel_h, gap = 440.0, 345.0, 90.0
+    start_x, top = 80.0, 135.0
+    x_values = [level for _, level, _ in levels]
+    x_min, x_max = min(x_values), max(x_values)
     jitter = [-8.0, 0.0, 8.0]
-    for panel_index, (metric, label, y_max, formatter) in enumerate(panels):
+    color = FACTOR_COLORS[factor]
+
+    for panel_index, (metric, y_label, configured_y_max, formatter) in enumerate(panels):
         left = start_x + panel_index * (panel_w + gap)
+        right = left + panel_w
         bottom = top + panel_h
-        for tick in range(5):
-            value = y_max * tick / 4
-            y = bottom - panel_h * value / y_max
-            elements.append(
-                _svg_line(left, y, left + panel_w, y, stroke="#d9e2ec", stroke_width="1")
-            )
-            elements.append(
-                _svg_text(
-                    left - 8,
-                    y + 4,
-                    formatter(value),
-                    text_anchor="end",
-                    font_size="11",
-                    fill="#627d98",
-                )
-            )
-        step = panel_w / len(VARIANT_ORDER)
-        for variant_index, variant_id in enumerate(VARIANT_ORDER):
-            values = [float(row[metric]) for row in rows if row["variant_id"] == variant_id]
-            mean = statistics.fmean(values)
-            sd = statistics.stdev(values)
-            x = left + step * (variant_index + 0.5)
-            factor = next(row["factor"] for row in rows if row["variant_id"] == variant_id)
-            color = FACTOR_COLORS[str(factor)]
-            y_mean = bottom - panel_h * mean / y_max
-            y_low = bottom - panel_h * max(0.0, mean - sd) / y_max
-            y_high = bottom - panel_h * min(y_max, mean + sd) / y_max
-            elements.append(_svg_line(x, y_low, x, y_high, stroke="#334e68", stroke_width="1.5"))
-            elements.append(
-                _svg_line(x - 5, y_low, x + 5, y_low, stroke="#334e68", stroke_width="1.5")
-            )
-            elements.append(
-                _svg_line(x - 5, y_high, x + 5, y_high, stroke="#334e68", stroke_width="1.5")
-            )
-            elements.append(f'<circle cx="{x:.1f}" cy="{y_mean:.1f}" r="5.5" fill="{color}"/>')
-            for point_index, value in enumerate(values):
-                y = bottom - panel_h * value / y_max
-                elements.append(
-                    f'<circle cx="{x + jitter[point_index]:.1f}" cy="{y:.1f}" r="2.5" '
-                    f'fill="#ffffff" stroke="{color}" stroke-width="1.5"/>'
-                )
-            elements.append(
-                _svg_text(
-                    x,
-                    bottom + 15,
-                    variant_id,
-                    text_anchor="end",
-                    font_size="10",
-                    fill="#486581",
-                    transform=f"rotate(-55 {x:.1f} {bottom + 15:.1f})",
-                )
-            )
-        elements.append(
-            _svg_text(
-                left,
-                top - 17,
-                label,
-                font_size="15",
-                font_weight="650",
-                fill="#243b53",
-            )
-        )
-    elements.append("</svg>")
-    return "\n".join(elements) + "\n"
-
-
-def render_sensitivity(rows: list[dict[str, Any]]) -> str:
-    width, height = 1180, 620
-    elements = _svg_header(
-        width,
-        height,
-        "One-factor control sensitivity",
-        "Mean across three training seeds; lines connect only the three preregistered levels",
-    )
-    panels = [
-        (
-            "reward",
-            [("R_CV2", -0.02), ("B0", -0.01), ("R_CV0", 0.0)],
-            "Cart-velocity reward weight",
-        ),
-        ("action", [("A_E50", 50.0), ("B0", 100.0), ("A_E200", 200.0)], "Effort scale"),
-        ("termination", [("T_B15", 1.5), ("B0", 3.0), ("T_B60", 6.0)], "Training bound magnitude"),
-    ]
-    metrics = [
-        ("robust_success_fraction", "Robust success", "#2563eb"),
-        ("mean_upright_fraction_12deg", "Upright fraction", "#d97706"),
-    ]
-    panel_w, panel_h, gap = 330.0, 360.0, 50.0
-    start_x, top = 70.0, 125.0
-    for panel_index, (factor, levels, x_label) in enumerate(panels):
-        left = start_x + panel_index * (panel_w + gap)
-        bottom = top + panel_h
-        x_values = [value for _, value in levels]
-        x_min, x_max = min(x_values), max(x_values)
-        for tick in range(5):
-            value = tick / 4
-            y = bottom - panel_h * value
-            elements.append(
-                _svg_line(left, y, left + panel_w, y, stroke="#d9e2ec", stroke_width="1")
-            )
-            elements.append(
-                _svg_text(
-                    left - 8,
-                    y + 4,
-                    f"{value:.0%}",
-                    text_anchor="end",
-                    font_size="11",
-                    fill="#627d98",
-                )
-            )
-        for metric, metric_label, color in metrics:
-            points: list[tuple[float, float]] = []
-            for variant_id, level in levels:
-                values = [float(row[metric]) for row in rows if row["variant_id"] == variant_id]
-                mean = statistics.fmean(values)
-                x = left + panel_w * (level - x_min) / (x_max - x_min)
-                y = bottom - panel_h * mean
-                points.append((x, y))
-            elements.append(_polyline(points, color, 2.6))
-            for x, y in points:
-                elements.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="{color}"/>')
-        for variant_id, level in levels:
-            x = left + panel_w * (level - x_min) / (x_max - x_min)
-            elements.append(
-                _svg_text(
-                    x,
-                    bottom + 20,
-                    f"{level:g}",
-                    text_anchor="middle",
-                    font_size="11",
-                    fill="#486581",
-                )
-            )
-            elements.append(
-                _svg_text(
-                    x,
-                    bottom + 37,
-                    variant_id,
-                    text_anchor="middle",
-                    font_size="10",
-                    fill="#829ab1",
-                )
-            )
-        elements.append(
-            _svg_text(
-                left,
-                top - 18,
-                factor.title(),
-                font_size="15",
-                font_weight="650",
-                fill="#243b53",
-            )
-        )
-        elements.append(
-            _svg_text(
-                left + panel_w / 2,
-                bottom + 58,
-                x_label,
-                text_anchor="middle",
-                font_size="12",
-                fill="#486581",
-            )
-        )
-    elements.extend(
-        [
-            _svg_line(765, 91, 790, 91, stroke="#2563eb", stroke_width="3"),
-            _svg_text(798, 95, "Robust success", font_size="12", fill="#486581"),
-            _svg_line(930, 91, 955, 91, stroke="#d97706", stroke_width="3"),
-            _svg_text(963, 95, "Upright fraction", font_size="12", fill="#486581"),
-        ]
-    )
-    elements.append("</svg>")
-    return "\n".join(elements) + "\n"
-
-
-def render_control_sensitivity(rows: list[dict[str, Any]]) -> str:
-    width, height = 1180, 620
-    elements = _svg_header(
-        width,
-        height,
-        "Control-style sensitivity",
-        "Three PPO seeds per level; filled dots are means and open dots are trained policies",
-    )
-    panels = [
-        (
-            [("R_CV2", -0.02), ("B0", -0.01), ("R_CV0", 0.0)],
-            "Reward",
-            "Cart-velocity reward weight",
-            "mean_abs_cart_velocity",
-            "Mean absolute cart velocity",
-            lambda value: f"{value:.2f}",
-        ),
-        (
-            [("A_E50", 50.0), ("B0", 100.0), ("A_E200", 200.0)],
-            "Action",
-            "Effort scale",
-            "mean_abs_requested_effort",
-            "Mean absolute requested effort",
-            lambda value: f"{value:.1f}",
-        ),
-        (
-            [("T_B15", 1.5), ("B0", 3.0), ("T_B60", 6.0)],
-            "Termination",
-            "Training bound magnitude",
-            "mean_cart_position_rms",
-            "Cart-position RMS",
-            lambda value: f"{value:.1f}",
-        ),
-    ]
-    panel_w, panel_h, gap = 330.0, 360.0, 50.0
-    start_x, top = 70.0, 125.0
-    jitter = [-7.0, 0.0, 7.0]
-    for panel_index, (levels, title, x_label, metric, y_label, formatter) in enumerate(panels):
-        left = start_x + panel_index * (panel_w + gap)
-        bottom = top + panel_h
-        x_values = [level for _, level in levels]
-        x_min, x_max = min(x_values), max(x_values)
         all_values = [
             float(row[metric])
-            for variant_id, _ in levels
+            for variant_id, _, _ in levels
             for row in rows
             if row["variant_id"] == variant_id
         ]
-        y_max = max(all_values) * 1.08
+        y_max = configured_y_max or max(all_values) * 1.12
+
         for tick in range(5):
             value = y_max * tick / 4
             y = bottom - panel_h * tick / 4
-            elements.append(
-                _svg_line(left, y, left + panel_w, y, stroke="#d9e2ec", stroke_width="1")
-            )
+            elements.append(_svg_line(left, y, right, y, stroke="#d9e2ec", stroke_width="1"))
             elements.append(
                 _svg_text(
-                    left - 8,
+                    left - 10,
                     y + 4,
                     formatter(value),
                     text_anchor="end",
@@ -695,73 +490,181 @@ def render_control_sensitivity(rows: list[dict[str, Any]]) -> str:
                     fill="#627d98",
                 )
             )
-        color = FACTOR_COLORS[title.lower()]
-        points = []
-        for variant_id, level in levels:
-            values = [float(row[metric]) for row in rows if row["variant_id"] == variant_id]
-            mean = statistics.fmean(values)
+
+        mean_points: list[tuple[float, float]] = []
+        seed_marks: list[str] = []
+        mean_marks: list[str] = []
+        value_labels: list[str] = []
+        x_labels: list[str] = []
+        for variant_id, level, display_label in levels:
+            values = sorted(
+                (
+                    (int(row.get("training_seed", 0)), float(row[metric]))
+                    for row in rows
+                    if row["variant_id"] == variant_id
+                ),
+                key=lambda item: item[0],
+            )
+            mean = statistics.fmean(value for _, value in values)
             x = left + panel_w * (level - x_min) / (x_max - x_min)
-            y = bottom - panel_h * mean / y_max
-            points.append((x, y))
-            for point_index, value in enumerate(values):
+            y_mean = bottom - panel_h * mean / y_max
+            mean_points.append((x, y_mean))
+
+            for point_index, (_, value) in enumerate(values):
                 point_y = bottom - panel_h * value / y_max
-                elements.append(
+                seed_marks.append(
                     f'<circle cx="{x + jitter[point_index]:.1f}" cy="{point_y:.1f}" '
-                    f'r="3" fill="#ffffff" stroke="{color}" stroke-width="1.5"/>'
+                    f'r="4" fill="#ffffff" stroke="{color}" stroke-width="1.8"/>'
                 )
-            elements.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="{color}"/>')
-            elements.append(
+
+            mean_marks.append(
+                f'<circle cx="{x:.1f}" cy="{y_mean:.1f}" r="6" fill="{color}" '
+                'stroke="#ffffff" stroke-width="1.5"/>'
+            )
+            label_y = max(top + 14, y_mean - 13)
+            value_labels.append(
                 _svg_text(
                     x,
-                    bottom + 20,
-                    f"{level:g}",
+                    label_y,
+                    formatter(mean),
                     text_anchor="middle",
-                    font_size="11",
-                    fill="#486581",
+                    font_size="12",
+                    font_weight="700",
+                    fill=color,
                 )
             )
-            elements.append(
+            x_labels.append(
                 _svg_text(
                     x,
-                    bottom + 37,
+                    bottom + 23,
+                    display_label,
+                    text_anchor="middle",
+                    font_size="11",
+                    font_weight="600",
+                    fill="#334e68",
+                )
+            )
+            x_labels.append(
+                _svg_text(
+                    x,
+                    bottom + 40,
                     variant_id,
                     text_anchor="middle",
                     font_size="10",
                     fill="#829ab1",
                 )
             )
-        elements.append(_polyline(points, color, 2.6))
+
+        elements.append(_polyline(mean_points, color, 2.8))
+        elements.extend(seed_marks)
+        elements.extend(mean_marks)
+        elements.extend(value_labels)
+        elements.extend(x_labels)
         elements.append(
             _svg_text(
                 left,
                 top - 18,
-                title,
+                y_label,
                 font_size="15",
-                font_weight="650",
+                font_weight="700",
                 fill="#243b53",
             )
         )
         elements.append(
             _svg_text(
-                left,
-                top + 2,
-                y_label,
-                font_size="11",
-                fill="#627d98",
-            )
-        )
-        elements.append(
-            _svg_text(
                 left + panel_w / 2,
-                bottom + 58,
+                bottom + 66,
                 x_label,
                 text_anchor="middle",
                 font_size="12",
                 fill="#486581",
             )
         )
+
+    elements.extend(
+        [
+            f'<circle cx="80" cy="95" r="4" fill="#ffffff" stroke="{color}" stroke-width="1.8"/>',
+            _svg_text(92, 99, "individual PPO seed", font_size="11", fill="#486581"),
+            f'<circle cx="235" cy="95" r="6" fill="{color}" stroke="#ffffff" stroke-width="1.5"/>',
+            _svg_text(248, 99, "mean of 3 seeds", font_size="11", fill="#486581"),
+        ]
+    )
     elements.append("</svg>")
     return "\n".join(elements) + "\n"
+
+
+def render_observation_ablation(rows: list[dict[str, Any]]) -> str:
+    return _render_factor_ablation(
+        rows,
+        factor="observation",
+        title="Observation ablation",
+        subtitle="What changes when the policy receives more state information?",
+        levels=[
+            ("O_POS", 0.0, "Position only"),
+            ("O_H4", 1.0, "4-frame history"),
+            ("B0", 2.0, "Position + velocity"),
+        ],
+        x_label="Observation supplied to policy (ordered categories)",
+        secondary_metric="mean_upright_fraction_12deg",
+        secondary_label="Fraction of time upright",
+        secondary_formatter=lambda value: f"{value:.0%}",
+        secondary_y_max=1.0,
+    )
+
+
+def render_reward_ablation(rows: list[dict[str, Any]]) -> str:
+    return _render_factor_ablation(
+        rows,
+        factor="reward",
+        title="Reward ablation",
+        subtitle="Cart-velocity penalty changes motion even when survival stays at ceiling.",
+        levels=[
+            ("R_CV2", -0.02, "-0.02"),
+            ("B0", -0.01, "-0.01"),
+            ("R_CV0", 0.0, "0"),
+        ],
+        x_label="Cart-velocity reward weight",
+        secondary_metric="mean_abs_cart_velocity",
+        secondary_label="Mean absolute cart velocity",
+        secondary_formatter=lambda value: f"{value:.3f}",
+    )
+
+
+def render_action_ablation(rows: list[dict[str, Any]]) -> str:
+    return _render_factor_ablation(
+        rows,
+        factor="action",
+        title="Action ablation",
+        subtitle="Effort scale changes authority; the learned policy can compensate in its action output.",
+        levels=[
+            ("A_E50", 50.0, "50"),
+            ("B0", 100.0, "100"),
+            ("A_E200", 200.0, "200"),
+        ],
+        x_label="Maximum requested effort scale",
+        secondary_metric="mean_abs_requested_effort",
+        secondary_label="Mean absolute requested effort",
+        secondary_formatter=lambda value: f"{value:.2f}",
+    )
+
+
+def render_termination_ablation(rows: list[dict[str, Any]]) -> str:
+    return _render_factor_ablation(
+        rows,
+        factor="termination",
+        title="Termination ablation",
+        subtitle="Training boundary width changes reliability under the same final evaluation boundary.",
+        levels=[
+            ("T_B15", 1.5, "±1.5"),
+            ("B0", 3.0, "±3.0"),
+            ("T_B60", 6.0, "±6.0"),
+        ],
+        x_label="Training cart-position bound",
+        secondary_metric="mean_upright_fraction_12deg",
+        secondary_label="Fraction of time upright",
+        secondary_formatter=lambda value: f"{value:.0%}",
+        secondary_y_max=1.0,
+    )
 
 
 def render_tradeoff(rows: list[dict[str, Any]]) -> str:
@@ -913,9 +816,14 @@ def write_outputs(source: Path, output: Path, study: dict[str, Any], rows: dict[
     plots = output / "plots"
     plots.mkdir(parents=True, exist_ok=True)
     (plots / "learning_dynamics.svg").write_text(render_learning_dynamics(rows["training_curves"]))
-    (plots / "final_performance.svg").write_text(render_final_performance(rows["run_metrics"]))
-    (plots / "factor_sensitivity.svg").write_text(render_sensitivity(rows["run_metrics"]))
-    (plots / "control_sensitivity.svg").write_text(render_control_sensitivity(rows["run_metrics"]))
+    (plots / "observation_ablation.svg").write_text(
+        render_observation_ablation(rows["run_metrics"])
+    )
+    (plots / "reward_ablation.svg").write_text(render_reward_ablation(rows["run_metrics"]))
+    (plots / "action_ablation.svg").write_text(render_action_ablation(rows["run_metrics"]))
+    (plots / "termination_ablation.svg").write_text(
+        render_termination_ablation(rows["run_metrics"])
+    )
     (plots / "effort_error_tradeoff.svg").write_text(render_tradeoff(rows["run_metrics"]))
 
     receipt = {

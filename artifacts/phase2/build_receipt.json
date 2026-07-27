@@ -28,10 +28,11 @@
     "failure_composition": 12
   },
   "plots": [
-    "control_sensitivity.svg",
+    "action_ablation.svg",
     "effort_error_tradeoff.svg",
-    "factor_sensitivity.svg",
-    "final_performance.svg",
-    "learning_dynamics.svg"
+    "learning_dynamics.svg",
+    "observation_ablation.svg",
+    "reward_ablation.svg",
+    "termination_ablation.svg"
   ]
 }

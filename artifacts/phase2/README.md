@@ -9,7 +9,7 @@ The protocol is
 Each attempted run follows
 [`run_manifest.schema.json`](../../experiments/01_cartpole_ppo/run_manifest.schema.json).
 
-## Main result
+## One-factor results
 
 Velocity observation was the dominant requirement. Position-only policies
 almost completely failed (`1.3% ± 2.3%` robust success); four-frame position
@@ -17,7 +17,26 @@ history recovered two of three training seeds but remained seed-sensitive
 (`66.7% ± 57.7%`). Reward and action-scale variants retained near-ceiling
 success, while the wide training boundary produced one catastrophic seed.
 
-![Final performance](plots/final_performance.svg)
+Each figure below changes exactly one factor. The left panel always shows the
+30-second robust-success outcome. The right panel shows the most informative
+secondary behavior metric for that factor. Open circles are the three
+independently trained PPO seeds; the filled circle and line show their mean.
+
+### Observation
+
+![Observation ablation](plots/observation_ablation.svg)
+
+### Reward
+
+![Reward ablation](plots/reward_ablation.svg)
+
+### Action
+
+![Action ablation](plots/action_ablation.svg)
+
+### Termination
+
+![Termination ablation](plots/termination_ablation.svg)
 
 The complete interpretation, exact table, limitations, and next-step decision
 are in the [paper-style results report](report/README.md).
@@ -47,7 +66,7 @@ phase2/
     paired_effects.csv    24 within-seed contrasts
     condition_summary.csv 9 variant summaries
     failure_composition.csv
-  plots/                  5 dependency-free SVG figures
+  plots/                  6 dependency-free SVG figures
   report/README.md        technical results report
 ```
 
