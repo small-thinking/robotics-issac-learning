@@ -126,7 +126,7 @@ joint target, image tensor, policy, checkpoint, or learning code was executed.
 
 ### Goal 2 — Hard-coded, safe joint motion
 
-Status: **planned; do not execute during Goal 1**
+Status: **local harness validated; remote machine and visual gates pending**
 
 Starting from the recorded joint ordering and limits:
 
@@ -143,9 +143,62 @@ from the DOFBOT Reacher repository.
 Acceptance requires every selected joint to move on the intended axis, remain
 inside a documented safety margin, and return to its starting pose.
 
+The local harness deliberately controls only `joint1` through `joint4`. These
+are the four actuator-backed arm joints whose recorded position limits are
+finite (`±90°`). Wrist and finger joints remain uncommanded because most of
+their USD limits are floating-point unbounded sentinels, not trustworthy
+physical safety limits.
+
+The fixed headless sequence lasts 41 seconds:
+
+1. hold the all-zero default for two seconds;
+2. run one six-second `±5°` sinusoid on one joint while the other three hold
+   zero;
+3. settle at zero for one second and repeat for all four joints;
+4. run an eight-second, smoothly enveloped multi-joint wave;
+5. hold the zero reset target for three seconds.
+
+The plan fails closed before simulation if a controlled joint is missing or
+renamed, its limit is a sentinel, the Goal 1 contract was not accepted or does
+not name NVIDIA's official DOFBOT USD, the live asset differs from the recorded
+contract, the command exceeds `5°`, or an extreme target would leave less than
+`10°` to a limit. Machine acceptance additionally requires at least `±2.5°`
+observed motion in each single-joint segment, no more than `1°` drift in an
+inactive arm joint, no more than `1°` active-joint overshoot, at least 90%
+command/observation sign agreement, finite samples inside the safety envelope,
+at least `1°` observed motion per joint with at least two joints moving
+simultaneously during the wave, and reset error no greater than `1°`.
+
+Local and preview commands:
+
+```bash
+make show-dofbot-motion       # finite headless machine run
+make show-dofbot-motion-view  # 30-second connection hold, then repeated cycles
+make test                     # pure safety and remote-command contracts
+```
+
+The remote commands, reserved for a separately approved paid window, are:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-motion
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-motion-view
+```
+
+Expected machine evidence:
+
+```text
+artifacts/dofbot/motion_contract.json
+artifacts/dofbot/motion_viewer.log
+```
+
+The motion artifact can pass only the machine gate. Goal 2 remains incomplete
+until the user confirms the visible axis/sign of all four joints, the slow
+multi-joint wave, and return to the default pose. No remote motion was executed
+during the local preparation.
+
 ### Goal 3 — Read the onboard camera
 
-Status: **planned; do not execute during Goal 1**
+Status: **planned; out of scope for Goal 2**
 
 First use the camera prim discovered in Goal 1. If the asset camera cannot
 produce an Isaac Lab tensor, attach an Isaac Lab `CameraCfg` to the same
