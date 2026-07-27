@@ -247,3 +247,41 @@
   `STOPPED` verification is recorded in `docs/STATUS.md`
 - Conclusion: Goal 1 passed both the machine contract and the explicit user
   visual gate; Goal 2 remains planned and requires a separate approved run
+
+## 2026-07-26 — DOFBOT Goal 2 local safety harness passed
+
+- Branch: `codex/dofbot-safe-motion`
+- Runtime used: local pure Python and remote-command dry-runs only
+- Billable GPU started: no
+- Controlled joint set: `joint1`, `joint2`, `joint3`, `joint4`
+- Command contract: position targets bounded to `±5°` around the recorded
+  defaults with a required `10°` limit margin
+- Planned sequence: two-second default hold; one six-second sinusoid and
+  one-second settle for each joint; eight-second multi-joint wave; three-second
+  reset hold
+- Machine thresholds: at least `±2.5°` single-joint excursion, at most `1°`
+  inactive-joint drift, at most `1°` active-joint overshoot, at least 90%
+  command/observation sign agreement, at least `1°` per joint in the
+  simultaneous wave, and at most `1°` final reset error
+- Local failure-path coverage: missing joint, unbounded sentinel, insufficient
+  range, amplitude above `5°`, unaccepted/nonofficial Goal 1 input,
+  live-contract drift, inactive-joint drift, active-joint overshoot, reversed
+  observed sign, missing bidirectional excursion, missing multi-joint wave, and
+  reset outside tolerance
+- Validation commands:
+
+  ```bash
+  make show-dofbot-motion
+  make show-dofbot-motion-view
+  make test
+  uv run --python 3.12 ruff check \
+    tools/dofbot_motion_plan.py tools/dofbot_scene_cfg.py \
+    tools/inspect_dofbot_asset.py tools/move_dofbot_joints.py \
+    tests/test_dofbot_motion_plan.py
+  ```
+
+- Local result: all Goal 2 safety tests and command-preview checks passed
+- Remote result: not run; `motion_contract.json`, physical simulator tracking,
+  Viewer axis/sign confirmation, and reset confirmation remain pending
+- Conclusion: the local harness is ready for a separately quoted and approved
+  remote validation window, but Goal 2 is not complete

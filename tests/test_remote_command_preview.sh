@@ -86,4 +86,36 @@ dofbot_view_output="$(
 [[ "$dofbot_view_output" == *'--viz kit'* ]]
 [[ "$dofbot_view_output" == *'[dry-run] Command displayed but not executed.'* ]]
 
+dofbot_motion_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_motion.sh
+)"
+
+[[ "$dofbot_motion_output" == *'move_dofbot_joints.py'* ]]
+[[ "$dofbot_motion_output" == *'asset_contract.json'* ]]
+[[ "$dofbot_motion_output" == *'motion_contract.json'* ]]
+[[ "$dofbot_motion_output" == *'--cycles 1'* ]]
+[[ "$dofbot_motion_output" == *'--pre-motion-hold-seconds 2'* ]]
+[[ "$dofbot_motion_output" == *'--sample-hz 10'* ]]
+[[ "$dofbot_motion_output" == *'--git-commit "$git_commit"'* ]]
+[[ "$dofbot_motion_output" == *'--headless'* ]]
+[[ "$dofbot_motion_output" == *'[dry-run] Command displayed but not executed.'* ]]
+
+dofbot_motion_view_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/view_dofbot_motion.sh
+)"
+
+[[ "$dofbot_motion_view_output" == *'move_dofbot_joints.py'* ]]
+[[ "$dofbot_motion_view_output" == *'motion_viewer_contract.json'* ]]
+[[ "$dofbot_motion_view_output" == *'motion_viewer.log'* ]]
+[[ "$dofbot_motion_view_output" == *'--cycles -1'* ]]
+[[ "$dofbot_motion_view_output" == *'--pre-motion-hold-seconds 30'* ]]
+[[ "$dofbot_motion_view_output" == *'--livestream 2'* ]]
+[[ "$dofbot_motion_view_output" == *'--viz kit'* ]]
+[[ "$dofbot_motion_view_output" == *'motion repeats until the process or instance is stopped'* ]]
+[[ "$dofbot_motion_view_output" == *'[dry-run] Command displayed but not executed.'* ]]
+
 printf 'remote command preview tests passed\n'

@@ -11,3 +11,9 @@ The corresponding untracked `viewer.log` reached
 `Simulation App Startup Complete` and `app ready`. The user confirmed the
 stationary green DOFBOT in the secure Viewer at 2026-07-26 22:34 PDT, closing
 Goal 1's visual gate.
+
+Goal 2 will write `motion_contract.json` only after a separately approved
+remote run. It will contain the fixed safe-motion plan, sampled target and
+observed positions, per-joint excursion/reset metrics, machine acceptance
+checks, and an explicit `pending_user_confirmation` visual status. Do not
+create or reconstruct that artifact from local synthetic tests.

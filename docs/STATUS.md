@@ -3,7 +3,8 @@
 - Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goal 1 — complete; Goal 2
-  hard-coded safe joint motion is planned but not authorized to run
+  safe-motion harness is locally validated; remote machine and visual
+  validation are pending and not authorized to run
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-26
   22:43 PDT after successful Viewer confirmation
@@ -37,6 +38,32 @@
   stationary green DOFBOT in the secure Viewer
 - Scope audit: no joint motion, RGB tensor capture, policy, checkpoint, PPO,
   SFT, or CV pipeline was run
+
+## DOFBOT Goal 2 local preparation
+
+- Branch: `codex/dofbot-safe-motion`
+- Controlled joint set: `joint1`, `joint2`, `joint3`, `joint4`; these are the
+  four actuator-backed arm joints with recorded finite limits
+- Maximum command: `±5°` (`±0.0872665 rad`) around each recorded default
+- Required target-to-limit margin: at least `10°`; the recorded contract leaves
+  approximately `85°` from each extreme target to the corresponding limit
+- Sequence: default hold, one six-second sinusoid and one-second settle per
+  joint, eight-second multi-joint wave, three-second reset hold
+- Headless duration: `41` seconds; Viewer mode adds a 30-second connection hold
+  and repeats complete cycles so the user cannot miss the motion
+- Fail-closed local checks: missing/renamed joints, sentinel limits, insufficient
+  range, command above `5°`, unaccepted/nonofficial Goal 1 input, live-contract
+  drift, non-finite samples, limit margin, single-joint isolation,
+  inactive-joint drift, bidirectional excursion, and final reset error
+- Machine thresholds: at least `±2.5°` observed excursion, at most `1°`
+  inactive-joint error, at most `1°` active-joint overshoot, at least 90%
+  command/observation sign agreement, at least `1°` per joint in the
+  simultaneous wave, and at most `1°` final reset error
+- Local validation: 16 Goal 2 unit tests, remote-command dry-run checks, and
+  targeted Ruff passed
+- Remote motion executed: no
+- Goal 2 status: incomplete; machine artifact and user confirmation of the
+  visible axis/sign for all four joints remain pending
 
 ## Phase 1 result
 
@@ -141,9 +168,9 @@
 
 ## Exact next action
 
-Design and locally test Goal 2's policy-free safe-motion wrapper without
-starting a GPU: hold the recorded default pose, command one selected arm joint
-at a time through a small `±5°` trajectory, enforce explicit margins inside the
-recorded limits, and reset to zero. Obtain a fresh price quote and explicit
-approval before any remote motion run. Goal 3 camera capture remains out of
-scope.
+After a fresh `brev ls`/price check and explicit approval, sync
+`codex/dofbot-safe-motion` and run `make dofbot-motion`. Retrieve and inspect
+`artifacts/dofbot/motion_contract.json`; only after machine acceptance passes,
+run `make dofbot-motion-view` for the user's axis/sign, wave, and reset
+confirmation. Stop and verify the GPU immediately afterward. Goal 3 camera
+capture remains out of scope.

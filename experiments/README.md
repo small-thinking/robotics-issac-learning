@@ -13,7 +13,7 @@ learning narrative.
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
 | [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
-| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, and camera be made trustworthy before learning? | Goal 1 complete; Goals 2–3 planned |
+| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, and camera be made trustworthy before learning? | Goal 1 complete; Goal 2 local harness ready, remote pending; Goal 3 planned |
 
 Every experiment section should leave:
 
