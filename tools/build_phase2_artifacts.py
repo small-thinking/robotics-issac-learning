@@ -635,7 +635,10 @@ def render_action_ablation(rows: list[dict[str, Any]]) -> str:
         rows,
         factor="action",
         title="Action ablation",
-        subtitle="Effort scale changes authority; the learned policy can compensate in its action output.",
+        subtitle=(
+            "Effort scale changes authority; the learned policy can compensate "
+            "in its action output."
+        ),
         levels=[
             ("A_E50", 50.0, "50"),
             ("B0", 100.0, "100"),
@@ -653,7 +656,10 @@ def render_termination_ablation(rows: list[dict[str, Any]]) -> str:
         rows,
         factor="termination",
         title="Termination ablation",
-        subtitle="Training boundary width changes reliability under the same final evaluation boundary.",
+        subtitle=(
+            "Training boundary width changes reliability under the same final "
+            "evaluation boundary."
+        ),
         levels=[
             ("T_B15", 1.5, "±1.5"),
             ("B0", 3.0, "±3.0"),
