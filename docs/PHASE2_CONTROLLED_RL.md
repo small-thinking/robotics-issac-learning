@@ -7,6 +7,16 @@ data contract, charts, execution waves, and cost gates are in
 matrix is
 [`experiments/01_cartpole_ppo/variants.json`](../experiments/01_cartpole_ppo/variants.json).
 
+## Completion
+
+Phase 2 is complete: all 27 trained-policy cells, 9 screening sweeps, and 9
+final stress evaluations succeeded. The reviewed report and figures are in
+[`artifacts/phase2/`](../artifacts/phase2/README.md). The main result is that
+direct velocity observation was essential; four-frame position history
+recovered two of three seeds but remained brittle. Reward/action changes mostly
+altered control style, while the wide training boundary produced one
+catastrophic seed.
+
 ## Goal
 
 Turn a visible policy-style difference into a controlled experiment about how
@@ -97,3 +107,7 @@ Implement and test telemetry locally before restarting Brev. The next paid
 window should first run one override/telemetry smoke test. The complete matrix
 starts only after that smoke passes, a live price is checked, and the user gives
 new explicit approval. Stop compute immediately after artifact validation.
+
+This gate was satisfied for the completed run. The L4 instance was stopped
+after local archive checksums matched the remote checksums. Any Phase 3 compute
+requires a new approval; the Phase 2 approval does not carry forward.

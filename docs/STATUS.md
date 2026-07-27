@@ -1,12 +1,12 @@
 # Status
 
 - Updated: 2026-07-26 America/Los_Angeles
-- Completed phase: Phase 1 — fresh manager-based PPO reproduction and
-  checkpoint learning curve
-- Next experiment: one paid Phase 2 override/telemetry smoke test, then the
-  preregistered controlled study after review
+- Completed phase: Phase 2 — 27-cell controlled RL study
+- Next experiment: design the Phase 3 state-based Franka reach acceptance
+  contract; no GPU is required for the design work
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified after `brev refresh`
+- Instance state: `STOPPED`, verified with `brev ls --json` after artifact
+  download
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -50,23 +50,31 @@
 - Preserved training logs and configs: `artifacts/training/phase1/`
 - GPU requirement now: none; the instance remains stopped
 
-## Phase 2 preparation
+## Phase 2 result
 
-- Study design: preregistered, 9 variants × 3 training seeds = 27 cells
-- Existing reusable cell: `B0`, seed `42`; planned new training runs: 26
+- Study matrix: complete, 9 variants × 3 training seeds = 27 succeeded cells
+- Failed/partial formal runs: none
 - Factors: observation, cart-velocity reward, action effort scale, and training
   out-of-bounds threshold
 - Evaluation: 25 fixed parallel environment IDs under deterministic seed 101;
   final common 30-second stress profile
-- Evaluator: control telemetry implemented; first-completion sampling bias
-  removed
-- Run provenance: allowlisted override registry, deterministic run IDs, and
-  manifest schema implemented
-- Reporting contract: derived tables and nine planned figure families locked
-- Local validation: 14 tests, targeted Ruff, JSON parsing, shell syntax, and
-  command previews passed
-- Remote validation: not yet performed; Hydra overrides, joint telemetry, and
-  30-second execution require one smoke run
+- Final episode rows: 675; screening checkpoint evaluations: 90
+- Baseline robust 30-second success: `100% ± 0%`
+- Position-only robust success: `1.3% ± 2.3%`
+- Four-frame history robust success: `66.7% ± 57.7%`; two seeds succeeded and
+  one failed
+- Reward variants: `100%` mean robust success at all three levels, with
+  control-style differences
+- Wide-boundary result: `65.3% ± 56.6%`, driven by one catastrophic seed
+- Local evidence: 27 manifests, screening/final JSON, 7 CSV datasets, 5 SVG
+  figures, and a paper-style report under `artifacts/phase2/`
+- Local archive checksums:
+  - data: `932d4b3dfae43e58ffc44f9c57f19e112f085744acd373a333660538aec73c59`
+  - 27 checkpoints:
+    `de37fa34962c20fa421917e9adb9e7a99af407bea91fb41a0d733c71949362b5`
+- Validation: 18 unit tests, targeted Ruff, 27/27 manifest status, 9/9
+  screening files, 9/9 final files, per-file episode counts, matching local and
+  remote archive checksums, and browser-rendered SVG QA passed
 
 ## Phase 0 acceptance
 
@@ -107,8 +115,8 @@
 
 ## Exact next action
 
-Review the Phase 2 planning PR. After it is merged, recheck the live Brev price
-and request explicit approval for a short paid smoke window. The smoke must
-verify resolved config diffs, observation shape, checkpoint compatibility,
-telemetry fields, fixed-environment episode collection, and artifact
-persistence before the 26-run matrix starts.
+Review the Phase 2 results and close the CartPole stage. Then specify a
+state-based Franka reach task with success distance, fixed initial-state suite,
+multiple training seeds, per-episode metrics, and a short visual acceptance
+run. Do not start a GPU until that Phase 3 contract and a fresh cost quote are
+approved.

@@ -12,7 +12,7 @@ learning narrative.
 | Stage | Question | Status |
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
-| [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | in progress; reproduction and learning curve complete |
+| [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
 
 Every experiment section should leave:
 

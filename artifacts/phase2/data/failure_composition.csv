@@ -1,0 +1,13 @@
+variant_id,termination_reason,episode_count,fraction
+B0,time_limit,75,1.0
+O_POS,out_of_bounds,73,0.9733333333333334
+O_POS,time_limit,2,0.02666666666666667
+O_H4,time_limit,75,1.0
+R_CV0,time_limit,75,1.0
+R_CV2,time_limit,75,1.0
+A_E50,time_limit,75,1.0
+A_E200,time_limit,75,1.0
+T_B15,out_of_bounds,1,0.013333333333333334
+T_B15,time_limit,74,0.9866666666666667
+T_B60,out_of_bounds,26,0.3466666666666667
+T_B60,time_limit,49,0.6533333333333333

@@ -47,6 +47,23 @@ artifacts/training/phase1/*
 !artifacts/phase2/
 artifacts/phase2/*
 !artifacts/phase2/README.md
+!artifacts/phase2/build_receipt.json
+!artifacts/phase2/study_summary.json
+!artifacts/phase2/manifests/
+!artifacts/phase2/manifests/*.json
+!artifacts/phase2/evaluations/
+artifacts/phase2/evaluations/*
+!artifacts/phase2/evaluations/screening/
+!artifacts/phase2/evaluations/screening/*.json
+!artifacts/phase2/evaluations/final/
+!artifacts/phase2/evaluations/final/*.json
+!artifacts/phase2/data/
+!artifacts/phase2/data/*.csv
+!artifacts/phase2/plots/
+!artifacts/phase2/plots/*.svg
+!artifacts/phase2/report/
+!artifacts/phase2/report/README.md
+!artifacts/phase2/report/CHART_MAP.md
 
 # macOS and editors
 .DS_Store

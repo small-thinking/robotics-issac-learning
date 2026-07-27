@@ -41,11 +41,16 @@ Behavior was worse than random through about 2M transitions, improved sharply
 between roughly 3M and 5M, and plateaued near 4.8 balance seconds after about
 6.9M. The final numbered checkpoint reached `24/25` time-limit episodes.
 
-Phase 1 reproduction and its checkpoint curve are complete. Phase 2 is now
-preregistered as a 9-variant, 3-training-seed controlled study covering
-observation, reward, action authority, and training termination. Its evaluator,
-run manifests, data tables, and paper-style figures are defined before paid
-execution.
+Phase 1 reproduction and its checkpoint curve are complete. Phase 2 also
+completed all 27 preregistered cells across observation, reward, action
+authority, and training termination. Its strongest result is that
+position-only observation almost completely failed, while four-frame position
+history recovered two of three training seeds but remained brittle.
+
+The [Phase 2 results report](artifacts/phase2/report/README.md) contains the
+tracked manifests, 675 final episodes, 90 checkpoint evaluations, exact tables,
+and five paper-style figures. The Brev GPU is stopped; persistent storage and
+local archives are retained.
 
 ## Long-term learning path
 
@@ -58,7 +63,7 @@ post-training.
 | --- | --- | --- |
 | 0 — Simulator loop | Prove Brev, Isaac, evaluation, and Viewer plumbing | Random-versus-pretrained CartPole result — complete |
 | 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Local checkpoint passed quantitative and visual gates — complete |
-| 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible ablations and regression thresholds |
+| 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible 27-cell ablation study — complete |
 | 3 — Robot-arm control | Move from CartPole to Franka reach and cube lift | State-based manipulation baseline |
 | 4 — Imitation learning | Build a demonstration pipeline and train BC, ACT, or Diffusion Policy | Versioned demonstrations and closed-loop success evaluation |
 | 5 — Vision and multimodality | Add RGB observations and visual representations | Vision-policy baseline with failure analysis |

@@ -1,0 +1,103 @@
+{
+  "artifacts": [
+    {
+      "kind": "train_O_POS_seed7_console",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/training_logs/O_POS__seed7.log",
+      "sha256": "b9a11b3175e761a8ff514dd86c20c7eca894f7199095aeb56eb4eb7349eb2ac6"
+    },
+    {
+      "kind": "training_run_directory",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-27_01-57-33_ppo_torch",
+      "sha256": null
+    },
+    {
+      "kind": "primary_checkpoint",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-27_01-57-33_ppo_torch/checkpoints/agent_2400.pt",
+      "sha256": "d981267b259e18e49c6f71ed53d7e0b1ca4e5c0ef7c752bf28ee7b5581cac772"
+    },
+    {
+      "kind": "final_evaluation",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluations/final/O_POS.json",
+      "sha256": "6fd7a28e2bb2dd9ae1070819a9d1eb5421f4e5c7e6cb3262833821df7558b25b"
+    }
+  ],
+  "commands": [
+    {
+      "command": "/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/train.py --rl_library=skrl --task=Isaac-Cartpole-v0 --algorithm=PPO --seed=7 --num_envs=4096 --viz none env.observations.policy.joint_vel_rel=null",
+      "ended_at": "2026-07-27T01:58:50.403369+00:00",
+      "exit_code": 0,
+      "stage": "train_O_POS_seed7",
+      "started_at": "2026-07-27T01:57:17.804341+00:00",
+      "wall_seconds": 92.59876884100004
+    }
+  ],
+  "evaluation": {
+    "episodes_per_seed": 25,
+    "fixed_environment_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "profile_ids": [
+      "stress30"
+    ],
+    "seeds": [
+      101
+    ]
+  },
+  "failure": null,
+  "provenance": {
+    "git_commit": "a2ddcc55747b6b0e1a46451369a371734315ebff",
+    "git_dirty": false,
+    "gpu": {},
+    "resolved_agent_sha256": null,
+    "resolved_env_sha256": null,
+    "software": {}
+  },
+  "run_id": "phase2_cartpole_controlled_ablation__O_POS__seed7",
+  "schema_version": 1,
+  "status": "succeeded",
+  "study_id": "phase2_cartpole_controlled_ablation",
+  "training": {
+    "checkpoint_vector_step": 2400,
+    "num_envs": 4096,
+    "seed": 7,
+    "task": "Isaac-Cartpole-v0"
+  },
+  "variant": {
+    "contrast_variant_id": "B0",
+    "expected_diff": [
+      {
+        "path": "env.observations.policy.joint_vel_rel",
+        "value": null
+      }
+    ],
+    "factor": "observation",
+    "factor_level": "position_only",
+    "id": "O_POS",
+    "interface_contract_sha256": "6465b7b923e17436f5ce0b41ac8dd4f8620ba683e6cf10e32bcbbfaedeba8486",
+    "registry_sha256": "72c2bf04bda3213469068e31c489e0439a51ab49cfef25ec022b998d3465fa5d"
+  }
+}

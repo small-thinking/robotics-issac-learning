@@ -9,7 +9,7 @@ folders.
 | --- | --- | --- |
 | 01 — Reproduction | Can PPO learn the accepted behavior from scratch? | complete |
 | 02 — Checkpoint learning curve | How does ability change during that same training run? | complete |
-| 03 — Controlled factor study | How do observation, reward, action authority, and termination change learned control? | preregistered |
+| 03 — Controlled factor study | How do observation, reward, action authority, and termination change learned control? | complete |
 
 The stage is complete only after we can reproduce learning, measure how it
 develops, and explain at least one controlled behavior change.
@@ -198,11 +198,24 @@ Each variant has a locked, falsifiable hypothesis in
 [`variants.json`](variants.json). Raw reward is not compared across reward
 variants because the reward definition itself changes.
 
-### Current status
+### Result
 
-The study is preregistered in
-[`docs/PHASE2_STUDY_PROTOCOL.md`](../../docs/PHASE2_STUDY_PROTOCOL.md). The
-registry can be inspected without Isaac or a GPU:
+All 27 trained-policy cells and both evaluation waves completed. Position-only
+observation nearly eliminated robust 30-second success (`1.3% ± 2.3%`).
+Four-frame position history recovered two of three seeds but remained brittle
+(`66.7% ± 57.7%`). Reward and action variants remained close to the task
+ceiling, while a wide training boundary produced one catastrophic seed.
+
+![Final performance](../../artifacts/phase2/plots/final_performance.svg)
+
+The complete methods, tables, figures, limitations, and conclusions are in the
+[`Phase 2 results report`](../../artifacts/phase2/report/README.md). The
+preregistered source remains
+[`docs/PHASE2_STUDY_PROTOCOL.md`](../../docs/PHASE2_STUDY_PROTOCOL.md).
+
+### Reproduce the derived artifacts
+
+The registry can still be inspected without Isaac or a GPU:
 
 ```bash
 make study-validate
@@ -212,5 +225,10 @@ VARIANT=R_CV0 SCOPE=eval PROFILE=stress30 make show-variant
 VARIANT=A_E50 TRAINING_SEED=7 make show-manifest
 ```
 
-The first paid action is still gated on a remote override/telemetry smoke test,
-a current price check, and explicit approval.
+Rebuild tables and figures from the downloaded raw archive:
+
+```bash
+uv run python tools/build_phase2_artifacts.py \
+  artifacts/phase2/raw/extracted/cartpole_controlled_study \
+  --output artifacts/phase2
+```

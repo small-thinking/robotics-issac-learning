@@ -1,0 +1,104 @@
+{
+  "artifacts": [
+    {
+      "kind": "screening_B0_console",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluation_logs/screening_B0.log",
+      "sha256": "f9f8b24d721d30c9825f99ed13119a6c757dda22b5e806fc7c4214ae9ae83844"
+    },
+    {
+      "kind": "screening_evaluation",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluations/screening/B0.json",
+      "sha256": "07e4576b19ddba760da4681dd4150454c1631d4901266edf037d8a52beefe8d7"
+    },
+    {
+      "kind": "training_run_directory",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch",
+      "sha256": null
+    },
+    {
+      "kind": "primary_checkpoint",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints/agent_2400.pt",
+      "sha256": "d375ff94649f1328b87e367e175d84bdae8da4f327f9820430c0a498b4ef8592"
+    },
+    {
+      "kind": "final_evaluation",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluations/final/B0.json",
+      "sha256": "f9aed4c86006a82c2fe8a589216d843d770d9e00bc32ec8b87fe2e181c226547"
+    }
+  ],
+  "commands": [
+    {
+      "command": "/workspace/isaaclab/isaaclab.sh -p /workspace/robotics-issac-learning/tools/evaluate_cartpole.py --policy=sweep --task=Isaac-Cartpole-v0 --checkpoint-dir=/workspace/isaaclab/logs/skrl/cartpole/2026-07-26_16-09-30_ppo_torch/checkpoints --training-num-envs=4096 --seeds=101 --episodes-per-seed=25 --num-envs=25 --max-steps-per-seed=1000 --upright-threshold-degrees=12.0 --robust-success-upright-fraction=0.95 --action-sign-deadband=0.05 --output=/workspace/phase2/cartpole_controlled_study/evaluations/screening/B0.json --viz none",
+      "ended_at": "2026-07-27T02:23:47.552997+00:00",
+      "exit_code": 0,
+      "stage": "screening_B0",
+      "started_at": "2026-07-27T02:23:02.926398+00:00",
+      "wall_seconds": 44.626264397999876
+    }
+  ],
+  "evaluation": {
+    "episodes_per_seed": 25,
+    "fixed_environment_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "profile_ids": [
+      "canonical5",
+      "stress30"
+    ],
+    "seeds": [
+      101
+    ]
+  },
+  "failure": null,
+  "provenance": {
+    "git_commit": "historical-phase1-run",
+    "git_dirty": false,
+    "gpu": {},
+    "resolved_agent_sha256": null,
+    "resolved_env_sha256": null,
+    "software": {}
+  },
+  "run_id": "phase2_cartpole_controlled_ablation__B0__seed42",
+  "schema_version": 1,
+  "status": "succeeded",
+  "study_id": "phase2_cartpole_controlled_ablation",
+  "training": {
+    "checkpoint_vector_step": 2400,
+    "num_envs": 4096,
+    "seed": 42,
+    "task": "Isaac-Cartpole-v0"
+  },
+  "variant": {
+    "contrast_variant_id": null,
+    "expected_diff": [],
+    "factor": "baseline",
+    "factor_level": "official_manager_based_config",
+    "id": "B0",
+    "interface_contract_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "registry_sha256": "72c2bf04bda3213469068e31c489e0439a51ab49cfef25ec022b998d3465fa5d"
+  }
+}

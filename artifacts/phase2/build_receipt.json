@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "source_study_summary": {
+    "elapsed_minutes": 9.495439459049999,
+    "final_evaluation_count": 9,
+    "generated_at": "2026-07-27T02:37:59.732911+00:00",
+    "manifest_count": 27,
+    "registry_sha256": "72c2bf04bda3213469068e31c489e0439a51ab49cfef25ec022b998d3465fa5d",
+    "schema_version": 1,
+    "screening_evaluation_count": 9,
+    "status_counts": {
+      "failed": 0,
+      "partial": 0,
+      "planned": 0,
+      "reused": 0,
+      "running": 0,
+      "succeeded": 27
+    },
+    "study_id": "phase2_cartpole_controlled_ablation"
+  },
+  "row_counts": {
+    "run_registry": 27,
+    "training_curves": 90,
+    "run_metrics": 27,
+    "episode_metrics": 675,
+    "paired_effects": 24,
+    "condition_summary": 9,
+    "failure_composition": 12
+  },
+  "plots": [
+    "control_sensitivity.svg",
+    "effort_error_tradeoff.svg",
+    "factor_sensitivity.svg",
+    "final_performance.svg",
+    "learning_dynamics.svg"
+  ]
+}
