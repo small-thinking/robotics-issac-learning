@@ -64,7 +64,7 @@ post-training.
 | 0 — Simulator loop | Prove Brev, Isaac, evaluation, and Viewer plumbing | Random-versus-pretrained CartPole result — complete |
 | 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Local checkpoint passed quantitative and visual gates — complete |
 | 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible 27-cell ablation study — complete |
-| 3 — Robot-arm control | Move from CartPole to Franka reach and cube lift | State-based manipulation baseline |
+| 3 — DOFBOT foundations | Load the official robot, verify safe joint commands, and read its onboard camera | Asset/action/camera contract before learning |
 | 4 — Imitation learning | Build a demonstration pipeline and train BC, ACT, or Diffusion Policy | Versioned demonstrations and closed-loop success evaluation |
 | 5 — Vision and multimodality | Add RGB observations and visual representations | Vision-policy baseline with failure analysis |
 | 6 — VLA post-training | Add language-conditioned tasks and a lightweight VLA/action head | Reproducible VLA fine-tuning and checkpoint provenance |
@@ -87,6 +87,8 @@ make train      # run headless skrl PPO and save a checkpoint
 make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
 make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
+make dofbot-inspect # policy-free DOFBOT USD load and asset contract
+make dofbot-view # stationary DOFBOT in the secure Viewer
 make study-validate # validate the Phase 2 variants and 27-cell run matrix
 make study-matrix # print every planned/reused Phase 2 training cell
 make show-variant # preview one variant's train/eval Hydra overrides

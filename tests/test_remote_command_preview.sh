@@ -62,4 +62,28 @@ curve_output="$(
 [[ "$curve_output" == *'phase1_learning_curve.svg'* ]]
 [[ "$curve_output" == *'[dry-run] Command displayed but not executed.'* ]]
 
+dofbot_inspect_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/inspect_dofbot_asset.sh
+)"
+
+[[ "$dofbot_inspect_output" == *'inspect_dofbot_asset.py'* ]]
+[[ "$dofbot_inspect_output" == *'asset_contract.json'* ]]
+[[ "$dofbot_inspect_output" == *'--max-steps 120'* ]]
+[[ "$dofbot_inspect_output" == *'--headless'* ]]
+[[ "$dofbot_inspect_output" == *'[dry-run] Command displayed but not executed.'* ]]
+
+dofbot_view_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/view_dofbot_asset.sh
+)"
+
+[[ "$dofbot_view_output" == *'inspect_dofbot_asset.py'* ]]
+[[ "$dofbot_view_output" == *'--max-steps -1'* ]]
+[[ "$dofbot_view_output" == *'--livestream 2'* ]]
+[[ "$dofbot_view_output" == *'--viz kit'* ]]
+[[ "$dofbot_view_output" == *'[dry-run] Command displayed but not executed.'* ]]
+
 printf 'remote command preview tests passed\n'

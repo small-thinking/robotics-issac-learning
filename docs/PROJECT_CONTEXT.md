@@ -16,6 +16,13 @@ The long-term target is robotics ML focused on:
 - closed-loop evaluation;
 - failure-driven data collection.
 
+The concrete robot target is the user's Yahboom DOFBOT with Jetson Nano. The
+current high-level objective is to reach simple, measurable,
+camera-closed-loop tabletop manipulation in simulation and later behind safety
+gates on the real robot. Software controls the real arm through vendor-level
+servo angle/time commands; it does not assume access to motor-current control
+or the servos' internal loops.
+
 Transferable robot-learning concepts matter more than mastering NVIDIA-specific
 APIs. Later phases progress toward manipulation, vision, imitation learning,
 lightweight VLA post-training, and optional real hardware.
@@ -50,13 +57,18 @@ settings across them.
 
 ## Immediate next work
 
-The checkpoint learning-curve section in
-`experiments/01_cartpole_ppo/README.md` is complete.
+The CartPole stage is complete. The canonical next-stage plan is
+`experiments/02_dofbot/README.md`.
 
-1. Review and merge the Phase 2 data, figures, and results report.
-2. Define Phase 3 state-based Franka reach metrics and acceptance gates.
-3. After local validation, obtain a fresh cost quote and approval for one short
-   reach-task smoke/training window.
+1. Goal 1: load and inspect NVIDIA's official DOFBOT USD, save the asset
+   contract, and confirm the stationary model in the secure Viewer.
+2. Goal 2: command small, hard-coded joint movements and verify axis, sign,
+   limit margin, and reset.
+3. Goal 3: read and save one deterministic onboard RGB observation.
+
+Do not introduce PPO, SFT, imitation learning, a CV training pipeline, or real
+hardware commands during these three infrastructure goals. The older
+OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
 No GPU should be started for local code, tests, documentation, or chart
 rendering. Any remote run requires a new cost quote, explicit approval, and
@@ -72,3 +84,4 @@ prompt shutdown after validation.
 - `artifacts/evaluations/`: small reviewed machine-readable results.
 - `artifacts/phase2/`: manifests, episode data, derived tables, figures, and
   the controlled-study report.
+- `experiments/02_dofbot/README.md`: DOFBOT goals, gates, and later milestones.

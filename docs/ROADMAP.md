@@ -3,6 +3,16 @@
 Each phase ends in a reproducible artifact and evaluation gate. Moving forward
 is based on evidence, not only on a convincing Viewer clip.
 
+## Project objective
+
+Build from simulator fundamentals toward a camera-closed-loop Yahboom DOFBOT
+that can perform measurable tabletop reaching and manipulation in simulation
+and, behind explicit safety gates, on the user's Jetson Nano robot. The project
+will establish asset, action, camera, data, and evaluation contracts before
+choosing a learning method. Existing CV models are the default first perception
+baseline; PPO, imitation learning, SFT, VLA post-training, and agentic planning
+are introduced only where the task evidence justifies them.
+
 ## Phase 0 — Visible simulator loop (complete)
 
 - Provision one stoppable L4 instance with explicit cost approval.
@@ -81,13 +91,20 @@ The locked matrix and report contract are in
 regenerable from saved data and the study gives an evidence-based reason either
 to refine one controller or move to Franka state-based manipulation.
 
-## Phase 3 — Robot-arm state-based control
+## Phase 3 — DOFBOT asset and control foundations
 
-- Move to Franka reach, then cube lift, using proprioceptive state first.
-- Inspect frames, joint limits, action scaling, resets, contacts, and success
-  definitions.
-- Establish scripted/random and PPO or imitation baselines before adding
-  vision.
+The detailed first-stage contract lives in
+`experiments/02_dofbot/README.md`.
+
+1. Load NVIDIA's official DOFBOT USD and inspect its articulation, joint
+   limits, body ordering, and onboard camera prim. This goal is policy-free.
+2. Drive each arm joint with small, hard-coded position targets and verify
+   axis, sign, limits, and reset behavior.
+3. Render and save an onboard RGB observation from a deterministic test scene.
+4. Define the mapping between simulated joints and the vendor's servo-angle
+   API without yet commanding real hardware.
+5. Establish scripted and state-based reaching baselines before adding vision
+   or choosing a learning algorithm.
 
 ## Phase 4 — Demonstrations and imitation learning
 

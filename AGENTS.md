@@ -23,8 +23,10 @@ and training termination.
 
 The Brev instance is stopped; persistent storage and local raw/checkpoint
 archives are retained. Reviewed Phase 2 manifests, JSON, CSV, SVG, and the
-technical report are under `artifacts/phase2/`. The immediate zero-cost task is
-to define the Phase 3 state-based Franka reach contract. Any next paid window
+technical report are under `artifacts/phase2/`. Phase 3 now targets the user's
+Yahboom DOFBOT. Its first three goals are official-USD inspection, small
+hard-coded joint motion, and onboard-camera capture; execute them in order and
+do not introduce learning before those contracts pass. Any next paid window
 requires a fresh price check and explicit approval.
 
 ## Session startup

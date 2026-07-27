@@ -64,6 +64,10 @@ artifacts/phase2/evaluations/*
 !artifacts/phase2/report/
 !artifacts/phase2/report/README.md
 !artifacts/phase2/report/CHART_MAP.md
+!artifacts/dofbot/
+artifacts/dofbot/*
+!artifacts/dofbot/README.md
+!artifacts/dofbot/asset_contract.json
 
 # macOS and editors
 .DS_Store

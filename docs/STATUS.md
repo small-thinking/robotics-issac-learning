@@ -2,8 +2,8 @@
 
 - Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Next experiment: design the Phase 3 state-based Franka reach acceptance
-  contract; no GPU is required for the design work
+- Current experiment: Phase 3 / `02_dofbot`, Goal 1 — load and inspect the
+  official DOFBOT USD; Goals 2–3 are planned but not yet authorized to run
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` after artifact
   download
@@ -11,6 +11,8 @@
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
+- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.58784/hour`
+  compute; checked 2026-07-26 before any restart
 
 ## Phase 1 result
 
@@ -115,8 +117,8 @@
 
 ## Exact next action
 
-Review the Phase 2 results and close the CartPole stage. Then specify a
-state-based Franka reach task with success distance, fixed initial-state suite,
-multiple training seeds, per-episode metrics, and a short visual acceptance
-run. Do not start a GPU until that Phase 3 contract and a fresh cost quote are
-approved.
+Run the locally validated, policy-free Goal 1 inspector against the retained
+Isaac environment, save `artifacts/dofbot/asset_contract.json`, and confirm the
+stationary robot in the secure Viewer. Stop the GPU immediately after visual
+confirmation. Do not execute hard-coded motion (Goal 2) or camera capture
+(Goal 3) during this paid window.
