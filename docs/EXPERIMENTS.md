@@ -200,3 +200,50 @@
   `isaac-launchable-f150a5` confirmed `STOPPED`; persistent disk retained
 - Conclusion: CartPole controlled-study workflow is complete; advance to a
   state-based Franka reach task rather than extending the parameter sweep
+
+## 2026-07-26 — DOFBOT Goal 1 passed machine and visual gates
+
+- Git source at remote sync: `f9a44ee`
+- Environment: Isaac Launchable `3.0.0-beta2-post1`, Isaac Sim `6.0.1`,
+  AWS `g6.4xlarge`, 1x NVIDIA L4
+- Live compute quote before restart: `$1.58784/hour`; existing persistent disk
+  remains approximately `$0.04/hour`
+- Policy/learning provenance: none; the run was intentionally policy-free
+- Commands:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  PROJECT_GIT_BRANCH=codex/dofbot-asset-smoke \
+  make sync
+
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-inspect
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-view
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make stop
+  brev ls --json
+  ```
+
+- Official USD:
+  `Robots/Yahboom/Dofbot/dofbot.usd`
+- Resolved USD:
+  `https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/dofbot.usd`
+- Robot/articulation-root prim: `/World/envs/env_0/Dofbot`
+- Result: initialized fixed-base articulation, 11 ordered joints, 12 ordered
+  bodies, three configured actuator groups, and one onboard camera prim at
+  `/World/envs/env_0/Dofbot/link4/Camera`
+- Acceptance checks: articulation initialized, expected joint count, expected
+  body count, articulation root present, and onboard camera present all passed
+- Machine artifact: `artifacts/dofbot/asset_contract.json`
+- Asset contract SHA-256:
+  `1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2`
+- Viewer log: `Simulation App Startup Complete`, `app ready`, Kit visualizer
+  registered, and WebRTC extension started; the reviewed local log is ignored
+  by Git as machine-specific evidence
+- Visual result: passed at 2026-07-26 22:34 PDT; the user confirmed the
+  stationary green DOFBOT in the secure Viewer
+- Scope audit: no hard-coded joint motion, RGB tensor capture, PPO, checkpoint,
+  SFT, imitation learning, or CV pipeline was executed
+- Compute lifecycle: final artifact and Viewer log were downloaded; stop was
+  requested without deleting the instance or persistent disk, and terminal
+  `STOPPED` verification is recorded in `docs/STATUS.md`
+- Conclusion: Goal 1 passed both the machine contract and the explicit user
+  visual gate; Goal 2 remains planned and requires a separate approved run

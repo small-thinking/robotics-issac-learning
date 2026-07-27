@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "experiment": "02_dofbot_goal_1_asset_load",
+  "learning_algorithm": null,
+  "asset": {
+    "vendor": "Yahboom",
+    "model": "DOFBOT",
+    "source": "NVIDIA Isaac Sim asset catalog",
+    "relative_usd_path": "Robots/Yahboom/Dofbot/dofbot.usd",
+    "resolved_usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/dofbot.usd"
+  },
+  "articulation": {
+    "initialized": true,
+    "is_fixed_base": true,
+    "num_joints": 11,
+    "joint_names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4",
+      "Wrist_Twist_RevoluteJoint",
+      "Finger_Left_01_RevoluteJoint",
+      "Finger_Right_01_RevoluteJoint",
+      "Finger_Left_02_RevoluteJoint",
+      "Finger_Right_02_RevoluteJoint",
+      "Finger_Left_03_RevoluteJoint",
+      "Finger_Right_03_RevoluteJoint"
+    ],
+    "num_bodies": 12,
+    "body_names": [
+      "base_link",
+      "link1",
+      "link2",
+      "link3",
+      "link4",
+      "Wrist_Twist",
+      "Finger_Left_01",
+      "Finger_Right_01",
+      "Finger_Left_02",
+      "Finger_Right_02",
+      "Finger_Left_03",
+      "Finger_Right_03"
+    ],
+    "default_joint_positions_rad": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "joint_position_limits_rad": [
+      [
+        -1.5707999467849731,
+        1.5707999467849731
+      ],
+      [
+        -1.5707999467849731,
+        1.5707999467849731
+      ],
+      [
+        -1.5707999467849731,
+        1.5707999467849731
+      ],
+      [
+        -1.5707999467849731,
+        1.5707999467849731
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ],
+      [
+        -2.4260077476501465,
+        3.7350046634674072
+      ],
+      [
+        -3.4028234663852886e+38,
+        3.4028234663852886e+38
+      ]
+    ],
+    "actuator_groups": [
+      "front_joints",
+      "joint3_act",
+      "joint4_act"
+    ],
+    "articulation_root_prim_paths": [
+      "/World/envs/env_0/Dofbot"
+    ],
+    "usd_joint_prim_paths": [
+      "/World/envs/env_0/Dofbot/base_link/joint1",
+      "/World/envs/env_0/Dofbot/link1/joint2",
+      "/World/envs/env_0/Dofbot/link2/joint3",
+      "/World/envs/env_0/Dofbot/link3/joint4",
+      "/World/envs/env_0/Dofbot/link5/Finger_Left_01/Finger_Left_01_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Left_02/Finger_Left_02/Finger_Left_02_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Left_02/Finger_Left_02_SphericalJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Left_03/Finger_Left_03/Finger_Left_03_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Right_01/Finger_Right_01_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Right_02/Finger_Right_02/Finger_Right_02_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Right_02/Finger_Right_02_SphericalJoint",
+      "/World/envs/env_0/Dofbot/link5/Finger_Right_03/Finger_Right_03/Finger_Right_03_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/link5/Wrist_Twist/Wrist_Twist_RevoluteJoint",
+      "/World/envs/env_0/Dofbot/root_joint"
+    ]
+  },
+  "sensors": {
+    "camera_prim_paths": [
+      "/World/envs/env_0/Dofbot/link4/Camera"
+    ]
+  },
+  "acceptance": {
+    "checks": {
+      "articulation_initialized": true,
+      "expected_11_joints": true,
+      "expected_12_bodies": true,
+      "articulation_root_present": true,
+      "onboard_camera_present": true
+    },
+    "passed": true
+  }
+}

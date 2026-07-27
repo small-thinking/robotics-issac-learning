@@ -23,7 +23,7 @@ current control or the servo's internal feedback loop.
 
 ### Goal 1 — Load and inspect the official USD
 
-Status: **in progress**
+Status: **complete**
 
 Load NVIDIA's `Robots/Yahboom/Dofbot/dofbot.usd` as one Isaac Lab
 articulation. Do not load a policy, checkpoint, task reward, or learning
@@ -56,6 +56,73 @@ Expected evidence:
 artifacts/dofbot/asset_contract.json
 artifacts/dofbot/viewer.log
 ```
+
+#### Verified machine result — 2026-07-26
+
+The policy-free inspector ran on the retained AWS `g6.4xlarge` L4 instance
+against Isaac Launchable `3.0.0-beta2-post1` / Isaac Sim `6.0.1`. The remote
+source was Git commit `f9a44ee`.
+
+- Official asset:
+  `Robots/Yahboom/Dofbot/dofbot.usd`
+- Resolved asset:
+  `https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/dofbot.usd`
+- Robot and articulation-root prim: `/World/envs/env_0/Dofbot`
+- Initialized articulation: yes; fixed base: yes
+- Joint count: 11; body count: 12
+- Onboard camera prim: `/World/envs/env_0/Dofbot/link4/Camera`
+- Configured actuator groups: `front_joints`, `joint3_act`, `joint4_act`
+- Machine acceptance: all five checks passed
+- Contract artifact: `artifacts/dofbot/asset_contract.json`
+- Contract SHA-256:
+  `1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2`
+
+The ordered joint names are:
+
+```text
+joint1
+joint2
+joint3
+joint4
+Wrist_Twist_RevoluteJoint
+Finger_Left_01_RevoluteJoint
+Finger_Right_01_RevoluteJoint
+Finger_Left_02_RevoluteJoint
+Finger_Right_02_RevoluteJoint
+Finger_Left_03_RevoluteJoint
+Finger_Right_03_RevoluteJoint
+```
+
+The ordered body names are:
+
+```text
+base_link
+link1
+link2
+link3
+link4
+Wrist_Twist
+Finger_Left_01
+Finger_Right_01
+Finger_Left_02
+Finger_Right_02
+Finger_Left_03
+Finger_Right_03
+```
+
+Every default joint position is `0` radians. `joint1` through `joint4` each
+report limits `[-1.5707999468, 1.5707999468]` radians.
+`Finger_Left_03_RevoluteJoint` reports
+`[-2.4260077477, 3.7350046635]` radians. The other six joints report Isaac's
+floating-point unbounded sentinel
+`[-3.4028234664e38, 3.4028234664e38]`; later motion work must not interpret
+that sentinel as a safe physical range.
+
+The static Viewer reached `Simulation App Startup Complete`, `app ready`, and
+registered the Kit visualizer and WebRTC extension. At 2026-07-26 22:34 PDT,
+the user confirmed that the green DOFBOT was visible and stationary in the
+secure Viewer. Goal 1 therefore passed both its machine and human gates. No
+joint target, image tensor, policy, checkpoint, or learning code was executed.
 
 ### Goal 2 — Hard-coded, safe joint motion
 
