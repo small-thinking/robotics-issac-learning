@@ -24,6 +24,7 @@ lightweight VLA post-training, and optional real hardware.
 
 - Phase 0 simulator/pretrained-policy acceptance: complete.
 - Phase 1 PPO-from-scratch reproduction: complete.
+- Phase 2 controlled RL study: complete; 27/27 trained-policy cells succeeded.
 - Canonical task: `Isaac-Cartpole-v0` (manager-based).
 - RL stack: skrl PPO on Isaac Launchable `3.0.0-beta2-post1`.
 - Local training seed: `42`; parallel environments: `4096`.
@@ -35,6 +36,12 @@ lightweight VLA post-training, and optional real hardware.
   around 3-5M transitions and a plateau near 4.8 seconds after about 6.9M.
 - Final numbered checkpoint: `24/25` time-limit episodes, outperforming the
   trainer-selected `best_agent.pt` under the fixed-seed acceptance metric.
+- Phase 2 final evidence: 675 fixed 30-second episodes across 9 variants and 3
+  training seeds, plus 90 checkpoint evaluations.
+- Phase 2 main result: direct velocity observation was essential; four-frame
+  history recovered two of three seeds but remained brittle. Reward/action
+  variants largely retained success, while a wide training boundary produced
+  one catastrophic seed.
 - Brev `isaac-launchable-f150a5`: stopped; persistent disk retained.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
@@ -46,9 +53,10 @@ settings across them.
 The checkpoint learning-curve section in
 `experiments/01_cartpole_ppo/README.md` is complete.
 
-1. Add control-style telemetry locally.
-2. Repeat the unchanged baseline with two additional training seeds.
-3. Only then run the `cart_vel.weight: -0.01 -> 0.0` reward ablation.
+1. Review and merge the Phase 2 data, figures, and results report.
+2. Define Phase 3 state-based Franka reach metrics and acceptance gates.
+3. After local validation, obtain a fresh cost quote and approval for one short
+   reach-task smoke/training window.
 
 No GPU should be started for local code, tests, documentation, or chart
 rendering. Any remote run requires a new cost quote, explicit approval, and
@@ -62,3 +70,5 @@ prompt shutdown after validation.
 - `docs/EXPERIMENTS.md`: append-only successful and failed run record.
 - `docs/LESSONS_LEARNED.md`: pitfalls that must not be repeated.
 - `artifacts/evaluations/`: small reviewed machine-readable results.
+- `artifacts/phase2/`: manifests, episode data, derived tables, figures, and
+  the controlled-study report.

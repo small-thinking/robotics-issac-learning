@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "study_id": "phase2_cartpole_controlled_ablation",
+  "task": "Isaac-Cartpole-v0",
+  "baseline_variant_id": "B0",
+  "primary_checkpoint_vector_step": 2400,
+  "training_num_envs": 4096,
+  "training_seeds": [
+    42,
+    7,
+    123
+  ],
+  "evaluation_seeds": [
+    101
+  ],
+  "episodes_per_evaluation_seed": 25,
+  "upright_threshold_degrees": 12.0,
+  "robust_success_upright_fraction": 0.95,
+  "action_sign_deadband": 0.05,
+  "baseline_values": {
+    "env.actions.joint_effort.scale": 100.0,
+    "env.episode_length_s": 5.0,
+    "env.observations.policy.joint_pos_rel.history_length": 0,
+    "env.observations.policy.joint_vel_rel": "enabled",
+    "env.rewards.cart_vel.weight": -0.01,
+    "env.terminations.cart_out_of_bounds.params.bounds": [
+      -3.0,
+      3.0
+    ]
+  },
+  "allowed_overrides": {
+    "env.actions.joint_effort.scale": {
+      "scope": "interface",
+      "type": "number"
+    },
+    "env.episode_length_s": {
+      "scope": "evaluation_profile",
+      "type": "number"
+    },
+    "env.observations.policy.joint_pos_rel.history_length": {
+      "scope": "interface",
+      "type": "integer"
+    },
+    "env.observations.policy.joint_vel_rel": {
+      "scope": "interface",
+      "type": "null"
+    },
+    "env.rewards.cart_vel.weight": {
+      "scope": "objective",
+      "type": "number"
+    },
+    "env.terminations.cart_out_of_bounds.params.bounds": {
+      "items": "number",
+      "length": 2,
+      "scope": "objective",
+      "type": "array"
+    }
+  },
+  "evaluation_profiles": [
+    {
+      "id": "canonical5",
+      "description": "Five-second evaluation using 25 deterministic parallel environment IDs.",
+      "episode_length_seconds": 5.0,
+      "max_steps_per_seed": 1000,
+      "num_envs": 25,
+      "overrides": []
+    },
+    {
+      "id": "stress30",
+      "description": "Thirty-second common stress evaluation using 25 deterministic parallel environment IDs.",
+      "episode_length_seconds": 30.0,
+      "max_steps_per_seed": 3600,
+      "num_envs": 25,
+      "overrides": [
+        {
+          "path": "env.episode_length_s",
+          "value": 30.0
+        }
+      ]
+    }
+  ],
+  "waves": [
+    {
+      "id": "screening",
+      "checkpoint_vector_steps": [
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680,
+        1920,
+        2160,
+        2400
+      ],
+      "checkpoint_evaluation_profiles": [
+        "canonical5"
+      ],
+      "final_checkpoint_evaluation_profiles": [
+        "stress30"
+      ],
+      "reuse_existing": [
+        {
+          "training_seed": 42,
+          "variant_id": "B0"
+        }
+      ],
+      "training_seeds": [
+        42
+      ],
+      "variant_ids": [
+        "B0",
+        "O_POS",
+        "O_H4",
+        "R_CV0",
+        "R_CV2",
+        "A_E50",
+        "A_E200",
+        "T_B15",
+        "T_B60"
+      ]
+    },
+    {
+      "id": "confirmation",
+      "checkpoint_vector_steps": [
+        2400
+      ],
+      "checkpoint_evaluation_profiles": [],
+      "final_checkpoint_evaluation_profiles": [
+        "stress30"
+      ],
+      "reuse_existing": [],
+      "training_seeds": [
+        7,
+        123
+      ],
+      "variant_ids": [
+        "B0",
+        "O_POS",
+        "O_H4",
+        "R_CV0",
+        "R_CV2",
+        "A_E50",
+        "A_E200",
+        "T_B15",
+        "T_B60"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "contrast_variant_id": null,
+      "factor": "baseline",
+      "factor_level": "official_manager_based_config",
+      "hypothesis": "Reference configuration for every one-factor contrast.",
+      "id": "B0",
+      "interface_overrides": [],
+      "objective_overrides": []
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "observation",
+      "factor_level": "position_only",
+      "hypothesis": "Removing velocity makes the policy partially observable and degrades upright control.",
+      "id": "O_POS",
+      "interface_overrides": [
+        {
+          "path": "env.observations.policy.joint_vel_rel",
+          "value": null
+        }
+      ],
+      "objective_overrides": []
+    },
+    {
+      "contrast_variant_id": "O_POS",
+      "factor": "observation",
+      "factor_level": "position_history_4",
+      "hypothesis": "Four position frames recover part of the missing velocity information.",
+      "id": "O_H4",
+      "interface_overrides": [
+        {
+          "path": "env.observations.policy.joint_vel_rel",
+          "value": null
+        },
+        {
+          "path": "env.observations.policy.joint_pos_rel.history_length",
+          "value": 4
+        }
+      ],
+      "objective_overrides": []
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "reward",
+      "factor_level": 0.0,
+      "hypothesis": "Removing cart-velocity cost increases cart movement without necessarily improving upright control.",
+      "id": "R_CV0",
+      "interface_overrides": [],
+      "objective_overrides": [
+        {
+          "path": "env.rewards.cart_vel.weight",
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "reward",
+      "factor_level": -0.02,
+      "hypothesis": "A stronger cart-velocity cost reduces movement but can make recovery too slow.",
+      "id": "R_CV2",
+      "interface_overrides": [],
+      "objective_overrides": [
+        {
+          "path": "env.rewards.cart_vel.weight",
+          "value": -0.02
+        }
+      ]
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "action",
+      "factor_level": 50.0,
+      "hypothesis": "Lower effort authority produces slower recovery and lower requested physical effort.",
+      "id": "A_E50",
+      "interface_overrides": [
+        {
+          "path": "env.actions.joint_effort.scale",
+          "value": 50.0
+        }
+      ],
+      "objective_overrides": []
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "action",
+      "factor_level": 200.0,
+      "hypothesis": "Higher effort authority improves fast recovery but increases overshoot and boundary failures.",
+      "id": "A_E200",
+      "interface_overrides": [
+        {
+          "path": "env.actions.joint_effort.scale",
+          "value": 200.0
+        }
+      ],
+      "objective_overrides": []
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "termination",
+      "factor_level": 1.5,
+      "hypothesis": "A narrow training boundary creates a more centered but more failure-prone policy.",
+      "id": "T_B15",
+      "interface_overrides": [],
+      "objective_overrides": [
+        {
+          "path": "env.terminations.cart_out_of_bounds.params.bounds",
+          "value": [
+            -1.5,
+            1.5
+          ]
+        }
+      ]
+    },
+    {
+      "contrast_variant_id": "B0",
+      "factor": "termination",
+      "factor_level": 6.0,
+      "hypothesis": "A wide training boundary permits more drift and can inflate training survival.",
+      "id": "T_B60",
+      "interface_overrides": [],
+      "objective_overrides": [
+        {
+          "path": "env.terminations.cart_out_of_bounds.params.bounds",
+          "value": [
+            -6.0,
+            6.0
+          ]
+        }
+      ]
+    }
+  ]
+}

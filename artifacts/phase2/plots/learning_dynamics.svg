@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="790" viewBox="0 0 1180 790">
+<rect width="1180" height="790" fill="#f8fafc"/>
+<text x="48.0" y="43.0" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#102a43">CartPole learning dynamics</text>
+<text x="48.0" y="68.0" font-family="system-ui, sans-serif" font-size="14" fill="#486581">Seed 42 screening; 25 fixed episodes per checkpoint; upright fraction over 5 seconds</text>
+<line x1="70.0" y1="275.0" x2="400.0" y2="275.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="279.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="70.0" y1="190.0" x2="400.0" y2="190.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="194.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="70.0" y1="105.0" x2="400.0" y2="105.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="109.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="103.0,239.4 136.0,151.2 169.0,117.8 202.0,114.0 235.0,113.9 268.0,113.1 301.0,116.9 334.0,114.9 367.0,110.8 400.0,112.0" fill="none" stroke="#334155" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="103.0" cy="239.4" r="3.2" fill="#334155"/>
+<circle cx="136.0" cy="151.2" r="3.2" fill="#334155"/>
+<circle cx="169.0" cy="117.8" r="3.2" fill="#334155"/>
+<circle cx="202.0" cy="114.0" r="3.2" fill="#334155"/>
+<circle cx="235.0" cy="113.9" r="3.2" fill="#334155"/>
+<circle cx="268.0" cy="113.1" r="3.2" fill="#334155"/>
+<circle cx="301.0" cy="116.9" r="3.2" fill="#334155"/>
+<circle cx="334.0" cy="114.9" r="3.2" fill="#334155"/>
+<circle cx="367.0" cy="110.8" r="3.2" fill="#334155"/>
+<circle cx="400.0" cy="112.0" r="3.2" fill="#334155"/>
+<text x="70.0" y="93.0" font-size="14" font-weight="650" fill="#243b53">B0 · Baseline</text>
+<text x="235.0" y="298.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="445.0" y1="275.0" x2="775.0" y2="275.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="279.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="445.0" y1="190.0" x2="775.0" y2="190.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="194.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="445.0" y1="105.0" x2="775.0" y2="105.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="109.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="478.0,244.7 511.0,124.4 544.0,128.0 577.0,185.9 610.0,227.5 643.0,236.4 676.0,237.4 709.0,239.0 742.0,238.7 775.0,238.7" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="478.0" cy="244.7" r="3.2" fill="#2563eb"/>
+<circle cx="511.0" cy="124.4" r="3.2" fill="#2563eb"/>
+<circle cx="544.0" cy="128.0" r="3.2" fill="#2563eb"/>
+<circle cx="577.0" cy="185.9" r="3.2" fill="#2563eb"/>
+<circle cx="610.0" cy="227.5" r="3.2" fill="#2563eb"/>
+<circle cx="643.0" cy="236.4" r="3.2" fill="#2563eb"/>
+<circle cx="676.0" cy="237.4" r="3.2" fill="#2563eb"/>
+<circle cx="709.0" cy="239.0" r="3.2" fill="#2563eb"/>
+<circle cx="742.0" cy="238.7" r="3.2" fill="#2563eb"/>
+<circle cx="775.0" cy="238.7" r="3.2" fill="#2563eb"/>
+<text x="445.0" y="93.0" font-size="14" font-weight="650" fill="#243b53">O_POS · Position only</text>
+<text x="610.0" y="298.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="820.0" y1="275.0" x2="1150.0" y2="275.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="279.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="820.0" y1="190.0" x2="1150.0" y2="190.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="194.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="820.0" y1="105.0" x2="1150.0" y2="105.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="109.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="853.0,268.4 886.0,210.9 919.0,188.4 952.0,124.0 985.0,115.2 1018.0,113.0 1051.0,110.2 1084.0,110.2 1117.0,109.9 1150.0,109.9" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="853.0" cy="268.4" r="3.2" fill="#2563eb"/>
+<circle cx="886.0" cy="210.9" r="3.2" fill="#2563eb"/>
+<circle cx="919.0" cy="188.4" r="3.2" fill="#2563eb"/>
+<circle cx="952.0" cy="124.0" r="3.2" fill="#2563eb"/>
+<circle cx="985.0" cy="115.2" r="3.2" fill="#2563eb"/>
+<circle cx="1018.0" cy="113.0" r="3.2" fill="#2563eb"/>
+<circle cx="1051.0" cy="110.2" r="3.2" fill="#2563eb"/>
+<circle cx="1084.0" cy="110.2" r="3.2" fill="#2563eb"/>
+<circle cx="1117.0" cy="109.9" r="3.2" fill="#2563eb"/>
+<circle cx="1150.0" cy="109.9" r="3.2" fill="#2563eb"/>
+<text x="820.0" y="93.0" font-size="14" font-weight="650" fill="#243b53">O_H4 · 4-frame history</text>
+<text x="985.0" y="298.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="70.0" y1="500.0" x2="400.0" y2="500.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="504.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="70.0" y1="415.0" x2="400.0" y2="415.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="419.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="70.0" y1="330.0" x2="400.0" y2="330.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="334.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="103.0,430.0 136.0,357.4 169.0,340.2 202.0,353.0 235.0,336.7 268.0,336.6 301.0,336.6 334.0,335.8 367.0,335.0 400.0,334.4" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="103.0" cy="430.0" r="3.2" fill="#d97706"/>
+<circle cx="136.0" cy="357.4" r="3.2" fill="#d97706"/>
+<circle cx="169.0" cy="340.2" r="3.2" fill="#d97706"/>
+<circle cx="202.0" cy="353.0" r="3.2" fill="#d97706"/>
+<circle cx="235.0" cy="336.7" r="3.2" fill="#d97706"/>
+<circle cx="268.0" cy="336.6" r="3.2" fill="#d97706"/>
+<circle cx="301.0" cy="336.6" r="3.2" fill="#d97706"/>
+<circle cx="334.0" cy="335.8" r="3.2" fill="#d97706"/>
+<circle cx="367.0" cy="335.0" r="3.2" fill="#d97706"/>
+<circle cx="400.0" cy="334.4" r="3.2" fill="#d97706"/>
+<text x="70.0" y="318.0" font-size="14" font-weight="650" fill="#243b53">R_CV0 · Cart-vel 0</text>
+<text x="235.0" y="523.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="445.0" y1="500.0" x2="775.0" y2="500.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="504.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="445.0" y1="415.0" x2="775.0" y2="415.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="419.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="445.0" y1="330.0" x2="775.0" y2="330.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="334.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="478.0,462.7 511.0,402.4 544.0,342.2 577.0,337.8 610.0,340.6 643.0,340.1 676.0,338.5 709.0,338.4 742.0,337.8 775.0,337.5" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="478.0" cy="462.7" r="3.2" fill="#d97706"/>
+<circle cx="511.0" cy="402.4" r="3.2" fill="#d97706"/>
+<circle cx="544.0" cy="342.2" r="3.2" fill="#d97706"/>
+<circle cx="577.0" cy="337.8" r="3.2" fill="#d97706"/>
+<circle cx="610.0" cy="340.6" r="3.2" fill="#d97706"/>
+<circle cx="643.0" cy="340.1" r="3.2" fill="#d97706"/>
+<circle cx="676.0" cy="338.5" r="3.2" fill="#d97706"/>
+<circle cx="709.0" cy="338.4" r="3.2" fill="#d97706"/>
+<circle cx="742.0" cy="337.8" r="3.2" fill="#d97706"/>
+<circle cx="775.0" cy="337.5" r="3.2" fill="#d97706"/>
+<text x="445.0" y="318.0" font-size="14" font-weight="650" fill="#243b53">R_CV2 · Cart-vel -0.02</text>
+<text x="610.0" y="523.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="820.0" y1="500.0" x2="1150.0" y2="500.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="504.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="820.0" y1="415.0" x2="1150.0" y2="415.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="419.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="820.0" y1="330.0" x2="1150.0" y2="330.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="334.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="853.0,427.6 886.0,381.5 919.0,336.7 952.0,336.9 985.0,335.5 1018.0,335.5 1051.0,335.9 1084.0,335.8 1117.0,336.2 1150.0,336.3" fill="none" stroke="#db2777" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="853.0" cy="427.6" r="3.2" fill="#db2777"/>
+<circle cx="886.0" cy="381.5" r="3.2" fill="#db2777"/>
+<circle cx="919.0" cy="336.7" r="3.2" fill="#db2777"/>
+<circle cx="952.0" cy="336.9" r="3.2" fill="#db2777"/>
+<circle cx="985.0" cy="335.5" r="3.2" fill="#db2777"/>
+<circle cx="1018.0" cy="335.5" r="3.2" fill="#db2777"/>
+<circle cx="1051.0" cy="335.9" r="3.2" fill="#db2777"/>
+<circle cx="1084.0" cy="335.8" r="3.2" fill="#db2777"/>
+<circle cx="1117.0" cy="336.2" r="3.2" fill="#db2777"/>
+<circle cx="1150.0" cy="336.3" r="3.2" fill="#db2777"/>
+<text x="820.0" y="318.0" font-size="14" font-weight="650" fill="#243b53">A_E50 · Effort 50</text>
+<text x="985.0" y="523.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="70.0" y1="725.0" x2="400.0" y2="725.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="729.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="70.0" y1="640.0" x2="400.0" y2="640.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="644.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="70.0" y1="555.0" x2="400.0" y2="555.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="61.0" y="559.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="103.0,627.9 136.0,571.2 169.0,562.8 202.0,563.8 235.0,563.5 268.0,562.2 301.0,561.1 334.0,561.2 367.0,561.2 400.0,561.1" fill="none" stroke="#db2777" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="103.0" cy="627.9" r="3.2" fill="#db2777"/>
+<circle cx="136.0" cy="571.2" r="3.2" fill="#db2777"/>
+<circle cx="169.0" cy="562.8" r="3.2" fill="#db2777"/>
+<circle cx="202.0" cy="563.8" r="3.2" fill="#db2777"/>
+<circle cx="235.0" cy="563.5" r="3.2" fill="#db2777"/>
+<circle cx="268.0" cy="562.2" r="3.2" fill="#db2777"/>
+<circle cx="301.0" cy="561.1" r="3.2" fill="#db2777"/>
+<circle cx="334.0" cy="561.2" r="3.2" fill="#db2777"/>
+<circle cx="367.0" cy="561.2" r="3.2" fill="#db2777"/>
+<circle cx="400.0" cy="561.1" r="3.2" fill="#db2777"/>
+<text x="70.0" y="543.0" font-size="14" font-weight="650" fill="#243b53">A_E200 · Effort 200</text>
+<text x="235.0" y="748.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="445.0" y1="725.0" x2="775.0" y2="725.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="729.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="445.0" y1="640.0" x2="775.0" y2="640.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="644.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="445.0" y1="555.0" x2="775.0" y2="555.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="436.0" y="559.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="478.0,651.9 511.0,564.6 544.0,567.6 577.0,563.4 610.0,561.9 643.0,566.8 676.0,566.1 709.0,586.0 742.0,585.3 775.0,564.8" fill="none" stroke="#6b8e23" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="478.0" cy="651.9" r="3.2" fill="#6b8e23"/>
+<circle cx="511.0" cy="564.6" r="3.2" fill="#6b8e23"/>
+<circle cx="544.0" cy="567.6" r="3.2" fill="#6b8e23"/>
+<circle cx="577.0" cy="563.4" r="3.2" fill="#6b8e23"/>
+<circle cx="610.0" cy="561.9" r="3.2" fill="#6b8e23"/>
+<circle cx="643.0" cy="566.8" r="3.2" fill="#6b8e23"/>
+<circle cx="676.0" cy="566.1" r="3.2" fill="#6b8e23"/>
+<circle cx="709.0" cy="586.0" r="3.2" fill="#6b8e23"/>
+<circle cx="742.0" cy="585.3" r="3.2" fill="#6b8e23"/>
+<circle cx="775.0" cy="564.8" r="3.2" fill="#6b8e23"/>
+<text x="445.0" y="543.0" font-size="14" font-weight="650" fill="#243b53">T_B15 · Bound 1.5</text>
+<text x="610.0" y="748.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+<line x1="820.0" y1="725.0" x2="1150.0" y2="725.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="729.0" text-anchor="end" font-size="11" fill="#627d98">0%</text>
+<line x1="820.0" y1="640.0" x2="1150.0" y2="640.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="644.0" text-anchor="end" font-size="11" fill="#627d98">50%</text>
+<line x1="820.0" y1="555.0" x2="1150.0" y2="555.0" stroke="#d9e2ec" stroke-width="1"/>
+<text x="811.0" y="559.0" text-anchor="end" font-size="11" fill="#627d98">100%</text>
+<polyline points="853.0,700.3 886.0,693.8 919.0,691.2 952.0,686.4 985.0,681.4 1018.0,688.5 1051.0,691.2 1084.0,695.5 1117.0,692.0 1150.0,689.2" fill="none" stroke="#6b8e23" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="853.0" cy="700.3" r="3.2" fill="#6b8e23"/>
+<circle cx="886.0" cy="693.8" r="3.2" fill="#6b8e23"/>
+<circle cx="919.0" cy="691.2" r="3.2" fill="#6b8e23"/>
+<circle cx="952.0" cy="686.4" r="3.2" fill="#6b8e23"/>
+<circle cx="985.0" cy="681.4" r="3.2" fill="#6b8e23"/>
+<circle cx="1018.0" cy="688.5" r="3.2" fill="#6b8e23"/>
+<circle cx="1051.0" cy="691.2" r="3.2" fill="#6b8e23"/>
+<circle cx="1084.0" cy="695.5" r="3.2" fill="#6b8e23"/>
+<circle cx="1117.0" cy="692.0" r="3.2" fill="#6b8e23"/>
+<circle cx="1150.0" cy="689.2" r="3.2" fill="#6b8e23"/>
+<text x="820.0" y="543.0" font-size="14" font-weight="650" fill="#243b53">T_B60 · Bound 6.0</text>
+<text x="985.0" y="748.0" text-anchor="middle" font-size="11" fill="#627d98">Training transitions → 9.83M</text>
+</svg>

@@ -9,7 +9,7 @@ folders.
 | --- | --- | --- |
 | 01 — Reproduction | Can PPO learn the accepted behavior from scratch? | complete |
 | 02 — Checkpoint learning curve | How does ability change during that same training run? | complete |
-| 03 — Reward ablation | How does one reward term change the learned control style? | planned |
+| 03 — Controlled factor study | How do observation, reward, action authority, and termination change learned control? | complete |
 
 The stage is complete only after we can reproduce learning, measure how it
 develops, and explain at least one controlled behavior change.
@@ -169,39 +169,76 @@ fixed-seed behavioral acceptance metric.
 - Exact sweep command: `artifacts/commands/phase1_learning_curve.log`
 - Training logs and resolved configs: `artifacts/training/phase1/`
 
-## 03 — Cart-velocity reward ablation
+## 03 — Controlled factor study
 
 ### Question
 
-Does the cart-velocity penalty explain why one successful policy makes sparse,
-anticipatory corrections while another moves more continuously?
+How do observation information, cart-velocity reward, action authority, and
+training termination change robustness and control style after PPO already
+solves the basic task?
 
-### Controlled change
+### Design
 
-Keep the task, observations, actions, terminations, PPO config, seeds, training
-horizon, and evaluation protocol fixed. Change only:
-
-```text
-baseline: cart_vel.weight = -0.01
-ablation: cart_vel.weight = 0.0
-```
+The preregistered matrix has nine configurations: one shared official baseline
+and two levels for each of four factors. It runs in a seed-42 screening wave
+followed by confirmation with seeds 7 and 123. Final checkpoints share a
+30-second stress evaluation.
 
 ### Measurements
 
-- mean balance seconds;
-- five-second time-limit fraction;
-- mean absolute pole angle;
-- mean absolute cart velocity;
-- mean absolute action and action change;
-- action sign changes per second.
+- robust 30-second success and upright fraction;
+- longest upright interval and wrapped pole-angle RMS;
+- cart displacement and velocity;
+- normalized action, requested effort, action variation, and sign changes;
+- out-of-bounds and time-limit outcomes.
 
 ### Hypothesis
 
-Removing the cart-velocity penalty increases movement and corrective activity
-without necessarily improving survival. The hypothesis is accepted only if the
-control telemetry changes consistently across training seeds.
+Each variant has a locked, falsifiable hypothesis in
+[`variants.json`](variants.json). Raw reward is not compared across reward
+variants because the reward definition itself changes.
 
-### Current status
+### Result
 
-The experiment design is locked, but the reward override and control telemetry
-are not yet implemented. Do not start a paid run until both are locally tested.
+All 27 trained-policy cells and both evaluation waves completed. Position-only
+observation nearly eliminated robust 30-second success (`1.3% ± 2.3%`).
+Four-frame position history recovered two of three seeds but remained brittle
+(`66.7% ± 57.7%`). Reward and action variants remained close to the task
+ceiling, while a wide training boundary produced one catastrophic seed.
+
+The result is split into four one-factor-at-a-time figures. In every figure,
+the x-axis is the factor value, open circles are individual training seeds, and
+the filled circle plus line is the three-seed mean.
+
+![Observation ablation](../../artifacts/phase2/plots/observation_ablation.svg)
+
+![Reward ablation](../../artifacts/phase2/plots/reward_ablation.svg)
+
+![Action ablation](../../artifacts/phase2/plots/action_ablation.svg)
+
+![Termination ablation](../../artifacts/phase2/plots/termination_ablation.svg)
+
+The complete methods, tables, figures, limitations, and conclusions are in the
+[`Phase 2 results report`](../../artifacts/phase2/report/README.md). The
+preregistered source remains
+[`docs/PHASE2_STUDY_PROTOCOL.md`](../../docs/PHASE2_STUDY_PROTOCOL.md).
+
+### Reproduce the derived artifacts
+
+The registry can still be inspected without Isaac or a GPU:
+
+```bash
+make study-validate
+make study-matrix
+VARIANT=O_H4 SCOPE=train make show-variant
+VARIANT=R_CV0 SCOPE=eval PROFILE=stress30 make show-variant
+VARIANT=A_E50 TRAINING_SEED=7 make show-manifest
+```
+
+Rebuild tables and figures from the downloaded raw archive:
+
+```bash
+uv run python tools/build_phase2_artifacts.py \
+  artifacts/phase2/raw/extracted/cartpole_controlled_study \
+  --output artifacts/phase2
+```

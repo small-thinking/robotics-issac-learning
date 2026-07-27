@@ -41,9 +41,16 @@ Behavior was worse than random through about 2M transitions, improved sharply
 between roughly 3M and 5M, and plateaued near 4.8 balance seconds after about
 6.9M. The final numbered checkpoint reached `24/25` time-limit episodes.
 
-Phase 1 reproduction and its checkpoint curve are complete. Next we will add
-control telemetry, repeat the baseline with two more training seeds, and then
-make the first single-reward ablation.
+Phase 1 reproduction and its checkpoint curve are complete. Phase 2 also
+completed all 27 preregistered cells across observation, reward, action
+authority, and training termination. Its strongest result is that
+position-only observation almost completely failed, while four-frame position
+history recovered two of three training seeds but remained brittle.
+
+The [Phase 2 results report](artifacts/phase2/report/README.md) contains the
+tracked manifests, 675 final episodes, 90 checkpoint evaluations, exact tables,
+and five paper-style figures. The Brev GPU is stopped; persistent storage and
+local archives are retained.
 
 ## Long-term learning path
 
@@ -56,7 +63,7 @@ post-training.
 | --- | --- | --- |
 | 0 — Simulator loop | Prove Brev, Isaac, evaluation, and Viewer plumbing | Random-versus-pretrained CartPole result — complete |
 | 1 — PPO reproduction | Train the manager-based CartPole policy from scratch | Local checkpoint passed quantitative and visual gates — complete |
-| 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible ablations and regression thresholds |
+| 2 — Controlled RL | Change one reward, observation, action, or termination at a time | Reproducible 27-cell ablation study — complete |
 | 3 — Robot-arm control | Move from CartPole to Franka reach and cube lift | State-based manipulation baseline |
 | 4 — Imitation learning | Build a demonstration pipeline and train BC, ACT, or Diffusion Policy | Versioned demonstrations and closed-loop success evaluation |
 | 5 — Vision and multimodality | Add RGB observations and visual representations | Vision-policy baseline with failure analysis |
@@ -80,6 +87,10 @@ make train      # run headless skrl PPO and save a checkpoint
 make play       # stream the latest or explicitly selected trained checkpoint
 make eval       # fixed-seed random/trained evaluation; exact checkpoint required
 make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
+make study-validate # validate the Phase 2 variants and 27-cell run matrix
+make study-matrix # print every planned/reused Phase 2 training cell
+make show-variant # preview one variant's train/eval Hydra overrides
+make show-manifest # preview the immutable pre-run record
 make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
 make show-train # print the exact remote training command without running it
@@ -103,8 +114,8 @@ path before `make eval`.
   task-to-baseline-to-training-to-evaluation workflow worth learning
 - [Phase 1 PPO reproduction](docs/PHASE1_PPO_REPRODUCTION.md): locked
   manager-based config, diagnosis, commands, and acceptance gates
-- [Phase 2 controlled RL](docs/PHASE2_CONTROLLED_RL.md): seed robustness,
-  control telemetry, and the first single-reward ablation
+- [Phase 2 study protocol](docs/PHASE2_STUDY_PROTOCOL.md): preregistered
+  matrix, hypotheses, evaluation, artifacts, charts, report, and cost gates
 - [Operator command visibility](docs/COMMANDS.md): Brev/container preview and
   transcript details
 - [Lessons learned](docs/LESSONS_LEARNED.md): traps already encountered

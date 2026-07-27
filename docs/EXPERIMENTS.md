@@ -160,3 +160,43 @@
 - Conclusion: learning was initially worse than random, transitioned sharply
   around 3-5M transitions, and plateaued near 4.8 seconds after about 6.9M.
   The temporary 7.86M dip demonstrates non-monotonic checkpoint quality.
+
+## 2026-07-26 — Phase 2 controlled CartPole study
+
+- Git source at formal remote sync:
+  `a2ddcc55747b6b0e1a46451369a371734315ebff`
+- Environment: Isaac Launchable `3.0.0-beta2-post1`, 1x NVIDIA L4
+- Task: `Isaac-Cartpole-v0` (manager-based)
+- Algorithm: official Isaac Lab skrl PPO entry point
+- Matrix: 9 variants × training seeds `42`, `7`, `123`
+- Training per policy: 4096 environments, 2400 vector steps, 9,830,400
+  transitions
+- Formal training cells: 27 succeeded, 0 failed
+- Screening: 10 numbered checkpoints × 9 seed-42 variants × 25 fixed
+  five-second episodes
+- Final evaluation: 3 trained policies × 9 variants × 25 fixed 30-second
+  episodes
+- Final episode rows: 675
+- Evaluation seed/environment contract: seed `101`, environment IDs `0..24`
+- Baseline robust success: `100% ± 0%`
+- Position-only robust success: `1.3% ± 2.3%`
+- Four-frame history robust success: `66.7% ± 57.7%`
+- Reward levels `0`, `-0.01`, `-0.02`: all `100%` mean robust success; stronger
+  penalty reduced mean absolute cart velocity
+- Action scales `50`, `100`, `200`: `97.3%`, `100%`, `100%` mean robust
+  success
+- Training bounds `1.5`, `3`, `6`: `98.7%`, `100%`, `65.3%` mean robust
+  success
+- Main interpretation: observation information dominated reliability; reward
+  and action mostly changed control style; the wide boundary created
+  seed-sensitive failure
+- Data archive SHA-256:
+  `932d4b3dfae43e58ffc44f9c57f19e112f085744acd373a333660538aec73c59`
+- Checkpoint archive SHA-256:
+  `de37fa34962c20fa421917e9adb9e7a99af407bea91fb41a0d733c71949362b5`
+- Tracked evidence: `artifacts/phase2/`
+- Report: `artifacts/phase2/report/README.md`
+- Compute lifecycle: downloaded and validated locally, then instance
+  `isaac-launchable-f150a5` confirmed `STOPPED`; persistent disk retained
+- Conclusion: CartPole controlled-study workflow is complete; advance to a
+  state-based Franka reach task rather than extending the parameter sweep

@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/small-thinking/robotics-issac-learning/schemas/phase2-run-manifest.json",
+  "title": "Phase 2 CartPole run manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "run_id",
+    "status",
+    "variant",
+    "training",
+    "evaluation",
+    "provenance",
+    "commands",
+    "artifacts",
+    "failure"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "study_id": {
+      "const": "phase2_cartpole_controlled_ablation"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "planned",
+        "running",
+        "reused",
+        "succeeded",
+        "partial",
+        "failed"
+      ]
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "factor",
+        "factor_level",
+        "contrast_variant_id",
+        "expected_diff",
+        "registry_sha256",
+        "interface_contract_sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "factor": {
+          "type": "string"
+        },
+        "factor_level": {},
+        "contrast_variant_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expected_diff": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "value"
+            ]
+          }
+        },
+        "registry_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "interface_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed",
+        "num_envs",
+        "task",
+        "checkpoint_vector_step"
+      ],
+      "properties": {
+        "seed": {
+          "type": "integer"
+        },
+        "num_envs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "task": {
+          "const": "Isaac-Cartpole-v0"
+        },
+        "checkpoint_vector_step": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_ids",
+        "seeds",
+        "episodes_per_seed",
+        "fixed_environment_ids"
+      ],
+      "properties": {
+        "profile_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seeds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "episodes_per_seed": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fixed_environment_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "git_commit",
+        "git_dirty",
+        "software",
+        "gpu",
+        "resolved_env_sha256",
+        "resolved_agent_sha256"
+      ],
+      "properties": {
+        "git_commit": {
+          "type": "string"
+        },
+        "git_dirty": {
+          "type": "boolean"
+        },
+        "software": {
+          "type": "object"
+        },
+        "gpu": {
+          "type": "object"
+        },
+        "resolved_env_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "resolved_agent_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "stage",
+          "command",
+          "started_at",
+          "ended_at",
+          "wall_seconds",
+          "exit_code"
+        ],
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ended_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wall_seconds": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "exit_code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "path_or_uri",
+          "sha256"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "path_or_uri": {
+            "type": "string"
+          },
+          "sha256": {
+            "$ref": "#/$defs/nullable_sha256"
+          }
+        }
+      }
+    },
+    "failure": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "last_completed_step": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullable_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

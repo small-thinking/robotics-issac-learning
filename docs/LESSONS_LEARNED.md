@@ -1,4 +1,4 @@
-# Phase 0 Lessons Learned
+# Lessons Learned
 
 This file records traps that already cost time or cloud compute. Read it before
 changing the task, image, RL backend, checkpoint, or evaluation protocol.
@@ -76,6 +76,19 @@ Viewer behavior is useful but qualitative. Random and trained policies must use:
 For Phase 1 the canonical protocol is five seeds, five episodes per seed, with
 episode reward, length, and termination reason recorded.
 
+## Parallel evaluation must not select the first failures
+
+The original evaluator launched 64 parallel environments and retained the
+first five episodes that finished. In a long stress evaluation, policies that
+fail early finish before successful environments, so this creates a
+failure-selection bias.
+
+The study evaluator preselects fixed environment IDs and records exactly the
+first episode from each selected environment. It waits for all of those IDs,
+even if non-selected environments terminate earlier. Phase 1 learning-curve
+numbers remain historical evidence, but the Phase 2 baseline must be
+re-evaluated under the corrected sampler before comparison.
+
 ## Version drift can silently invalidate checkpoints
 
 The official Direct skrl checkpoint used legacy `state_preprocessor` keys while
@@ -120,3 +133,55 @@ continues at roughly $0.04/hour based on the deployment quote. Deleting the
 instance or disk is a separate destructive action and requires explicit
 approval. Checkpoint paths on the stopped disk are persistent but not a Git
 backup.
+
+## A mean can hide a binary seed-level failure
+
+The four-frame observation variant averaged `66.7%` robust success, but the
+three trained policies were `0%`, `100%`, and `100%`. The wide-boundary variant
+showed a similar split. Reporting only the mean would incorrectly suggest
+uniformly mediocre policies rather than a training-reliability problem.
+
+Keep individual training-seed points visible and treat the trained policy—not
+the many evaluation episodes—as the statistical unit.
+
+## Evaluation layout is part of the cost model
+
+The original five-seed-by-five-environment stress evaluation took roughly 90
+seconds for one stable policy. Before formal cross-variant results were
+collected, the protocol was amended to one deterministic seed with 25 fixed
+parallel environment IDs. It preserved 25 episodes and eliminated sequential
+seed batches, making the complete study affordable.
+
+Benchmark one realistic final evaluation during smoke testing. Training time
+alone is not a reliable estimate for a controlled-study GPU window.
+
+## Observation history needs evaluator state management
+
+Four-frame observation history introduced state that must be copied and reset
+inside inference mode. An evaluator that loads the right checkpoint but fails
+to reset its history buffer can silently contaminate episodes or trigger
+PyTorch inference-tensor errors.
+
+Interface ablations must be exercised end to end in both training and
+evaluation; validating only the Hydra string is insufficient.
+
+## A batch runner must fail closed on missing artifacts
+
+One early smoke returned from the evaluator without the expected JSON. A zero
+or tolerated shell status is not enough: the runner must verify the output
+exists, parse it, hash it, and only then advance the manifest to a successful
+state.
+
+Resumability should key off verified artifacts and checkpoint hashes. This
+allowed the formal run to stop at its 44-minute budget and resume only the nine
+missing final evaluations.
+
+## Remote CLIs can retry failed commands
+
+Brev may retry a remote command after a nonzero exit, which is dangerous for a
+paid, stateful experiment. Long study commands wrap their internal return code,
+print it explicitly, and make the outer transport exit successfully. The
+orchestrator then decides whether to resume.
+
+Do not let an infrastructure client silently convert one failed training or
+evaluation attempt into an unplanned duplicate run.

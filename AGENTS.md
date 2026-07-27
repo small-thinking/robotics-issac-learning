@@ -15,17 +15,17 @@ VS Code is not required.
 
 ## Current phase
 
-Phase 1 is complete. A fresh manager-based `Isaac-Cartpole-v0` skrl PPO run
-from seed 42 reached `269.44` mean control steps, `22/25` time-limit episodes,
-and passed user visual inspection. Its exact checkpoint and aggregate metrics
-are recorded under `docs/PHASE1_PPO_REPRODUCTION.md` and
-`artifacts/evaluations/phase1_reproduction_summary.json`.
+Phases 1 and 2 are complete. The fresh manager-based
+`Isaac-Cartpole-v0` skrl PPO reproduction passed quantitative and visual gates.
+The subsequent controlled study completed 27 trained-policy cells, 675 final
+episodes, and 90 checkpoint evaluations across observation, reward, action,
+and training termination.
 
-The Brev instance is stopped; persistent storage is retained. Checkpoint
-learning-curve evaluation is complete: all ten numbered checkpoints were
-evaluated with the canonical fixed seeds, and the reviewed JSON/SVG are
-committed under `artifacts/`. The immediate zero-cost task is control telemetry.
-The next paid window requires fresh explicit approval.
+The Brev instance is stopped; persistent storage and local raw/checkpoint
+archives are retained. Reviewed Phase 2 manifests, JSON, CSV, SVG, and the
+technical report are under `artifacts/phase2/`. The immediate zero-cost task is
+to define the Phase 3 state-based Franka reach contract. Any next paid window
+requires a fresh price check and explicit approval.
 
 ## Session startup
 

@@ -23,7 +23,30 @@ eval_output="$(
 [[ "$eval_output" == *'--policy=random'* ]]
 [[ "$eval_output" == *'--policy=trained'* ]]
 [[ "$eval_output" == *'--checkpoint=/tmp/preview-checkpoint.pt'* ]]
+[[ "$eval_output" == *'--num-envs=5'* ]]
 [[ "$eval_output" == *'[dry-run] Command displayed but not executed.'* ]]
+
+variant_train_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  ISAAC_VARIANT=A_E50 \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/train_cartpole.sh
+)"
+
+[[ "$variant_train_output" == *'env.actions.joint_effort.scale=50.0'* ]]
+
+variant_eval_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  ISAAC_CHECKPOINT=/tmp/preview-checkpoint.pt \
+  ISAAC_VARIANT=R_CV0 \
+  ISAAC_EVAL_PROFILE=stress30 \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/eval_cartpole.sh
+)"
+
+[[ "$variant_eval_output" == *'--max-steps-per-seed=3600'* ]]
+[[ "$variant_eval_output" == *'env.episode_length_s=30.0'* ]]
+[[ "$variant_eval_output" != *'env.rewards.cart_vel.weight=0.0'* ]]
 
 curve_output="$(
   BREV_INSTANCE_NAME=preview-only \

@@ -1,0 +1,122 @@
+{
+  "artifacts": [
+    {
+      "kind": "train_O_POS_seed42_console",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/training_logs/O_POS__seed42.log",
+      "sha256": "5fd63294cd58beef77b4132976cde660de160409274b963b2846196bd613da60"
+    },
+    {
+      "kind": "training_run_directory",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-27_01-43-56_ppo_torch",
+      "sha256": null
+    },
+    {
+      "kind": "primary_checkpoint",
+      "path_or_uri": "/workspace/isaaclab/logs/skrl/cartpole/2026-07-27_01-43-56_ppo_torch/checkpoints/agent_2400.pt",
+      "sha256": "09cdac3695c328012635ee52479df88d4d1496a96d77e143f826e3b3a4b49985"
+    },
+    {
+      "kind": "screening_O_POS_console",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluation_logs/screening_O_POS.log",
+      "sha256": "fecc0277f5df6cbae4ba5734fe5c00a8bc21a986b96ffa3881ebc5e032fd73c1"
+    },
+    {
+      "kind": "screening_evaluation",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluations/screening/O_POS.json",
+      "sha256": "66f6d144623a819f0cdf105ad68c6aab3e54a9080edb2f69b16b14b5b4f29466"
+    },
+    {
+      "kind": "final_evaluation",
+      "path_or_uri": "/workspace/phase2/cartpole_controlled_study/evaluations/final/O_POS.json",
+      "sha256": "6fd7a28e2bb2dd9ae1070819a9d1eb5421f4e5c7e6cb3262833821df7558b25b"
+    }
+  ],
+  "commands": [
+    {
+      "command": "/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/train.py --rl_library=skrl --task=Isaac-Cartpole-v0 --algorithm=PPO --seed=42 --num_envs=4096 --viz none env.observations.policy.joint_vel_rel=null",
+      "ended_at": "2026-07-27T01:45:12.883480+00:00",
+      "exit_code": 0,
+      "stage": "train_O_POS_seed42",
+      "started_at": "2026-07-27T01:43:40.668479+00:00",
+      "wall_seconds": 92.21469721200015
+    },
+    {
+      "command": "/workspace/isaaclab/isaaclab.sh -p /workspace/robotics-issac-learning/tools/evaluate_cartpole.py --policy=sweep --task=Isaac-Cartpole-v0 --checkpoint-dir=/workspace/isaaclab/logs/skrl/cartpole/2026-07-27_01-43-56_ppo_torch/checkpoints --training-num-envs=4096 --seeds=101 --episodes-per-seed=25 --num-envs=25 --max-steps-per-seed=1000 --upright-threshold-degrees=12.0 --robust-success-upright-fraction=0.95 --action-sign-deadband=0.05 --output=/workspace/phase2/cartpole_controlled_study/evaluations/screening/O_POS.json --viz none env.observations.policy.joint_vel_rel=null",
+      "ended_at": "2026-07-27T02:25:18.504878+00:00",
+      "exit_code": 0,
+      "stage": "screening_O_POS",
+      "started_at": "2026-07-27T02:24:32.286369+00:00",
+      "wall_seconds": 46.21815737899988
+    }
+  ],
+  "evaluation": {
+    "episodes_per_seed": 25,
+    "fixed_environment_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "profile_ids": [
+      "canonical5",
+      "stress30"
+    ],
+    "seeds": [
+      101
+    ]
+  },
+  "failure": null,
+  "provenance": {
+    "git_commit": "a2ddcc55747b6b0e1a46451369a371734315ebff",
+    "git_dirty": false,
+    "gpu": {},
+    "resolved_agent_sha256": null,
+    "resolved_env_sha256": null,
+    "software": {}
+  },
+  "run_id": "phase2_cartpole_controlled_ablation__O_POS__seed42",
+  "schema_version": 1,
+  "status": "succeeded",
+  "study_id": "phase2_cartpole_controlled_ablation",
+  "training": {
+    "checkpoint_vector_step": 2400,
+    "num_envs": 4096,
+    "seed": 42,
+    "task": "Isaac-Cartpole-v0"
+  },
+  "variant": {
+    "contrast_variant_id": "B0",
+    "expected_diff": [
+      {
+        "path": "env.observations.policy.joint_vel_rel",
+        "value": null
+      }
+    ],
+    "factor": "observation",
+    "factor_level": "position_only",
+    "id": "O_POS",
+    "interface_contract_sha256": "6465b7b923e17436f5ce0b41ac8dd4f8620ba683e6cf10e32bcbbfaedeba8486",
+    "registry_sha256": "72c2bf04bda3213469068e31c489e0439a51ab49cfef25ec022b998d3465fa5d"
+  }
+}
