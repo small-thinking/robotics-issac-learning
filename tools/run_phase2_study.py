@@ -247,15 +247,14 @@ class StudyRunner:
 
     def train_one(self, variant_id: str, seed: int) -> None:
         manifest = self.initialize_manifest(variant_id, seed)
-        if manifest["status"] in {"partial", "succeeded"}:
-            checkpoints = [
-                Path(item["path_or_uri"])
-                for item in manifest["artifacts"]
-                if item["kind"] == "primary_checkpoint"
-            ]
-            if checkpoints and checkpoints[0].is_file():
-                print(f"[skip] {variant_id} seed {seed} already trained", flush=True)
-                return
+        checkpoints = [
+            Path(item["path_or_uri"])
+            for item in manifest["artifacts"]
+            if item["kind"] == "primary_checkpoint"
+        ]
+        if checkpoints and checkpoints[0].is_file():
+            print(f"[skip] {variant_id} seed {seed} already trained", flush=True)
+            return
 
         log_root = self.args.isaaclab_dir / "logs/skrl/cartpole"
         before = {path.resolve() for path in log_root.iterdir()} if log_root.exists() else set()

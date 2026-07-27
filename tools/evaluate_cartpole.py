@@ -73,15 +73,18 @@ def reset_with_seed(env, seed: int) -> tuple[torch.Tensor, torch.Tensor | None]:
 
     from skrl.utils.spaces.torch import flatten_tensorized_space, tensorize_space
 
-    observations, info = env._env.reset(seed=seed)
-    env._info = info
-    env._observations = flatten_tensorized_space(
-        tensorize_space(env.observation_space, observations["policy"])
-    )
-    states = observations.get("critic")
-    if states is not None:
-        env._states = flatten_tensorized_space(tensorize_space(env.state_space, states))
-    return env._observations, env.state()
+    with torch.inference_mode():
+        observations, info = env._env.reset(seed=seed)
+        env._info = info
+        env._observations = flatten_tensorized_space(
+            tensorize_space(env.observation_space, observations["policy"])
+        )
+        states = observations.get("critic")
+        if states is not None:
+            env._states = flatten_tensorized_space(
+                tensorize_space(env.state_space, states)
+            )
+        return env._observations, env.state()
 
 
 def resolve_checkpoints() -> list[Path]:
