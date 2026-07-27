@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 
 .PHONY: doctor search provision sync remote-setup smoke train play eval learning-curve status stop \
+	dofbot-inspect dofbot-view show-dofbot-inspect show-dofbot-view \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -38,6 +39,12 @@ eval:
 learning-curve:
 	@./scripts/isaac/eval_learning_curve.sh
 
+dofbot-inspect:
+	@./scripts/isaac/inspect_dofbot_asset.sh
+
+dofbot-view:
+	@./scripts/isaac/view_dofbot_asset.sh
+
 status:
 	@./scripts/brev/status.sh
 
@@ -71,6 +78,12 @@ show-learning-curve:
 	@REMOTE_DRY_RUN=1 \
 	 ISAAC_CHECKPOINT_DIR="$${ISAAC_CHECKPOINT_DIR:-/absolute/remote/checkpoints}" \
 	 ./scripts/isaac/eval_learning_curve.sh
+
+show-dofbot-inspect:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/inspect_dofbot_asset.sh
+
+show-dofbot-view:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_asset.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

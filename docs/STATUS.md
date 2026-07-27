@@ -2,15 +2,41 @@
 
 - Updated: 2026-07-26 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Next experiment: design the Phase 3 state-based Franka reach acceptance
-  contract; no GPU is required for the design work
+- Current experiment: Phase 3 / `02_dofbot`, Goal 1 — complete; Goal 2
+  hard-coded safe joint motion is planned but not authorized to run
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` after artifact
-  download
+- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-26
+  22:43 PDT after successful Viewer confirmation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
+- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.58784/hour`
+  compute; checked 2026-07-26 before any restart
+
+## DOFBOT Goal 1 machine result
+
+- Git source at remote sync: `f9a44ee`
+- Environment: Isaac Launchable `3.0.0-beta2-post1`, Isaac Sim `6.0.1`,
+  1x NVIDIA L4
+- Official USD:
+  `Robots/Yahboom/Dofbot/dofbot.usd`
+- Resolved source:
+  `https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/dofbot.usd`
+- Robot/articulation root prim: `/World/envs/env_0/Dofbot`
+- Articulation: initialized, fixed base, 11 joints, 12 bodies
+- Onboard camera prim: `/World/envs/env_0/Dofbot/link4/Camera`
+- Actuator groups: `front_joints`, `joint3_act`, `joint4_act`
+- Machine acceptance: passed; every required contract check is `true`
+- Machine-readable evidence: `artifacts/dofbot/asset_contract.json`
+- Asset contract SHA-256:
+  `1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2`
+- Viewer process: reached `Simulation App Startup Complete` and `app ready`
+  with the Kit visualizer and WebRTC extension
+- User visual result: passed at 2026-07-26 22:34 PDT; the user confirmed the
+  stationary green DOFBOT in the secure Viewer
+- Scope audit: no joint motion, RGB tensor capture, policy, checkpoint, PPO,
+  SFT, or CV pipeline was run
 
 ## Phase 1 result
 
@@ -115,8 +141,9 @@
 
 ## Exact next action
 
-Review the Phase 2 results and close the CartPole stage. Then specify a
-state-based Franka reach task with success distance, fixed initial-state suite,
-multiple training seeds, per-episode metrics, and a short visual acceptance
-run. Do not start a GPU until that Phase 3 contract and a fresh cost quote are
-approved.
+Design and locally test Goal 2's policy-free safe-motion wrapper without
+starting a GPU: hold the recorded default pose, command one selected arm joint
+at a time through a small `±5°` trajectory, enforce explicit margins inside the
+recorded limits, and reset to zero. Obtain a fresh price quote and explicit
+approval before any remote motion run. Goal 3 camera capture remains out of
+scope.

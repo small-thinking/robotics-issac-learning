@@ -102,3 +102,15 @@ In the seed-42 run, `best_agent.pt` reached `22/25` time-limit episodes, while
 the final numbered checkpoint reached `24/25` under the same evaluation
 contract. Both remain valid artifacts; claims about “best” must name the metric
 used.
+
+## 2026-07-26 — Use the user's DOFBOT as the manipulation target
+
+Replace the generic Franka-first Phase 3 with a Yahboom DOFBOT path because the
+user owns the matching arm and Jetson Nano. Use NVIDIA's maintained official
+USD as the simulation asset; treat the older OmniIsaacGymEnvs DOFBOT Reacher
+repository as a design reference rather than a compatible runtime dependency.
+
+Phase 3 starts with three policy-free gates: load and inspect the articulation,
+drive small hard-coded joint movements, and capture the onboard camera. Do not
+choose PPO, imitation learning, SFT, or a VLA method until the asset, action,
+and camera interfaces are measured and reproducible.
