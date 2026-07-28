@@ -16,6 +16,7 @@ from tools.dofbot_control_api import (
     YahboomArmLibBackend,
     YahboomDryRunBackend,
     YahboomJointCalibration,
+    YahboomServoApiAdapter,
     encode_yahboom_servo_writes,
 )
 from tools.preview_dofbot_yahboom_api import build_preview
@@ -52,6 +53,19 @@ class _FakeArmDevice:
 
     def Arm_serial_servo_read(self, servo_id: int) -> Any:
         return self.reads[servo_id]
+
+
+class _MemoryBackend:
+    def __init__(self, positions: dict[str, float] | None = None) -> None:
+        self.positions = positions or _positions()
+        self.commands: list[JointPositionCommand] = []
+
+    def command_joint_positions(self, command: JointPositionCommand) -> None:
+        self.commands.append(command)
+        self.positions = command.as_mapping()
+
+    def read_joint_positions(self) -> dict[str, float]:
+        return dict(self.positions)
 
 
 class DofbotControlApiTest(unittest.TestCase):
@@ -172,6 +186,31 @@ class DofbotControlApiTest(unittest.TestCase):
                 },
             ],
         )
+
+    def test_official_api_shape_controls_simulator_style_backend(self) -> None:
+        backend = _MemoryBackend()
+        api = YahboomServoApiAdapter(DofbotArm(backend))
+        api.Arm_serial_servo_write(2, 95, 250)
+        self.assertEqual(len(backend.commands), 1)
+        self.assertEqual(backend.commands[0].duration_ms, 250)
+        self.assertAlmostEqual(
+            backend.commands[0].as_mapping()["joint2"],
+            math.radians(5),
+        )
+        for name in ("joint1", "joint3", "joint4"):
+            self.assertEqual(backend.commands[0].as_mapping()[name], 0.0)
+
+    def test_official_read_shape_converts_backend_radians_to_degrees(self) -> None:
+        backend = _MemoryBackend(_positions(joint3=math.radians(-5)))
+        api = YahboomServoApiAdapter(DofbotArm(backend))
+        self.assertEqual(api.Arm_serial_servo_read(3), 85)
+
+    def test_official_api_adapter_rejects_unvalidated_servos_and_batch_call(self) -> None:
+        api = YahboomServoApiAdapter(DofbotArm(_MemoryBackend()))
+        with self.assertRaisesRegex(DofbotControlError, "IDs 1 through 4"):
+            api.Arm_serial_servo_write(5, 90, 100)
+        with self.assertRaisesRegex(DofbotControlError, "disabled"):
+            api.Arm_serial_servo_write6(90, 90, 90, 90, 90, 90, 100)
 
     def test_real_backend_refuses_unverified_calibration_without_writes(self) -> None:
         device = _FakeArmDevice()

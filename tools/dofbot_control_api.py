@@ -283,6 +283,89 @@ class YahboomArmDeviceProtocol(Protocol):
         """Read one servo angle using Yahboom's documented API."""
 
 
+class YahboomServoApiAdapter:
+    """Expose Yahboom's official method names over any ``DofbotArm`` backend.
+
+    The adapter lets simulator and hardware-facing application code issue the
+    same single-servo calls. It intentionally rejects the six-servo method
+    until wrist and gripper joints have their own validated contracts.
+    """
+
+    def __init__(
+        self,
+        arm: DofbotArm,
+        *,
+        calibration: YahboomCalibration = DOCUMENTED_YAHBOOM_CALIBRATION,
+    ) -> None:
+        self._arm = arm
+        self.calibration = calibration
+        _validated_yahboom_mappings(calibration)
+        self._positions_rad = arm.read_joint_positions()
+
+    def _mapping_for_servo(self, servo_id: int) -> YahboomJointCalibration:
+        if isinstance(servo_id, bool) or not isinstance(servo_id, int):
+            raise DofbotControlError("servo ID must be an integer")
+        mappings = _validated_yahboom_mappings(self.calibration)
+        for mapping in mappings.values():
+            if mapping.servo_id == servo_id:
+                return mapping
+        raise DofbotControlError("only documented servo IDs 1 through 4 are supported")
+
+    def Arm_serial_servo_write(
+        self,
+        servo_id: int,
+        angle: int,
+        time: int,
+    ) -> None:
+        """Apply Yahboom's documented single-servo call to the selected backend."""
+
+        mapping = self._mapping_for_servo(servo_id)
+        if isinstance(angle, bool) or not isinstance(angle, int):
+            raise DofbotControlError("servo angle must be an integer")
+        if angle < mapping.minimum_deg or angle > mapping.maximum_deg:
+            raise DofbotControlError(
+                f"angle for servo {servo_id} must be within the documented range"
+            )
+
+        positions = dict(self._positions_rad)
+        joint_position_deg = (angle - mapping.center_deg) / mapping.direction
+        positions[mapping.joint_name] = math.radians(joint_position_deg)
+        self._arm.move_joints(positions, duration_ms=time)
+        self._positions_rad = positions
+
+    def Arm_serial_servo_write6(
+        self,
+        s1: int,
+        s2: int,
+        s3: int,
+        s4: int,
+        s5: int,
+        s6: int,
+        time: int,
+    ) -> None:
+        """Reject an unsafe batch call while servo 5 and servo 6 are unvalidated."""
+
+        del s1, s2, s3, s4, s5, s6, time
+        raise DofbotControlError(
+            "Arm_serial_servo_write6 is disabled until wrist and gripper are validated"
+        )
+
+    def Arm_serial_servo_read(self, servo_id: int) -> int:
+        """Return one backend position using Yahboom's documented degree schema."""
+
+        mapping = self._mapping_for_servo(servo_id)
+        self._positions_rad = self._arm.read_joint_positions()
+        angle_deg = (
+            mapping.center_deg
+            + mapping.direction * math.degrees(self._positions_rad[mapping.joint_name])
+        )
+        if angle_deg < mapping.minimum_deg or angle_deg > mapping.maximum_deg:
+            raise DofbotControlError(
+                f"backend position for servo {servo_id} is outside the documented range"
+            )
+        return int(round(angle_deg))
+
+
 class YahboomDryRunBackend:
     """Record official API calls without importing ``Arm_Lib`` or touching hardware."""
 

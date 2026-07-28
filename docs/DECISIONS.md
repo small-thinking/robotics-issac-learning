@@ -115,17 +115,17 @@ drive small hard-coded joint movements, and capture the onboard camera. Do not
 choose PPO, imitation learning, SFT, or a VLA method until the asset, action,
 and camera interfaces are measured and reproducible.
 
-## 2026-07-27 — Put a backend-neutral API above Isaac and Arm_Lib
+## 2026-07-27 — Expose Yahboom's API over backend-neutral joint commands
 
-Motion plans and later policies issue one complete command: named positions for
-`joint1` through `joint4` in radians plus a duration in milliseconds.
-`DofbotArm` delegates that command to either an Isaac articulation backend or a
-Yahboom hardware backend. This keeps planning, safety checks, and evaluation
-independent of whether the arm is simulated or physical.
+Motion plans and later policies can issue Yahboom's documented
+`Arm_serial_servo_write(id, angle, time)` call against the simulator or
+physical backend. `YahboomServoApiAdapter` normalizes those calls to complete
+named positions for `joint1` through `joint4` in radians plus a duration in
+milliseconds. `DofbotArm` then delegates to either an Isaac articulation
+backend or a Yahboom hardware backend.
 
-The hardware adapter uses Yahboom's documented
-`Arm_serial_servo_write(id, angle, time)` and
-`Arm_serial_servo_read(id)` methods. It uses single-servo writes for the four
+This preserves the vendor's application-level API while keeping safety checks
+and evaluation backend-neutral. It uses single-servo writes for the four
 validated arm joints rather than `Arm_serial_servo_write6`, because the wrist
 and gripper are not yet in the safe simulation contract.
 
