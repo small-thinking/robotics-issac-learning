@@ -44,11 +44,11 @@ class DofbotMotionConfigTest(unittest.TestCase):
     def test_example_compiles_to_expected_timeline_and_api_calls(self) -> None:
         self.assertEqual(self.config.name, "safe_api_wave")
         self.assertEqual(self.config.control_hz, 10)
-        self.assertEqual(self.config.total_duration_ms, 9_000)
-        self.assertEqual(len(self.samples), 90)
+        self.assertEqual(self.config.total_duration_ms, 12_400)
+        self.assertEqual(len(self.samples), 124)
         self.assertEqual(
             sum(len(sample.api_writes()) for sample in self.samples),
-            360,
+            496,
         )
         self.assertEqual(self.samples[0].angles_deg, NEUTRAL_ANGLES_DEG)
         self.assertEqual(self.samples[-1].angles_deg, NEUTRAL_ANGLES_DEG)
@@ -109,8 +109,8 @@ class DofbotMotionConfigTest(unittest.TestCase):
     def test_angles_must_be_four_safe_integers(self) -> None:
         invalid_values = (
             [90, 90, 90],
-            [90, 90, 90, 96],
-            [90, 90, 90, 84],
+            [90, 90, 90, 106],
+            [90, 90, 90, 74],
             [90, 90, 90, 90.0],
             [90, 90, 90, True],
         )
@@ -152,9 +152,9 @@ class DofbotMotionConfigTest(unittest.TestCase):
         with self.assertRaisesRegex(MotionConfigError, "non-neutral"):
             parse_motion_config(broken)
 
-    def test_pose_transition_above_five_degrees_fails_closed(self) -> None:
+    def test_pose_transition_above_fifteen_degrees_fails_closed(self) -> None:
         broken = copy.deepcopy(self.raw_config)
-        broken["steps"][2]["angles_deg"] = [89, 90, 90, 90]
+        broken["steps"][2]["angles_deg"] = [84, 90, 90, 90]
         self.assertGreater(
             abs(
                 broken["steps"][2]["angles_deg"][0]
@@ -162,7 +162,7 @@ class DofbotMotionConfigTest(unittest.TestCase):
             ),
             MAX_POSE_DELTA_DEG,
         )
-        with self.assertRaisesRegex(MotionConfigError, "more than 5 degrees"):
+        with self.assertRaisesRegex(MotionConfigError, "more than 15 degrees"):
             parse_motion_config(broken)
 
     def test_total_duration_above_sixty_seconds_fails_closed(self) -> None:
@@ -225,7 +225,7 @@ class DofbotMotionConfigTest(unittest.TestCase):
         self.assertFalse(result["checks"]["all_observations_finite"])
 
         out_of_envelope = self._synthetic_observations()
-        out_of_envelope[10]["observed_angles_deg"][0] = 97.0
+        out_of_envelope[10]["observed_angles_deg"][0] = 107.0
         result = evaluate_motion_config_observations(
             self.config,
             self.samples,

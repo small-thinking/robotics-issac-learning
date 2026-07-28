@@ -283,19 +283,25 @@ recorded, and the calibration must be explicitly marked verified.
 
 #### ActionChunk v1 — configured scripted motion
 
-Status: **local compile passed; Isaac machine and Viewer gates pending**
+Status: **small-amplitude machine gate passed but Viewer amplitude failed;
+revised visible-motion config passed local compile and awaits Isaac/Viewer
+revalidation**
 
 `configs/dofbot/motions/safe_api_wave.json` is the first versioned motion input.
-It contains five complete absolute poses for servo IDs 1 through 4. Every pose
-uses integer degrees in the `[85°, 95°]` safety envelope, specifies movement
-and hold durations in 100-millisecond increments, and changes no servo by more
-than `5°` from the previous configured pose. The sequence must start and end
-at `[90°, 90°, 90°, 90°]`.
+It contains five complete absolute poses for servo IDs 1 through 4. After the
+first Viewer run showed that the original `±5°` profile looked like subtle
+rocking rather than an obvious bend, the local safety envelope was revised to
+`[75°, 105°]`. The base servo moves `±10°`, while the shoulder, elbow, and
+wrist candidates move `±15°`. Every pose still uses integer degrees, specifies
+movement and hold durations in 100-millisecond increments, and changes no
+servo by more than `15°` from the previous configured pose. The sequence must
+start and end at `[90°, 90°, 90°, 90°]`.
 
 The pure-Python compiler linearly samples the configured movements at 10 Hz.
-The checked-in nine-second example compiles to 90 complete-pose samples and
-360 calls shaped as `Arm_serial_servo_write(id, angle, time)`. Each compiled
-sample changes a servo by no more than `1°`.
+The revised 12.4-second example compiles to 124 complete-pose samples and 496
+calls shaped as `Arm_serial_servo_write(id, angle, time)`. Each compiled
+sample changes a servo by no more than `1°`. The simulator-visible excursion
+acceptance floor is now `10°`.
 
 Transferable commands:
 
@@ -319,12 +325,18 @@ asset against the Goal 1 contract, executes every compiled sample through the
 Yahboom-compatible API, and records target and observed angles. Machine
 acceptance checks the sample contract, finite observations, the safe envelope,
 configured-pose tracking, visible non-neutral excursion, and final neutral
-reset. The Viewer repeats the same nine-second sequence after a 30-second
+reset. The Viewer repeats the same 12.4-second sequence after a 30-second
 neutral connection hold.
 
 The JSON file is an action input, not a machine result. Local compilation does
-not prove Isaac execution or visual motion. Neither remote command has run in
-this implementation window, and the hardware backend remains disabled.
+not prove Isaac execution or visual motion. In the 2026-07-27 paid window, the
+original small-amplitude config passed all six Isaac machine checks with a
+maximum observed excursion of `5.43°` and a final neutral error of `0.076°`.
+The user saw the repeated sequence but rejected the amplitude as too subtle, so
+the visual gate failed. The immutable result is preserved as
+`artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`; the revised
+`±15°` config has only passed local fail-closed tests and still requires a
+fresh machine and Viewer run. The hardware backend remains disabled.
 
 ### Goal 3 — Read the onboard camera
 
