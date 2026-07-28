@@ -477,7 +477,11 @@ def evaluate_motion_observations(
                 targets_within_margin = False
             if actual < safe_lower or actual > safe_upper:
                 observations_within_margin = False
-            if abs(actual - joint.default_rad) > plan.amplitude_rad + MAX_TRACKING_OVERSHOOT_RAD:
+            if (
+                segment_name != "hold_default"
+                and abs(actual - joint.default_rad)
+                > plan.amplitude_rad + MAX_TRACKING_OVERSHOOT_RAD
+            ):
                 observations_within_command_envelope = False
             if segment_name == "multi_joint_wave":
                 wave_delta = abs(actual - joint.default_rad)

@@ -30,6 +30,7 @@ nohup ./isaaclab.sh -p $quoted_project_dir/tools/move_dofbot_joints.py \
   --pre-motion-hold-seconds $quoted_pre_motion_hold \
   --sample-hz $quoted_sample_hz \
   --git-commit \"\$git_commit\" \
+  --device cpu \
   --livestream 2 \
   --viz kit \
   >$quoted_log_path 2>&1 </dev/null &

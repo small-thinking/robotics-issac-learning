@@ -124,6 +124,7 @@ def _run_cycle(
     controlled_joint_ids: list[int],
     cycle_index: int,
     sample_hz: float,
+    stop_when_app_closes: bool,
 ) -> tuple[list[dict[str, Any]], float] | None:
     robot = scene["dofbot"]
     physics_dt = sim.get_physics_dt()
@@ -133,7 +134,12 @@ def _run_cycle(
     current_segment: str | None = None
 
     for step in range(step_count + 1):
-        if not simulation_app.is_running():
+        # Finite machine-validation cycles do not render. On the Isaac
+        # Launchable 3.0 / Isaac Sim 6 stack, processing a rendered Kit update
+        # in default headless mode handles the app's quit event after the first
+        # step and exits cleanly before an artifact can be written. Viewer
+        # cycles render and still honor the app lifecycle.
+        if stop_when_app_closes and not simulation_app.is_running():
             return None
 
         elapsed_s = min(step * physics_dt, plan.total_duration_s)
@@ -148,16 +154,31 @@ def _run_cycle(
         target_values = [sample.target_positions_rad[name] for name in CONTROLLED_JOINT_NAMES]
         target_tensor = torch.tensor(
             [target_values],
-            device=robot.data.joint_pos.device,
-            dtype=robot.data.joint_pos.dtype,
+            device=args_cli.device,
+            dtype=torch.float32,
         )
+        if step == 0:
+            print("[MOTION] checkpoint=target_tensor_ready", flush=True)
         robot.set_joint_position_target(
             target_tensor,
             joint_ids=controlled_joint_ids,
         )
+        if step == 0:
+            print("[MOTION] checkpoint=joint_target_set", flush=True)
         scene.write_data_to_sim()
-        sim.step()
+        if step == 0:
+            print("[MOTION] checkpoint=scene_data_written", flush=True)
+        try:
+            sim.step(render=stop_when_app_closes)
+        except SystemExit as error:
+            raise RuntimeError(
+                "Isaac requested process exit during the DOFBOT physics step"
+            ) from error
+        if step == 0:
+            print("[MOTION] checkpoint=physics_step_complete", flush=True)
         scene.update(physics_dt)
+        if step == 0:
+            print("[MOTION] checkpoint=scene_update_complete", flush=True)
 
         if step % sample_stride == 0 or step == step_count:
             observed_values = robot.data.joint_pos[0, controlled_joint_ids].detach().cpu().tolist()
@@ -219,7 +240,9 @@ def main() -> None:
     controlled_joint_ids = _controlled_joint_ids(scene)
 
     cycle_index = 1
-    while simulation_app.is_running() and (args_cli.cycles < 0 or cycle_index <= args_cli.cycles):
+    while (args_cli.cycles < 0 and simulation_app.is_running()) or (
+        args_cli.cycles > 0 and cycle_index <= args_cli.cycles
+    ):
         cycle_result = _run_cycle(
             scene=scene,
             sim=sim,
@@ -227,6 +250,7 @@ def main() -> None:
             controlled_joint_ids=controlled_joint_ids,
             cycle_index=cycle_index,
             sample_hz=args_cli.sample_hz,
+            stop_when_app_closes=args_cli.cycles < 0,
         )
         if cycle_result is None:
             break

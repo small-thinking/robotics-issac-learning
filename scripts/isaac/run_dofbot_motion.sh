@@ -26,6 +26,7 @@ git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
   --pre-motion-hold-seconds $quoted_pre_motion_hold \
   --sample-hz $quoted_sample_hz \
   --git-commit \"\$git_commit\" \
+  --device cpu \
   --headless
 "
 
