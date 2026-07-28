@@ -90,6 +90,25 @@
   were retained.
 - Goal 2 status: complete; machine and visual gates passed
 
+## DOFBOT simulator/hardware API bridge
+
+- Public command: named `joint1` through `joint4` positions in radians plus
+  `duration_ms`
+- Simulator backend: the Goal 2 Isaac runner now uses the shared `DofbotArm`
+  facade before setting articulation position targets
+- Hardware backend: translates the same command to Yahboom's documented
+  `Arm_serial_servo_write(id, angle, time)` and reads with
+  `Arm_serial_servo_read(id)`
+- Documented candidate mapping: `joint1` through `joint4` map to servo IDs
+  `1` through `4`; zero radians maps to the documented 90-degree centered pose
+- Local dry-run: 411 trajectory samples at 10 Hz produced 1,644 single-servo
+  calls; all mapped angles stayed in `[85°, 95°]`
+- Safety boundary: physical direction and per-device offsets are not yet
+  calibrated; the real backend refuses reads and writes while
+  `hardware_verified` is false
+- Runtime scope: local pure Python only; no GPU started and no real hardware
+  command sent
+
 ### 2026-07-27 remote validation window
 
 - Approved target: reuse only `isaac-launchable-f150a5` (`92xbacz46`), AWS

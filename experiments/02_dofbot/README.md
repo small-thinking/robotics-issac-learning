@@ -17,7 +17,10 @@ the infrastructure.
 
 The control boundary is the vendor's servo API: software may choose sequences
 of target joint angles and durations, but it does not assume access to motor
-current control or the servo's internal feedback loop.
+current control or the servo's internal feedback loop. The same named-joint
+command now drives either an Isaac articulation backend or a Yahboom
+`Arm_Lib` backend; motion plans and later policies do not call either runtime
+directly.
 
 ## First stage: asset, motion, and camera
 
@@ -174,6 +177,7 @@ Local and preview commands:
 ```bash
 make show-dofbot-motion       # finite headless machine run
 make show-dofbot-motion-view  # 30-second connection hold, then repeated cycles
+make dofbot-api-dry-run       # encode the plan as official Yahboom API calls
 make test                     # pure safety and remote-command contracts
 ```
 
@@ -244,6 +248,40 @@ The stop request was sent immediately after the visual gate. At 20:04:45 PDT,
 `brev ls --json` confirmed `STOPPED`; the instance and persistent disk were
 retained.
 
+#### Shared simulator/real-arm control API
+
+The Goal 2 runner now sends every target through `DofbotArm.move_joints()`,
+whose public command is four named positions in radians plus `duration_ms`.
+The Isaac backend translates that command to the already validated
+articulation position target. The physical backend translates it to Yahboom's
+documented `Arm_serial_servo_write(id, angle, time)` calls and reads positions
+with `Arm_serial_servo_read(id)`.
+
+Yahboom's official documentation establishes that the bottom servo is ID 1,
+IDs increase upward, servos 1 through 4 correspond to the first four arm
+joints, and 90 degrees is the centered/upright example pose:
+
+- [control one servo](https://www.yahboom.net/public/upload/upload-html/1705545949/Control%20single%20servo.html)
+- [read one servo](https://www.yahboom.net/public/upload/upload-html/1705545963/Read%20servo%20current%20position.html)
+- [control all servos](https://www.yahboom.net/public/upload/upload-html/1768386858/Control%20All%20Servos.html)
+- [ROS control bridge](https://www.yahboom.net/public/upload/upload-html/1768353104/Robotic%20Arm%20ROS%20Control.html)
+- [MoveIt joint/servo ordering](https://www.yahboom.net/public/upload/upload-html/1713873254/MoveIt%20control%20the%20real%20machine.html)
+
+The current candidate conversion is
+`servo_angle_deg = 90 + degrees(sim_joint_rad)`, mapping `joint1` through
+`joint4` to servo IDs 1 through 4. A full 10 Hz dry-run of the 41-second Goal 2
+plan produced 411 samples and 1,644 official single-servo calls. Every servo
+angle stayed in 85 through 95 degrees. The six-servo call is deliberately not
+used because servo 5 (wrist) and servo 6 (gripper) are outside the validated
+simulation contract.
+
+This proves the software boundary and command translation, not the physical
+sign and zero-offset calibration of the user's individual arm. The real
+`Arm_Lib` backend therefore rejects both writes and reads while
+`hardware_verified` is false. Before first hardware motion, each servo must be
+calibrated one at a time at low amplitude, the direction/offset must be
+recorded, and the calibration must be explicitly marked verified.
+
 ### Goal 3 — Read the onboard camera
 
 Status: **planned; out of scope for Goal 2**
@@ -261,7 +299,8 @@ matches the secure Viewer perspective.
 
 ## Later milestones
 
-1. Define the simulated-joint to vendor-servo angle mapping.
+1. Physically calibrate and verify the candidate simulated-joint to
+   vendor-servo angle mapping.
 2. Establish scripted and state-based reaching baselines in simulation.
 3. Evaluate a state-based controller under fixed initial conditions.
 4. Execute a few safety-reviewed hard-coded poses on the real DOFBOT.
