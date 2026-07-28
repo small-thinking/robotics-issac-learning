@@ -154,6 +154,14 @@ class DofbotMotionPlanTest(unittest.TestCase):
         self.assertFalse(result["machine_passed"])
         self.assertFalse(result["checks"]["observations_within_command_envelope"])
 
+    def test_initial_settling_outside_command_envelope_is_recorded_but_allowed(self) -> None:
+        observations = self._synthetic_observations()
+        row = next(row for row in observations if row["segment"] == "hold_default")
+        row["observed_positions_rad"]["joint4"] = math.radians(18.0)
+        result = evaluate_motion_observations(self.plan, observations)
+        self.assertTrue(result["machine_passed"])
+        self.assertTrue(result["checks"]["observations_within_command_envelope"])
+
     def test_reversed_observed_sign_fails_machine_acceptance(self) -> None:
         observations = self._synthetic_observations()
         for row in observations:
