@@ -135,3 +135,22 @@ prove the physical direction and per-device zero offset of the user's arm.
 Consequently, the checked-in `90 + degrees(radians)` conversion is explicitly
 unverified and the real backend refuses all reads and writes until a physical
 calibration is marked verified.
+
+## 2026-07-27 — Start ActionChunk v1 with complete absolute poses
+
+The first configured-motion schema uses complete absolute integer-degree poses
+for servo IDs 1 through 4 at a fixed 10 Hz control rate. It does not begin with
+relative actions, sparse joint updates, variable control frequency, wrist or
+gripper control, force targets, or a hardware-backend selector.
+
+Absolute complete poses make a scripted run reproducible from a known neutral
+state and prevent an omitted joint from silently retaining stale state.
+Configured poses are restricted to `[85°, 95°]`, adjacent configured poses may
+differ by at most `5°`, and every sequence must start and finish at the
+90-degree neutral pose.
+
+Each configured movement is linearly compiled to 100-millisecond samples, and
+each sample expands to four documented `Arm_serial_servo_write` calls. This
+compiled representation is the stable boundary that later scripts, state
+machines, policies, or VLA action decoders can produce without changing the
+Isaac or physical backends.

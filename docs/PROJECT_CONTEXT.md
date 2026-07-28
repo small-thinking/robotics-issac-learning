@@ -64,7 +64,9 @@ The CartPole stage is complete. The canonical next-stage plan is
    contract, and confirm the stationary model in the secure Viewer.
 2. Goal 2: command small, hard-coded joint movements and verify axis, sign,
    limit margin, and reset.
-3. Goal 3: read and save one deterministic onboard RGB observation.
+3. Goal 2 extension: compile a versioned JSON ActionChunk to the shared
+   Yahboom API, then verify the configured sequence by machine and Viewer.
+4. Goal 3: read and save one deterministic onboard RGB observation.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, or real
 hardware commands during these three infrastructure goals. The older

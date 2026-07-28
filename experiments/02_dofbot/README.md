@@ -281,6 +281,51 @@ sign and zero-offset calibration of the user's individual arm. The real
 calibrated one at a time at low amplitude, the direction/offset must be
 recorded, and the calibration must be explicitly marked verified.
 
+#### ActionChunk v1 — configured scripted motion
+
+Status: **local compile passed; Isaac machine and Viewer gates pending**
+
+`configs/dofbot/motions/safe_api_wave.json` is the first versioned motion input.
+It contains five complete absolute poses for servo IDs 1 through 4. Every pose
+uses integer degrees in the `[85°, 95°]` safety envelope, specifies movement
+and hold durations in 100-millisecond increments, and changes no servo by more
+than `5°` from the previous configured pose. The sequence must start and end
+at `[90°, 90°, 90°, 90°]`.
+
+The pure-Python compiler linearly samples the configured movements at 10 Hz.
+The checked-in nine-second example compiles to 90 complete-pose samples and
+360 calls shaped as `Arm_serial_servo_write(id, angle, time)`. Each compiled
+sample changes a servo by no more than `1°`.
+
+Transferable commands:
+
+```bash
+# Local schema, safety, and API-call compilation only
+make dofbot-motion-config-dry-run \
+  MOTION=configs/dofbot/motions/safe_api_wave.json
+
+# Remote commands: use only after a fresh quote and explicit approval
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-motion-config \
+  MOTION=configs/dofbot/motions/safe_api_wave.json
+
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-motion-config-view \
+  MOTION=configs/dofbot/motions/safe_api_wave.json
+```
+
+The Isaac runner validates the config before starting Kit, verifies the live
+asset against the Goal 1 contract, executes every compiled sample through the
+Yahboom-compatible API, and records target and observed angles. Machine
+acceptance checks the sample contract, finite observations, the safe envelope,
+configured-pose tracking, visible non-neutral excursion, and final neutral
+reset. The Viewer repeats the same nine-second sequence after a 30-second
+neutral connection hold.
+
+The JSON file is an action input, not a machine result. Local compilation does
+not prove Isaac execution or visual motion. Neither remote command has run in
+this implementation window, and the hardware backend remains disabled.
+
 ### Goal 3 — Read the onboard camera
 
 Status: **planned; out of scope for Goal 2**

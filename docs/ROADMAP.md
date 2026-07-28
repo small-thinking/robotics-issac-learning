@@ -103,8 +103,10 @@ The detailed first-stage contract lives in
 3. Render and save an onboard RGB observation from a deterministic test scene.
 4. Expose the vendor-shaped single-servo API over one backend-neutral
    named-joint core. The documented `joint1`-through-`joint4` to servo-ID
-   mapping and local dry-run bridge are implemented; physical direction and
-   zero-offset calibration remain a fail-closed real-hardware gate.
+   mapping, local dry-run bridge, and fail-closed JSON ActionChunk compiler are
+   implemented. The config sequence still requires Isaac machine and Viewer
+   validation; physical direction and zero-offset calibration remain a
+   separate fail-closed real-hardware gate.
 5. Establish scripted and state-based reaching baselines before adding vision
    or choosing a learning algorithm.
 

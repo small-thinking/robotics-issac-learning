@@ -185,3 +185,14 @@ orchestrator then decides whether to resume.
 
 Do not let an infrastructure client silently convert one failed training or
 evaluation attempt into an unplanned duplicate run.
+
+## Shell preview assertions must fail explicitly
+
+On the local macOS Bash, a failed top-level `[[ ... ]]` expression did not
+reliably terminate a script even with `set -e`. The remote-command preview
+suite could therefore print `passed` after a missing command flag.
+
+Wrap string checks in assertion functions that use an explicit `if` branch and
+`exit 1`. Keep finite simulator commands explicit about `--headless` so the
+preview tests verify an intentional launch contract rather than an implicit
+runtime default.
