@@ -162,7 +162,12 @@ def _run_cycle(
             joint_ids=controlled_joint_ids,
         )
         scene.write_data_to_sim()
-        sim.step(render=stop_when_app_closes)
+        try:
+            sim.step(render=stop_when_app_closes)
+        except SystemExit as error:
+            raise RuntimeError(
+                "Isaac requested process exit during the DOFBOT physics step"
+            ) from error
         scene.update(physics_dt)
 
         if step % sample_stride == 0 or step == step_count:
