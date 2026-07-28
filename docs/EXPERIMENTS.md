@@ -310,3 +310,59 @@
 - Conclusion: this is an aborted infrastructure window, not a Goal 2 motion
   result. Goal 2 remains incomplete and requires a freshly quoted and approved
   window.
+
+## 2026-07-27 — DOFBOT Goal 2 passed machine and visual gates
+
+- Approved resource: reused only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4; no create, resize, reset, delete, camera, learning,
+  checkpoint, or real-hardware action
+- Checked compute quote: `$1.58784/hour`, plus the existing approximately
+  `$0.04/hour` persistent disk
+- Paid-window start: 19:16:55 PDT
+- Remote source: `codex/dofbot-goal2-validation@c151777`
+- Runtime: Isaac Launchable `3.0.0-beta2-post1`, Isaac Sim `6.0.1`
+- Compatibility result: CUDA target-tensor stepping exited in the installed
+  runtime for this one-robot scene. The articulation/physics target device was
+  set to CPU while the L4 continued rendering the secure Viewer.
+- Evaluation correction: initial `hold_default` settling samples remain
+  recorded and limit-checked but are excluded from the post-settle
+  command-envelope comparison.
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-motion
+  ```
+
+- Machine result: passed all 11 checks in
+  `artifacts/dofbot/motion_contract.json`
+- Per-joint result: `joint1` through `joint4` each moved in both directions,
+  achieved `40/40` command/observation sign agreement, stayed within the
+  documented margin, participated in the simultaneous wave, and reset within
+  tolerance
+- Observed single-joint delta ranges:
+  - `joint1`: `[-5.00°, 5.00°]`
+  - `joint2`: `[-5.34°, 5.40°]`
+  - `joint3`: `[-5.56°, 5.87°]`
+  - `joint4`: `[-5.07°, 5.33°]`
+- Maximum inactive-joint error: below `1°`; maximum reset error:
+  approximately `0.16°`
+- Motion contract SHA-256:
+  `6107ea36dd81c848889c05a6413196d4e873f0cd44f407415bb82302c60d3cab`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-motion-view
+  ```
+
+- Viewer machine result: six complete repeated cycles reported
+  `machine_passed=True`; the stop request interrupted cycle seven
+- User visual result: passed at 19:54 PDT. The user confirmed visible
+  small-amplitude DOFBOT movement and rocking/wave behavior; the subtle motion
+  is expected from the deliberate `±5°` bound.
+- Visual evidence handling: an 8.875-second user screen recording was reviewed
+  locally and not committed because repository policy excludes videos
+- Compute lifecycle: stop requested immediately after the visual confirmation;
+  `brev ls --json` confirmed terminal `STOPPED` at 20:04:45 PDT. The existing
+  instance and persistent disk were retained.
+- Conclusion: Goal 2 passed the policy-free machine contract and explicit user
+  visual gate. Goal 3 camera capture remains out of scope for this experiment.

@@ -2,12 +2,11 @@
 
 - Updated: 2026-07-27 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goal 1 — complete; Goal 2
-  safe-motion harness is locally validated; remote machine and visual
-  validation are pending after an approved window was stopped before motion
+- Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete; Goal 3
+  onboard-camera capture is next
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-27
-  19:13 PDT after the aborted Goal 2 validation window
+  20:04:45 PDT after the successful Goal 2 validation window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -39,9 +38,12 @@
 - Scope audit: no joint motion, RGB tensor capture, policy, checkpoint, PPO,
   SFT, or CV pipeline was run
 
-## DOFBOT Goal 2 local preparation
+## DOFBOT Goal 2 result
 
-- Branch: `codex/dofbot-safe-motion`
+- Branch: `codex/dofbot-goal2-validation`
+- Remote source: `c151777`
+- Environment: Isaac Launchable `3.0.0-beta2-post1`, Isaac Sim `6.0.1`,
+  1x NVIDIA L4
 - Controlled joint set: `joint1`, `joint2`, `joint3`, `joint4`; these are the
   four actuator-backed arm joints with recorded finite limits
 - Maximum command: `±5°` (`±0.0872665 rad`) around each recorded default
@@ -59,11 +61,34 @@
   inactive-joint error, at most `1°` active-joint overshoot, at least 90%
   command/observation sign agreement, at least `1°` per joint in the
   simultaneous wave, and at most `1°` final reset error
-- Local validation: 16 Goal 2 unit tests, remote-command dry-run checks, and
-  targeted Ruff passed
-- Remote motion executed: no
-- Goal 2 status: incomplete; machine artifact and user confirmation of the
-  visible axis/sign for all four joints remain pending
+- Compatibility: one-robot articulation/physics targets used CPU because the
+  installed Isaac runtime exited during the first step with CUDA targets; the
+  L4 still rendered the secure Viewer
+- Machine acceptance: passed; all 11 contract checks are true
+- Sign agreement: `40/40` samples (`1.0`) for each of the four joints
+- Observed single-joint deltas:
+  - `joint1`: `[-5.00°, 5.00°]`
+  - `joint2`: `[-5.34°, 5.40°]`
+  - `joint3`: `[-5.56°, 5.87°]`
+  - `joint4`: `[-5.07°, 5.33°]`
+- Maximum inactive-joint error: below `1°`; maximum reset error:
+  approximately `0.16°`
+- Machine-readable evidence: `artifacts/dofbot/motion_contract.json`
+- Motion contract SHA-256:
+  `6107ea36dd81c848889c05a6413196d4e873f0cd44f407415bb82302c60d3cab`
+- Viewer acceptance: six complete cycles reported `machine_passed=True`; the
+  stop request interrupted cycle seven
+- User visual result: passed at 2026-07-27 19:54 PDT; the user confirmed
+  visible small-amplitude movement and rocking/wave behavior. The subtle
+  appearance is expected from the intentional `±5°` safety limit.
+- Local visual evidence: the supplied 8.875-second screen recording was
+  reviewed but not committed
+- Scope audit: no camera tensor, policy, checkpoint, PPO, SFT, CV pipeline,
+  or real hardware command was used
+- Compute lifecycle: stop requested immediately after the user visual gate;
+  terminal `STOPPED` verified at 20:04:45 PDT. The instance and persistent disk
+  were retained.
+- Goal 2 status: complete; machine and visual gates passed
 
 ### 2026-07-27 remote validation window
 
@@ -189,9 +214,8 @@
 
 ## Exact next action
 
-After a fresh `brev ls`/price check and explicit approval, sync
-`codex/dofbot-safe-motion` and run `make dofbot-motion`. Retrieve and inspect
-`artifacts/dofbot/motion_contract.json`; only after machine acceptance passes,
-run `make dofbot-motion-view` for the user's axis/sign, wave, and reset
-confirmation. Stop and verify the GPU immediately afterward. Goal 3 camera
-capture remains out of scope.
+Keep the Brev instance stopped. Prepare Goal 3 locally by defining a
+fail-closed RGB capture contract for the recorded onboard camera prim
+`/World/envs/env_0/Dofbot/link4/Camera`. Do not start a paid window until the
+local camera script, shape/dtype/non-constant checks, dry-run commands, fresh
+price check, and explicit approval are complete.

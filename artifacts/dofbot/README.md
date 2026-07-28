@@ -12,8 +12,20 @@ The corresponding untracked `viewer.log` reached
 stationary green DOFBOT in the secure Viewer at 2026-07-26 22:34 PDT, closing
 Goal 1's visual gate.
 
-Goal 2 will write `motion_contract.json` only after a separately approved
-remote run. It will contain the fixed safe-motion plan, sampled target and
-observed positions, per-joint excursion/reset metrics, machine acceptance
-checks, and an explicit `pending_user_confirmation` visual status. Do not
-create or reconstruct that artifact from local synthetic tests.
+Goal 2 wrote `motion_contract.json` during the approved 2026-07-27 remote run.
+It contains the fixed safe-motion plan, sampled target and observed positions,
+per-joint excursion/reset metrics, machine acceptance checks, and the
+machine-time `pending_user_confirmation` visual status. It was downloaded
+without reconstruction after all eleven machine checks passed. Its SHA-256 is
+`6107ea36dd81c848889c05a6413196d4e873f0cd44f407415bb82302c60d3cab`.
+
+The separate user gate closed at 2026-07-27 19:54 PDT. The user confirmed
+visible small-amplitude DOFBOT movement and the rocking/wave behavior; an
+8.875-second local screen recording was reviewed and intentionally not added
+to the repository. The recorded `±5°` command is designed to look subtle.
+Goal 2's machine artifact remains immutable, so its visual status records the
+state when the remote process wrote it; the later user confirmation is recorded
+in the experiment and status documents.
+
+`motion_viewer_contract.json` and `motion_viewer.log` remain ignored local
+evidence because the looping Viewer contract and logs are machine-specific.

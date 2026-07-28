@@ -157,28 +157,18 @@ def _run_cycle(
             device=args_cli.device,
             dtype=torch.float32,
         )
-        if step == 0:
-            print("[MOTION] checkpoint=target_tensor_ready", flush=True)
         robot.set_joint_position_target(
             target_tensor,
             joint_ids=controlled_joint_ids,
         )
-        if step == 0:
-            print("[MOTION] checkpoint=joint_target_set", flush=True)
         scene.write_data_to_sim()
-        if step == 0:
-            print("[MOTION] checkpoint=scene_data_written", flush=True)
         try:
             sim.step(render=stop_when_app_closes)
         except SystemExit as error:
             raise RuntimeError(
                 "Isaac requested process exit during the DOFBOT physics step"
             ) from error
-        if step == 0:
-            print("[MOTION] checkpoint=physics_step_complete", flush=True)
         scene.update(physics_dt)
-        if step == 0:
-            print("[MOTION] checkpoint=scene_update_complete", flush=True)
 
         if step % sample_stride == 0 or step == step_count:
             observed_values = robot.data.joint_pos[0, controlled_joint_ids].detach().cpu().tolist()
