@@ -124,6 +124,7 @@ def _run_cycle(
     controlled_joint_ids: list[int],
     cycle_index: int,
     sample_hz: float,
+    stop_when_app_closes: bool,
 ) -> tuple[list[dict[str, Any]], float] | None:
     robot = scene["dofbot"]
     physics_dt = sim.get_physics_dt()
@@ -133,7 +134,13 @@ def _run_cycle(
     current_segment: str | None = None
 
     for step in range(step_count + 1):
-        if not simulation_app.is_running():
+        # In Isaac Sim 6, a policy-free headless app can report not-running
+        # after its first physics step even though SimulationContext remains
+        # usable. Finite machine-validation cycles must therefore run their
+        # declared number of steps and let sim.step() fail loudly if the
+        # simulator is actually unavailable. Viewer cycles still honor the app
+        # lifecycle so closing the Viewer terminates the repeating motion.
+        if stop_when_app_closes and not simulation_app.is_running():
             return None
 
         elapsed_s = min(step * physics_dt, plan.total_duration_s)
@@ -219,7 +226,9 @@ def main() -> None:
     controlled_joint_ids = _controlled_joint_ids(scene)
 
     cycle_index = 1
-    while simulation_app.is_running() and (args_cli.cycles < 0 or cycle_index <= args_cli.cycles):
+    while (args_cli.cycles < 0 and simulation_app.is_running()) or (
+        args_cli.cycles > 0 and cycle_index <= args_cli.cycles
+    ):
         cycle_result = _run_cycle(
             scene=scene,
             sim=sim,
@@ -227,6 +236,7 @@ def main() -> None:
             controlled_joint_ids=controlled_joint_ids,
             cycle_index=cycle_index,
             sample_hz=args_cli.sample_hz,
+            stop_when_app_closes=args_cli.cycles < 0,
         )
         if cycle_result is None:
             break
