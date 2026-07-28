@@ -283,25 +283,26 @@ recorded, and the calibration must be explicitly marked verified.
 
 #### ActionChunk v1 — configured scripted motion
 
-Status: **small-amplitude machine gate passed but Viewer amplitude failed;
-revised visible-motion config passed local compile and awaits Isaac/Viewer
+Status: **two machine gates passed but both Viewer motion-quality gates failed;
+pose-boundary API dispatch passed local compile and awaits Isaac/Viewer
 revalidation**
 
 `configs/dofbot/motions/safe_api_wave.json` is the first versioned motion input.
-It contains five complete absolute poses for servo IDs 1 through 4. After the
-first Viewer run showed that the original `±5°` profile looked like subtle
-rocking rather than an obvious bend, the local safety envelope was revised to
-`[75°, 105°]`. The base servo moves `±10°`, while the shoulder, elbow, and
-wrist candidates move `±15°`. Every pose still uses integer degrees, specifies
-movement and hold durations in 100-millisecond increments, and changes no
-servo by more than `15°` from the previous configured pose. The sequence must
-start and end at `[90°, 90°, 90°, 90°]`.
+It contains five complete absolute poses for servo IDs 1 through 4. The first
+`±5°` Viewer profile looked like subtle rocking. A later `±14°` profile passed
+all machine checks, but the user rejected its slow, stair-step, shaking motion.
+The root cause was architectural: the compiler replayed four vendor-shaped API
+calls at every 10 Hz observation sample instead of issuing one timed command
+per pose.
 
-The pure-Python compiler linearly samples the configured movements at 10 Hz.
-The revised 12.4-second example compiles to 124 complete-pose samples and 496
-calls shaped as `Arm_serial_servo_write(id, angle, time)`. Each compiled
-sample changes a servo by no more than `1°`. The simulator-visible excursion
-acceptance floor is now `10°`.
+The current local revision separates those boundaries. Five poses compile to
+20 calls shaped as `Arm_serial_servo_write(id, angle, time)`, exactly one per
+servo per pose. The Isaac backend models the specified movement duration at
+physics rate with smoothstep interpolation; 10 Hz samples are observations,
+not extra application commands. The 5.6-second profile uses `[60°, 120°]` as
+its fail-closed envelope, moves the base `±20°`, moves the other controlled
+joints `±28°`, and leaves two configured degrees for dynamic overshoot. The
+sequence still starts and ends at `[90°, 90°, 90°, 90°]`.
 
 Transferable commands:
 
@@ -321,11 +322,11 @@ BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
 ```
 
 The Isaac runner validates the config before starting Kit, verifies the live
-asset against the Goal 1 contract, executes every compiled sample through the
+asset against the Goal 1 contract, executes each pose boundary through the
 Yahboom-compatible API, and records target and observed angles. Machine
 acceptance checks the sample contract, finite observations, the safe envelope,
 configured-pose tracking, visible non-neutral excursion, and final neutral
-reset. The Viewer repeats the same 12.4-second sequence after a 30-second
+reset. The Viewer repeats the same 5.6-second sequence after a 30-second
 neutral connection hold.
 
 The JSON file is an action input, not a machine result. Local compilation does
@@ -333,10 +334,12 @@ not prove Isaac execution or visual motion. In the 2026-07-27 paid window, the
 original small-amplitude config passed all six Isaac machine checks with a
 maximum observed excursion of `5.43°` and a final neutral error of `0.076°`.
 The user saw the repeated sequence but rejected the amplitude as too subtle, so
-the visual gate failed. The immutable result is preserved as
+the first visual gate failed. The immutable result is preserved as
 `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`; the revised
-`±15°` config has only passed local fail-closed tests and still requires a
-fresh machine and Viewer run. The hardware backend remains disabled.
+`±14°` profile then passed all six machine checks on 2026-07-28, but the user
+rejected its slow, shaking motion. The current pose-boundary dispatch revision
+has only passed local fail-closed tests and still requires a fresh machine and
+Viewer run. The hardware backend remains disabled.
 
 ### Goal 3 — Read the onboard camera
 

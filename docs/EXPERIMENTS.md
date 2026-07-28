@@ -494,8 +494,9 @@
 - Branch: `codex/dofbot-motion-config-validation`
 - Motivation: make arm bending visibly obvious rather than relying on subtle
   base-dominated rocking
-- Revised poses: neutral `[90, 90, 90, 90]`, positive
-  `[100, 75, 105, 105]`, neutral, negative `[80, 105, 75, 75]`, neutral
+- Revised poses after the first remote overshoot check: neutral
+  `[90, 90, 90, 90]`, positive `[100, 76, 104, 104]`, neutral, negative
+  `[80, 104, 76, 76]`, neutral
 - Safety envelope: `[75°, 105°]`; at most `15°` between configured poses,
   `1°` between compiled 100-millisecond samples, and at least `10°` observed
   excursion required by the machine gate
@@ -508,3 +509,66 @@
   are not calibrated
 - Conclusion: software gate passed only. The revised profile needs a fresh
   approved Isaac headless run and explicit user Viewer confirmation.
+
+## 2026-07-28 — visible profile passed machine gate but failed motion-quality gate
+
+- Approved target: reused only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4 at `$1.58784/hour` plus the existing disk; no
+  instance creation, resize, reset, or deletion
+- Paid-window start: 08:20:57 PDT
+- Remote source: `83f24c6dc521927247d3f76ba4fec4b6358c2df1`
+- Headless command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- First attempt at exact `±15°` reached the poses but exceeded the observation
+  envelope on joint 3 (`16.293°` excursion), so it failed closed. The command
+  was reduced to `±14°` without relaxing the acceptance threshold.
+- Revised machine result: all six checks true, 124 observations, 496 official
+  calls, maximum checkpoint error `0.866°`, maximum observed excursion
+  `15.175°`, and final neutral error `0.114°`
+- Contract SHA-256:
+  `2af0a94931ebd8c580611584a91ff4252742953723fc813672a85fc5fe93346b`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config-view \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Viewer result: `Simulation App Startup Complete`; cycles 1 through 13 each
+  reported `machine_passed=True`
+- User visual result: failed. The larger range was visible, but the arm moved
+  slowly through stair-step targets, shook between them, and still did not look
+  decisive enough. This is explicitly not an ActionChunk visual pass.
+- Root cause: the compiler expanded every movement into 10 Hz intermediate
+  targets and replayed four vendor-shaped API calls for every sample. This
+  conflated application commands with simulator observation cadence.
+- Stop: requested immediately after the visual rejection; terminal `STOPPED`
+  verified with `brev ls --json` at 08:40 PDT. Instance and disk retained.
+
+## 2026-07-28 — pose-boundary API dispatch passed local fail-closed gates
+
+- Branch: `codex/dofbot-visible-envelope-fix`
+- Application semantics: each of five poses dispatches exactly one
+  `Arm_serial_servo_write(id, angle, time)` per controlled servo, for 20 calls
+  total; 10 Hz observations remain separate from API dispatch
+- Isaac semantics: the backend models the servo's `duration_ms` at physics rate
+  with a smoothstep trajectory rather than application-level 100 ms commands
+- Revised poses: neutral, `[110, 62, 118, 118]`, neutral,
+  `[70, 118, 62, 62]`, neutral
+- Safety profile: `[60°, 120°]`, at most `30°` between configured poses,
+  two degrees of configured envelope margin, and a `20°` minimum observed
+  excursion
+- Timing: 0.7-second main transitions; complete loop 5.6 seconds; 56
+  observation checkpoints
+- Local result: all 71 tests, Git LFS checks, remote-command previews, targeted
+  Ruff, `git diff --check`, and dry-run acceptance passed
+- Scope: no GPU, real hardware, camera tensor, policy, or checkpoint used
+- Conclusion: software gate passed only. A fresh approved paid window must
+  prove both Isaac machine acceptance and visibly smooth, decisive motion.

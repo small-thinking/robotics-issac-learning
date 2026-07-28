@@ -9,6 +9,7 @@ from typing import Any
 
 try:
     from .dofbot_motion_config import (
+        MAX_POSE_DELTA_DEG,
         NEUTRAL_ANGLES_DEG,
         SAFE_MAX_ANGLE_DEG,
         SAFE_MIN_ANGLE_DEG,
@@ -17,6 +18,7 @@ try:
     )
 except ImportError:
     from dofbot_motion_config import (
+        MAX_POSE_DELTA_DEG,
         NEUTRAL_ANGLES_DEG,
         SAFE_MAX_ANGLE_DEG,
         SAFE_MIN_ANGLE_DEG,
@@ -84,11 +86,17 @@ def build_preview(
             SAFE_MIN_ANGLE_DEG <= write.angle_deg <= SAFE_MAX_ANGLE_DEG
             for write in writes
         ),
-        "one_write_per_servo_per_sample": len(writes) == len(samples) * 4,
+        "one_write_per_servo_per_pose": len(writes) == len(config.steps) * 4,
+        "api_calls_only_at_pose_boundaries": (
+            sum(bool(sample.api_writes()) for sample in samples)
+            == len(config.steps)
+        ),
         "compiled_duration_matches_config": (
             samples[-1].elapsed_ms == config.total_duration_ms
         ),
-        "compiled_delta_no_more_than_one_degree": maximum_compiled_delta_deg <= 1,
+        "pose_delta_within_safe_profile": (
+            maximum_compiled_delta_deg <= MAX_POSE_DELTA_DEG
+        ),
         "real_hardware_not_commanded": True,
         "gpu_not_started": True,
     }
@@ -102,10 +110,11 @@ def build_preview(
         "config": config.to_dict(),
         "compiled": {
             "control_hz": config.control_hz,
+            "observation_hz": config.control_hz,
             "total_duration_ms": config.total_duration_ms,
             "sample_count": len(samples),
             "official_api_call_count": len(writes),
-            "maximum_sample_delta_deg": maximum_compiled_delta_deg,
+            "maximum_pose_delta_deg": maximum_compiled_delta_deg,
             "per_servo_ranges": per_servo_ranges,
             "first_calls": [write.to_dict() for write in writes[:8]],
             "last_calls": [write.to_dict() for write in writes[-8:]],

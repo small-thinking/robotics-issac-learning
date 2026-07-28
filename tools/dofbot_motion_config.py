@@ -1,9 +1,9 @@
 """Fail-closed ActionChunk v1 contract for scripted DOFBOT motion.
 
 The JSON schema expresses complete four-servo poses in Yahboom's documented
-integer-degree units. A validated pose sequence is compiled to deterministic
-10 Hz single-servo API calls that can later be consumed by either Isaac or a
-calibrated physical backend.
+integer-degree units. Each validated pose compiles to one official API call
+per servo. A separate deterministic 10 Hz timeline describes observations;
+it never replays application API calls between pose boundaries.
 """
 
 from __future__ import annotations
@@ -26,9 +26,9 @@ CONTROL_HZ = 10
 CONTROL_INTERVAL_MS = 100
 SERVO_IDS = (1, 2, 3, 4)
 NEUTRAL_ANGLES_DEG = (90, 90, 90, 90)
-SAFE_MIN_ANGLE_DEG = 75
-SAFE_MAX_ANGLE_DEG = 105
-MAX_POSE_DELTA_DEG = 15
+SAFE_MIN_ANGLE_DEG = 60
+SAFE_MAX_ANGLE_DEG = 120
+MAX_POSE_DELTA_DEG = 30
 MIN_MOVE_DURATION_MS = 500
 MAX_MOVE_DURATION_MS = 5_000
 MAX_HOLD_MS = 5_000
@@ -37,7 +37,7 @@ MAX_TOTAL_DURATION_MS = 60_000
 MAX_CHECKPOINT_TRACKING_ERROR_DEG = 2.0
 MAX_FINAL_NEUTRAL_ERROR_DEG = 1.0
 MAX_OBSERVED_ENVELOPE_OVERSHOOT_DEG = 1.0
-MIN_VISIBLE_EXCURSION_DEG = 10.0
+MIN_VISIBLE_EXCURSION_DEG = 20.0
 _NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
@@ -86,7 +86,7 @@ class MotionConfig:
 
 @dataclass(frozen=True)
 class CompiledMotionSample:
-    """One 10 Hz complete pose that expands to four official API writes."""
+    """One 10 Hz observation checkpoint with an optional pose-boundary command."""
 
     sequence_index: int
     elapsed_ms: int
@@ -95,13 +95,16 @@ class CompiledMotionSample:
     phase: str
     angles_deg: tuple[int, int, int, int]
     duration_ms: int = CONTROL_INTERVAL_MS
+    api_command_duration_ms: int | None = None
 
     def api_writes(self) -> tuple[YahboomServoWrite, ...]:
+        if self.api_command_duration_ms is None:
+            return ()
         return tuple(
             YahboomServoWrite(
                 servo_id=servo_id,
                 angle_deg=angle_deg,
-                duration_ms=self.duration_ms,
+                duration_ms=self.api_command_duration_ms,
             )
             for servo_id, angle_deg in zip(
                 SERVO_IDS,
@@ -119,6 +122,7 @@ class CompiledMotionSample:
             "phase": self.phase,
             "angles_deg": list(self.angles_deg),
             "duration_ms": self.duration_ms,
+            "api_command_duration_ms": self.api_command_duration_ms,
         }
 
 
@@ -297,31 +301,17 @@ def load_motion_config(path: Path) -> tuple[MotionConfig, str]:
     return parse_motion_config(value), hashlib.sha256(raw).hexdigest()
 
 
-def _round_positive_degrees(value: float) -> int:
-    return int(math.floor(value + 0.5))
-
-
 def compile_motion_config(
     config: MotionConfig,
 ) -> tuple[CompiledMotionSample, ...]:
-    """Linearly compile complete poses to deterministic 10 Hz API samples."""
+    """Compile pose-boundary API commands plus deterministic 10 Hz observations."""
 
     samples: list[CompiledMotionSample] = []
-    previous_angles = NEUTRAL_ANGLES_DEG
     elapsed_ms = 0
 
     for step_index, step in enumerate(config.steps):
         move_sample_count = step.duration_ms // CONTROL_INTERVAL_MS
         for move_index in range(1, move_sample_count + 1):
-            progress = move_index / move_sample_count
-            angles = tuple(
-                _round_positive_degrees(start + (target - start) * progress)
-                for start, target in zip(
-                    previous_angles,
-                    step.angles_deg,
-                    strict=True,
-                )
-            )
             elapsed_ms += CONTROL_INTERVAL_MS
             samples.append(
                 CompiledMotionSample(
@@ -329,8 +319,11 @@ def compile_motion_config(
                     elapsed_ms=elapsed_ms,
                     step_index=step_index,
                     step_name=step.name,
-                    phase="move",
-                    angles_deg=angles,
+                    phase="move_command" if move_index == 1 else "move_observe",
+                    angles_deg=step.angles_deg,
+                    api_command_duration_ms=(
+                        step.duration_ms if move_index == 1 else None
+                    ),
                 )
             )
 
@@ -347,7 +340,6 @@ def compile_motion_config(
                     angles_deg=step.angles_deg,
                 )
             )
-        previous_angles = step.angles_deg
 
     if not samples or samples[-1].elapsed_ms != config.total_duration_ms:
         raise MotionConfigError("compiled timeline does not match config duration")
