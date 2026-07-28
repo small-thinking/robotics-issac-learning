@@ -2,6 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: doctor search provision sync remote-setup smoke train play eval learning-curve status stop \
 	dofbot-inspect dofbot-view dofbot-motion dofbot-motion-view \
+	dofbot-api-dry-run \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
@@ -51,6 +52,11 @@ dofbot-motion:
 
 dofbot-motion-view:
 	@./scripts/isaac/view_dofbot_motion.sh
+
+dofbot-api-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/preview_dofbot_yahboom_api.py \
+	 --output "$${DOFBOT_API_PREVIEW_OUTPUT:-/tmp/dofbot-yahboom-api-preview.json}"
 
 status:
 	@./scripts/brev/status.sh

@@ -12,7 +12,11 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-CONTROLLED_JOINT_NAMES = ("joint1", "joint2", "joint3", "joint4")
+try:
+    from .dofbot_control_api import CONTROLLED_JOINT_NAMES
+except ImportError:
+    from dofbot_control_api import CONTROLLED_JOINT_NAMES
+
 OFFICIAL_ASSET_RELATIVE_PATH = "Robots/Yahboom/Dofbot/dofbot.usd"
 MAX_AMPLITUDE_RAD = math.radians(5.0)
 REQUIRED_LIMIT_MARGIN_RAD = math.radians(10.0)

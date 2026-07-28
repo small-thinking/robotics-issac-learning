@@ -78,6 +78,13 @@ from dofbot_motion_plan import (
     evaluate_motion_observations,
     validate_recorded_asset_contract,
 )
+from dofbot_control_api import (
+    DOCUMENTED_YAHBOOM_CALIBRATION,
+    DofbotArm,
+    JointPositionCommand,
+    YahboomServoApiAdapter,
+    encode_yahboom_servo_writes,
+)
 from dofbot_scene_cfg import DofbotAssetSceneCfg
 
 
@@ -116,18 +123,54 @@ def _controlled_joint_ids(scene: InteractiveScene) -> list[int]:
     return [name_to_index[name] for name in CONTROLLED_JOINT_NAMES]
 
 
+class _IsaacJointPositionBackend:
+    """Adapt Isaac Lab articulation targets to the shared DOFBOT API."""
+
+    def __init__(
+        self,
+        *,
+        scene: InteractiveScene,
+        controlled_joint_ids: list[int],
+        device: str,
+    ) -> None:
+        self._robot = scene["dofbot"]
+        self._controlled_joint_ids = controlled_joint_ids
+        self._device = device
+
+    def command_joint_positions(self, command: JointPositionCommand) -> None:
+        target_tensor = torch.tensor(
+            [list(command.positions_rad)],
+            device=self._device,
+            dtype=torch.float32,
+        )
+        self._robot.set_joint_position_target(
+            target_tensor,
+            joint_ids=self._controlled_joint_ids,
+        )
+
+    def read_joint_positions(self) -> dict[str, float]:
+        observed_values = (
+            self._robot.data.joint_pos[0, self._controlled_joint_ids]
+            .detach()
+            .cpu()
+            .tolist()
+        )
+        return dict(zip(CONTROLLED_JOINT_NAMES, observed_values, strict=True))
+
+
 def _run_cycle(
     *,
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
+    arm: DofbotArm,
+    yahboom_api: YahboomServoApiAdapter,
     plan: MotionPlan,
-    controlled_joint_ids: list[int],
     cycle_index: int,
     sample_hz: float,
     stop_when_app_closes: bool,
 ) -> tuple[list[dict[str, Any]], float] | None:
-    robot = scene["dofbot"]
     physics_dt = sim.get_physics_dt()
+    command_duration_ms = max(1, round(physics_dt * 1000.0))
     sample_stride = max(1, round(1.0 / (sample_hz * physics_dt)))
     step_count = math.ceil(plan.total_duration_s / physics_dt)
     observations: list[dict[str, Any]] = []
@@ -151,16 +194,19 @@ def _run_cycle(
                 flush=True,
             )
 
-        target_values = [sample.target_positions_rad[name] for name in CONTROLLED_JOINT_NAMES]
-        target_tensor = torch.tensor(
-            [target_values],
-            device=args_cli.device,
-            dtype=torch.float32,
+        command = JointPositionCommand.from_mapping(
+            sample.target_positions_rad,
+            duration_ms=command_duration_ms,
         )
-        robot.set_joint_position_target(
-            target_tensor,
-            joint_ids=controlled_joint_ids,
-        )
+        for write in encode_yahboom_servo_writes(
+            command,
+            calibration=DOCUMENTED_YAHBOOM_CALIBRATION,
+        ):
+            yahboom_api.Arm_serial_servo_write(
+                write.servo_id,
+                write.angle_deg,
+                write.duration_ms,
+            )
         scene.write_data_to_sim()
         try:
             sim.step(render=stop_when_app_closes)
@@ -171,19 +217,12 @@ def _run_cycle(
         scene.update(physics_dt)
 
         if step % sample_stride == 0 or step == step_count:
-            observed_values = robot.data.joint_pos[0, controlled_joint_ids].detach().cpu().tolist()
             observations.append(
                 {
                     "elapsed_s": elapsed_s,
                     "segment": sample.segment_name,
                     "target_positions_rad": dict(sample.target_positions_rad),
-                    "observed_positions_rad": dict(
-                        zip(
-                            CONTROLLED_JOINT_NAMES,
-                            observed_values,
-                            strict=True,
-                        )
-                    ),
+                    "observed_positions_rad": arm.read_joint_positions(),
                 }
             )
 
@@ -228,6 +267,14 @@ def main() -> None:
         pre_motion_hold_s=args_cli.pre_motion_hold_seconds,
     )
     controlled_joint_ids = _controlled_joint_ids(scene)
+    arm = DofbotArm(
+        _IsaacJointPositionBackend(
+            scene=scene,
+            controlled_joint_ids=controlled_joint_ids,
+            device=args_cli.device,
+        )
+    )
+    yahboom_api = YahboomServoApiAdapter(arm)
 
     cycle_index = 1
     while (args_cli.cycles < 0 and simulation_app.is_running()) or (
@@ -236,8 +283,9 @@ def main() -> None:
         cycle_result = _run_cycle(
             scene=scene,
             sim=sim,
+            arm=arm,
+            yahboom_api=yahboom_api,
             plan=plan,
-            controlled_joint_ids=controlled_joint_ids,
             cycle_index=cycle_index,
             sample_hz=args_cli.sample_hz,
             stop_when_app_closes=args_cli.cycles < 0,
@@ -259,6 +307,8 @@ def main() -> None:
             "control": {
                 "mode": "joint_position_target",
                 "policy_free": True,
+                "application_api": "Arm_serial_servo_write(id, angle, time)",
+                "servo_angle_quantization_deg": 1,
                 "plan": plan.to_dict(),
             },
             "measurement": {
