@@ -29,3 +29,9 @@ in the experiment and status documents.
 
 `motion_viewer_contract.json` and `motion_viewer.log` remain ignored local
 evidence because the looping Viewer contract and logs are machine-specific.
+
+The ActionChunk runner will write `motion_config_contract.json` only during a
+separately approved Isaac machine run. Do not synthesize that artifact from
+the local compiler preview. `motion_config_viewer_contract.json` and
+`motion_config_viewer.log` remain ignored machine-specific evidence; the
+later human visual result belongs in the experiment and status records.

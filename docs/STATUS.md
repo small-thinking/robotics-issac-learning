@@ -2,8 +2,9 @@
 
 - Updated: 2026-07-27 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete; Goal 3
-  onboard-camera capture is next
+- Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
+  ActionChunk v1 config runner is locally validated, with Isaac machine and
+  Viewer gates pending before Goal 3 onboard-camera capture
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-27
   20:04:45 PDT after the successful Goal 2 validation window
@@ -111,6 +112,28 @@
   `hardware_verified` is false
 - Runtime scope: local pure Python only; no GPU started and no real hardware
   command sent
+
+## DOFBOT ActionChunk v1 local preparation
+
+- Branch: `codex/dofbot-motion-config`
+- Input contract:
+  `configs/dofbot/motions/safe_api_wave.json`
+- Command schema: complete absolute angles for servo IDs `1` through `4`,
+  expressed in integer degrees, plus per-pose movement and hold durations
+- Fixed control rate: `10 Hz`; every compiled sample expands to four
+  `Arm_serial_servo_write(id, angle, time)` calls
+- Safety profile: every pose contains all four servos, stays within
+  `[85°, 95°]`, changes no servo by more than `5°` between configured poses,
+  starts and ends at `[90°, 90°, 90°, 90°]`, and completes within 60 seconds
+- Example sequence: five poses over 9 seconds; compilation produced 90
+  complete-pose samples and 360 official single-servo calls
+- Local acceptance: 71 total Python tests, remote-command previews, targeted
+  Ruff, shell syntax, and `git diff --check` passed
+- Runtime scope: no Brev connection, GPU start, Isaac execution, camera
+  capture, policy, checkpoint, `Arm_Lib` import, or real-hardware command
+- Current result: software compile passed; Isaac machine execution and user
+  Viewer confirmation remain pending and require a separately approved paid
+  window after this implementation is merged
 
 ### 2026-07-27 remote validation window
 

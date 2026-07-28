@@ -401,3 +401,44 @@
   calibrated on the user's arm before setting `hardware_verified=true`
 - Conclusion: the common software API and translation are locally validated;
   physical sim-to-real calibration remains a separate safety-gated experiment
+
+## 2026-07-27 — DOFBOT ActionChunk v1 config passed local compilation
+
+- Branch: `codex/dofbot-motion-config`
+- Runtime: local pure Python and remote-command dry-runs only
+- Input:
+  `configs/dofbot/motions/safe_api_wave.json`
+- Schema: five complete absolute four-servo poses at 10 Hz, with integer
+  angles, movement duration, and hold duration
+- Safety bounds: servo IDs `1` through `4` only, `[85°, 95°]` angle envelope,
+  at most `5°` between configured poses, neutral start and finish, and at most
+  60 seconds total duration
+- Compiler result: 9 seconds, 90 complete-pose samples, and 360 official
+  `Arm_serial_servo_write(id, angle, time)` calls
+- Maximum compiled change: `1°` per 100-millisecond sample
+- Validation command:
+
+  ```bash
+  make dofbot-motion-config-dry-run \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Failure-path coverage: schema drift, unsupported control rate, invalid or
+  partial poses, non-integer and out-of-envelope angles, misaligned or
+  excessive durations, duplicate steps, non-neutral start/end, missing
+  motion, more than `5°` configured jump, excessive total runtime, observation
+  schema/count drift, non-finite/out-of-envelope observations, missed targets,
+  and failed final reset
+- Local result: 71 Python tests, remote-command previews, targeted Ruff, shell
+  syntax, and `git diff --check` passed
+- Preview-test repair: macOS Bash did not reliably exit on failed top-level
+  `[[ ... ]]` assertions under `set -e`. The remote preview suite now uses
+  explicit assertion helpers, and finite Isaac motion wrappers pass
+  `--headless` explicitly.
+- Scope: the config is validated before Kit starts; no Brev connection, GPU,
+  Isaac execution, Viewer, camera tensor, policy, checkpoint, physical
+  `Arm_Lib`, or real-hardware command was used
+- Conclusion: the ActionChunk software contract is ready for review. It is not
+  simulator-accepted until a separately approved headless run passes, and it
+  is not visually accepted until the user confirms the configured sequence in
+  the secure Viewer.
