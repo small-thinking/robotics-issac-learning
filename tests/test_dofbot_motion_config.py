@@ -52,6 +52,14 @@ class DofbotMotionConfigTest(unittest.TestCase):
         )
         self.assertEqual(self.samples[0].angles_deg, NEUTRAL_ANGLES_DEG)
         self.assertEqual(self.samples[-1].angles_deg, NEUTRAL_ANGLES_DEG)
+        self.assertEqual(
+            self.config.steps[1].angles_deg,
+            (100, 76, 104, 104),
+        )
+        self.assertEqual(
+            self.config.steps[3].angles_deg,
+            (80, 104, 76, 76),
+        )
         self.assertEqual(len(self.source_sha256), 64)
 
     def test_compiled_samples_move_no_more_than_one_degree_at_10_hz(self) -> None:

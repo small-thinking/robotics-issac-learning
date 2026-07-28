@@ -135,7 +135,9 @@
   starts and ends at `[90°, 90°, 90°, 90°]`, and completes within 60 seconds
 - Revised sequence: five poses over 12.4 seconds; compilation produced 124
   complete-pose samples and 496 official single-servo calls. The base candidate
-  moves `±10°`; the other three controlled joints move `±15°`.
+  moves `±10°`; the other three controlled joints target `±14°`, leaving one
+  configured degree of margin inside the `[75°, 105°]` envelope for dynamic
+  tracking overshoot.
 - Local acceptance: 71 total Python tests, remote-command previews, targeted
   Ruff, shell syntax, and `git diff --check` passed
 - Machine evidence:

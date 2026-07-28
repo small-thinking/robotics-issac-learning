@@ -292,7 +292,8 @@ It contains five complete absolute poses for servo IDs 1 through 4. After the
 first Viewer run showed that the original `±5°` profile looked like subtle
 rocking rather than an obvious bend, the local safety envelope was revised to
 `[75°, 105°]`. The base servo moves `±10°`, while the shoulder, elbow, and
-wrist candidates move `±15°`. Every pose still uses integer degrees, specifies
+wrist candidates target `±14°`, leaving one configured degree for dynamic
+overshoot. Every pose still uses integer degrees, specifies
 movement and hold durations in 100-millisecond increments, and changes no
 servo by more than `15°` from the previous configured pose. The sequence must
 start and end at `[90°, 90°, 90°, 90°]`.
@@ -335,8 +336,9 @@ maximum observed excursion of `5.43°` and a final neutral error of `0.076°`.
 The user saw the repeated sequence but rejected the amplitude as too subtle, so
 the visual gate failed. The immutable result is preserved as
 `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`; the revised
-`±15°` config has only passed local fail-closed tests and still requires a
-fresh machine and Viewer run. The hardware backend remains disabled.
+visible-motion config has only passed local fail-closed tests and still
+requires a fresh machine and Viewer run. The hardware backend remains
+disabled.
 
 ### Goal 3 — Read the onboard camera
 

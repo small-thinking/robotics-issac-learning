@@ -494,8 +494,9 @@
 - Branch: `codex/dofbot-motion-config-validation`
 - Motivation: make arm bending visibly obvious rather than relying on subtle
   base-dominated rocking
-- Revised poses: neutral `[90, 90, 90, 90]`, positive
-  `[100, 75, 105, 105]`, neutral, negative `[80, 105, 75, 75]`, neutral
+- Revised poses after the first remote overshoot check: neutral
+  `[90, 90, 90, 90]`, positive `[100, 76, 104, 104]`, neutral, negative
+  `[80, 104, 76, 76]`, neutral
 - Safety envelope: `[75°, 105°]`; at most `15°` between configured poses,
   `1°` between compiled 100-millisecond samples, and at least `10°` observed
   excursion required by the machine gate
