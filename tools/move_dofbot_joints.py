@@ -78,7 +78,13 @@ from dofbot_motion_plan import (
     evaluate_motion_observations,
     validate_recorded_asset_contract,
 )
-from dofbot_control_api import DofbotArm, JointPositionCommand
+from dofbot_control_api import (
+    DOCUMENTED_YAHBOOM_CALIBRATION,
+    DofbotArm,
+    JointPositionCommand,
+    YahboomServoApiAdapter,
+    encode_yahboom_servo_writes,
+)
 from dofbot_scene_cfg import DofbotAssetSceneCfg
 
 
@@ -157,6 +163,7 @@ def _run_cycle(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
     arm: DofbotArm,
+    yahboom_api: YahboomServoApiAdapter,
     plan: MotionPlan,
     cycle_index: int,
     sample_hz: float,
@@ -187,10 +194,19 @@ def _run_cycle(
                 flush=True,
             )
 
-        arm.move_joints(
+        command = JointPositionCommand.from_mapping(
             sample.target_positions_rad,
             duration_ms=command_duration_ms,
         )
+        for write in encode_yahboom_servo_writes(
+            command,
+            calibration=DOCUMENTED_YAHBOOM_CALIBRATION,
+        ):
+            yahboom_api.Arm_serial_servo_write(
+                write.servo_id,
+                write.angle_deg,
+                write.duration_ms,
+            )
         scene.write_data_to_sim()
         try:
             sim.step(render=stop_when_app_closes)
@@ -258,6 +274,7 @@ def main() -> None:
             device=args_cli.device,
         )
     )
+    yahboom_api = YahboomServoApiAdapter(arm)
 
     cycle_index = 1
     while (args_cli.cycles < 0 and simulation_app.is_running()) or (
@@ -267,6 +284,7 @@ def main() -> None:
             scene=scene,
             sim=sim,
             arm=arm,
+            yahboom_api=yahboom_api,
             plan=plan,
             cycle_index=cycle_index,
             sample_hz=args_cli.sample_hz,
@@ -289,6 +307,8 @@ def main() -> None:
             "control": {
                 "mode": "joint_position_target",
                 "policy_free": True,
+                "application_api": "Arm_serial_servo_write(id, angle, time)",
+                "servo_angle_quantization_deg": 1,
                 "plan": plan.to_dict(),
             },
             "measurement": {

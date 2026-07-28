@@ -371,10 +371,13 @@
 
 - Branch: `codex/dofbot-yahboom-control-api`
 - Runtime: local pure Python only
-- Shared command: named `joint1` through `joint4` positions in radians and a
-  positive duration in milliseconds
-- Isaac integration: the existing Goal 2 runner now sends targets and reads
-  positions through the shared `DofbotArm` interface
+- Shared application API: Yahboom's documented
+  `Arm_serial_servo_write(id, angle, time)` and
+  `Arm_serial_servo_read(id)` method shapes
+- Normalized command: named `joint1` through `joint4` positions in radians and
+  a positive duration in milliseconds
+- Isaac integration: the existing Goal 2 runner now sends targets through the
+  vendor-shaped adapter and normalized `DofbotArm` interface
 - Yahboom integration: the hardware adapter exposes the official
   `Arm_serial_servo_write(id, angle, time)` and
   `Arm_serial_servo_read(id)` boundary

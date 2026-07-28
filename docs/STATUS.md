@@ -92,10 +92,13 @@
 
 ## DOFBOT simulator/hardware API bridge
 
-- Public command: named `joint1` through `joint4` positions in radians plus
+- Public compatibility API: Yahboom's documented
+  `Arm_serial_servo_write(id, angle, time)` and
+  `Arm_serial_servo_read(id)`
+- Normalized core: named `joint1` through `joint4` positions in radians plus
   `duration_ms`
-- Simulator backend: the Goal 2 Isaac runner now uses the shared `DofbotArm`
-  facade before setting articulation position targets
+- Simulator backend: the Goal 2 Isaac runner now calls the vendor-shaped API,
+  which delegates through `DofbotArm` before setting articulation targets
 - Hardware backend: translates the same command to Yahboom's documented
   `Arm_serial_servo_write(id, angle, time)` and reads with
   `Arm_serial_servo_read(id)`

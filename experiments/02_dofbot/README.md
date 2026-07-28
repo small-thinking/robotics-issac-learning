@@ -17,10 +17,9 @@ the infrastructure.
 
 The control boundary is the vendor's servo API: software may choose sequences
 of target joint angles and durations, but it does not assume access to motor
-current control or the servo's internal feedback loop. The same named-joint
-command now drives either an Isaac articulation backend or a Yahboom
-`Arm_Lib` backend; motion plans and later policies do not call either runtime
-directly.
+current control or the servo's internal feedback loop. Application code can
+use the same official-shaped single-servo method in simulation and on the
+physical-arm backend; neither path exposes its underlying runtime directly.
 
 ## First stage: asset, motion, and camera
 
@@ -250,12 +249,12 @@ retained.
 
 #### Shared simulator/real-arm control API
 
-The Goal 2 runner now sends every target through `DofbotArm.move_joints()`,
-whose public command is four named positions in radians plus `duration_ms`.
-The Isaac backend translates that command to the already validated
-articulation position target. The physical backend translates it to Yahboom's
-documented `Arm_serial_servo_write(id, angle, time)` calls and reads positions
-with `Arm_serial_servo_read(id)`.
+The Goal 2 runner now sends every target through
+`YahboomServoApiAdapter.Arm_serial_servo_write(id, angle, time)`. That adapter
+normalizes the vendor call to four named positions in radians plus
+`duration_ms`. The Isaac backend translates the normalized command to the
+already validated articulation position target. A physical backend delegates
+it to `Arm_Lib`; reads use the matching `Arm_serial_servo_read(id)` shape.
 
 Yahboom's official documentation establishes that the bottom servo is ID 1,
 IDs increase upward, servos 1 through 4 correspond to the first four arm
