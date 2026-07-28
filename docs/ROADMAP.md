@@ -101,8 +101,10 @@ The detailed first-stage contract lives in
 2. Drive each arm joint with small, hard-coded position targets and verify
    axis, sign, limits, and reset behavior.
 3. Render and save an onboard RGB observation from a deterministic test scene.
-4. Define the mapping between simulated joints and the vendor's servo-angle
-   API without yet commanding real hardware.
+4. Use one backend-neutral named-joint API for simulation and the vendor's
+   servo-angle API. The documented `joint1`-through-`joint4` to servo-ID
+   mapping and local dry-run bridge are implemented; physical direction and
+   zero-offset calibration remain a fail-closed real-hardware gate.
 5. Establish scripted and state-based reaching baselines before adding vision
    or choosing a learning algorithm.
 
