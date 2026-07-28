@@ -154,8 +154,8 @@ def _run_cycle(
         target_values = [sample.target_positions_rad[name] for name in CONTROLLED_JOINT_NAMES]
         target_tensor = torch.tensor(
             [target_values],
-            device=robot.data.default_joint_pos.device,
-            dtype=robot.data.default_joint_pos.dtype,
+            device=args_cli.device,
+            dtype=torch.float32,
         )
         if step == 0:
             print("[MOTION] checkpoint=target_tensor_ready", flush=True)
