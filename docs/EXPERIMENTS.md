@@ -442,3 +442,69 @@
   simulator-accepted until a separately approved headless run passes, and it
   is not visually accepted until the user confirms the configured sequence in
   the secure Viewer.
+
+## 2026-07-27 — DOFBOT ActionChunk small profile passed machine but failed visual amplitude
+
+- Approved resource: reused only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4; no create, resize, reset, delete, camera, policy,
+  checkpoint, learning, `Arm_Lib`, or real-hardware command
+- Live compute quote: `$1.58784/hour`, plus the existing approximately
+  `$0.04/hour` persistent disk
+- Paid-window start: 22:47:04 PDT
+- Remote source: `main@8e98aa9`, the merge commit for PR #15
+- Headless command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Headless result: all six machine checks passed. Maximum configured-pose
+  tracking error was `0.667°`, maximum observed excursion was `5.430°`, and
+  final neutral error was `0.076°`.
+- Machine artifact:
+  `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`
+- Machine artifact SHA-256:
+  `4fe7d73b7ee778aacfe5cf20cec3b653bd6f45b387533706b84407e0b2ad3d8b`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config-view \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Viewer machine result: at least 117 complete repeated cycles reported
+  `machine_passed=True` before monitoring ended.
+- User visual result: failed the amplitude gate. The user saw that the arm
+  moved and repeated, but judged the `±5°` behavior too small and not the
+  expected obvious bend.
+- Stop request: 23:14:41 PDT, about 27 minutes 37 seconds after start and
+  within the 30-minute cap; a second idempotent stop request was issued while
+  the Brev control plane still reported `STOPPING`.
+- Final resource state: `STOPPED` verified with `brev ls --json` at 23:23:08
+  PDT; instance and persistent disk retained
+- Conclusion: this config is machine-pass/visual-fail and must not be marked
+  complete. The machine artifact remains immutable; the later human result is
+  recorded here.
+
+## 2026-07-27 — DOFBOT ActionChunk visible profile passed local fail-closed gates
+
+- Branch: `codex/dofbot-motion-config-validation`
+- Motivation: make arm bending visibly obvious rather than relying on subtle
+  base-dominated rocking
+- Revised poses: neutral `[90, 90, 90, 90]`, positive
+  `[100, 75, 105, 105]`, neutral, negative `[80, 105, 75, 75]`, neutral
+- Safety envelope: `[75°, 105°]`; at most `15°` between configured poses,
+  `1°` between compiled 100-millisecond samples, and at least `10°` observed
+  excursion required by the machine gate
+- Compiler result: 12.4 seconds, 124 complete-pose samples, and 496 official
+  `Arm_serial_servo_write(id, angle, time)` calls
+- Local result: all 71 Python and shell/preview tests passed; the dry-run
+  reported all compile-time acceptance checks true
+- Physical safety boundary: Yahboom's documented API range is `0–180°`, but
+  the real backend remains disabled because direction and per-device offsets
+  are not calibrated
+- Conclusion: software gate passed only. The revised profile needs a fresh
+  approved Isaac headless run and explicit user Viewer confirmation.

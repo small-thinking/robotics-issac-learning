@@ -30,8 +30,17 @@ in the experiment and status documents.
 `motion_viewer_contract.json` and `motion_viewer.log` remain ignored local
 evidence because the looping Viewer contract and logs are machine-specific.
 
-The ActionChunk runner will write `motion_config_contract.json` only during a
-separately approved Isaac machine run. Do not synthesize that artifact from
-the local compiler preview. `motion_config_viewer_contract.json` and
-`motion_config_viewer.log` remain ignored machine-specific evidence; the
-later human visual result belongs in the experiment and status records.
+The first ActionChunk remote run produced
+`motion_config_small_amplitude_2026-07-27.json`. It is the byte-identical
+machine artifact for the original `±5°` config; its SHA-256 is
+`4fe7d73b7ee778aacfe5cf20cec3b653bd6f45b387533706b84407e0b2ad3d8b`.
+All six machine checks passed, but the user rejected the resulting Viewer
+motion as too subtle. The artifact's machine-time visual status remains
+`pending_user_confirmation`; the later visual failure is recorded in the
+experiment and status documents rather than rewriting generated evidence.
+
+The revised visible-motion ActionChunk runner will write
+`motion_config_contract.json` only during a separately approved Isaac machine
+run. Do not synthesize that artifact from the local compiler preview.
+`motion_config_viewer_contract.json` and `motion_config_viewer.log` remain
+ignored machine-specific evidence.

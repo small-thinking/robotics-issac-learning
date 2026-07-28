@@ -3,11 +3,12 @@
 - Updated: 2026-07-27 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
-  ActionChunk v1 config runner is locally validated, with Isaac machine and
-  Viewer gates pending before Goal 3 onboard-camera capture
+  ActionChunk v1 small-amplitude config passed its Isaac machine gate but
+  failed the user amplitude gate; the revised visible-motion config is locally
+  validated and awaits Isaac/Viewer revalidation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-27
-  20:04:45 PDT after the successful Goal 2 validation window
+  23:23:08 PDT after the ActionChunk validation window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -113,27 +114,42 @@
 - Runtime scope: local pure Python only; no GPU started and no real hardware
   command sent
 
-## DOFBOT ActionChunk v1 local preparation
+## DOFBOT ActionChunk v1 configured-motion status
 
-- Branch: `codex/dofbot-motion-config`
+- Current validation branch: `codex/dofbot-motion-config-validation`
 - Input contract:
   `configs/dofbot/motions/safe_api_wave.json`
 - Command schema: complete absolute angles for servo IDs `1` through `4`,
   expressed in integer degrees, plus per-pose movement and hold durations
 - Fixed control rate: `10 Hz`; every compiled sample expands to four
   `Arm_serial_servo_write(id, angle, time)` calls
-- Safety profile: every pose contains all four servos, stays within
-  `[85°, 95°]`, changes no servo by more than `5°` between configured poses,
+- Original remote-tested profile: `[85°, 95°]`, at most `5°` between
+  configured poses, 9 seconds, 90 complete-pose samples, and 360 calls
+- Original machine result: all six checks passed; maximum checkpoint error
+  `0.667°`, maximum observed excursion `5.430°`, and final neutral error
+  `0.076°`
+- Original visual result: failed. The user saw the repeated motion but judged
+  it too subtle and closer to rocking than a clear bend.
+- Revised local profile: every pose contains all four servos, stays within
+  `[75°, 105°]`, changes no servo by more than `15°` between configured poses,
   starts and ends at `[90°, 90°, 90°, 90°]`, and completes within 60 seconds
-- Example sequence: five poses over 9 seconds; compilation produced 90
-  complete-pose samples and 360 official single-servo calls
+- Revised sequence: five poses over 12.4 seconds; compilation produced 124
+  complete-pose samples and 496 official single-servo calls. The base candidate
+  moves `±10°`; the other three controlled joints move `±15°`.
 - Local acceptance: 71 total Python tests, remote-command previews, targeted
   Ruff, shell syntax, and `git diff --check` passed
-- Runtime scope: no Brev connection, GPU start, Isaac execution, camera
-  capture, policy, checkpoint, `Arm_Lib` import, or real-hardware command
-- Current result: software compile passed; Isaac machine execution and user
-  Viewer confirmation remain pending and require a separately approved paid
-  window after this implementation is merged
+- Machine evidence:
+  `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`,
+  SHA-256
+  `4fe7d73b7ee778aacfe5cf20cec3b653bd6f45b387533706b84407e0b2ad3d8b`
+- Scope: no camera capture, policy, checkpoint, `Arm_Lib` import, or
+  real-hardware command
+- Current result: the original config is machine-pass/visual-fail. The revised
+  visible-motion config is software-pass only; Isaac execution and user Viewer
+  confirmation require a fresh approved paid window after this change merges.
+- Latest paid window: started at 22:47:04 PDT; stop requested at 23:14:41 PDT
+  within the 30-minute cap. Brev remained in `STOPPING` after a second
+  idempotent stop request and reached terminal `STOPPED` at 23:23:08 PDT.
 
 ### 2026-07-27 remote validation window
 
@@ -259,8 +275,8 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Prepare Goal 3 locally by defining a
-fail-closed RGB capture contract for the recorded onboard camera prim
-`/World/envs/env_0/Dofbot/link4/Camera`. Do not start a paid window until the
-local camera script, shape/dtype/non-constant checks, dry-run commands, fresh
-price check, and explicit approval are complete.
+Keep the Brev instance stopped. Review and merge the revised visible-motion
+ActionChunk profile, then obtain a fresh quote and explicit approval for one
+short headless-plus-Viewer revalidation. Do not mark the revised profile
+complete until its machine checks pass and the user confirms an obvious
+configured bend and neutral reset. Goal 3 camera capture remains out of scope.

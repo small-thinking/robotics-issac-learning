@@ -70,6 +70,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/asset_contract.json
 !artifacts/dofbot/motion_contract.json
 !artifacts/dofbot/motion_config_contract.json
+!artifacts/dofbot/motion_config_small_amplitude_*.json
 
 # macOS and editors
 .DS_Store

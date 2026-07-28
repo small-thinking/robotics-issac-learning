@@ -11,27 +11,27 @@
     },
     {
       "name": "pose_positive",
-      "angles_deg": [95, 88, 92, 94],
-      "duration_ms": 1500,
-      "hold_ms": 500
+      "angles_deg": [100, 75, 105, 105],
+      "duration_ms": 2000,
+      "hold_ms": 700
     },
     {
       "name": "neutral_middle",
       "angles_deg": [90, 90, 90, 90],
-      "duration_ms": 1200,
-      "hold_ms": 300
+      "duration_ms": 2000,
+      "hold_ms": 500
     },
     {
       "name": "pose_negative",
-      "angles_deg": [85, 92, 88, 86],
-      "duration_ms": 1500,
-      "hold_ms": 500
+      "angles_deg": [80, 105, 75, 75],
+      "duration_ms": 2000,
+      "hold_ms": 700
     },
     {
       "name": "neutral_end",
       "angles_deg": [90, 90, 90, 90],
-      "duration_ms": 1200,
-      "hold_ms": 800
+      "duration_ms": 2000,
+      "hold_ms": 1000
     }
   ]
 }
