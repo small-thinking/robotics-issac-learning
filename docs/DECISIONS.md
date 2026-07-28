@@ -114,3 +114,24 @@ Phase 3 starts with three policy-free gates: load and inspect the articulation,
 drive small hard-coded joint movements, and capture the onboard camera. Do not
 choose PPO, imitation learning, SFT, or a VLA method until the asset, action,
 and camera interfaces are measured and reproducible.
+
+## 2026-07-27 — Expose Yahboom's API over backend-neutral joint commands
+
+Motion plans and later policies can issue Yahboom's documented
+`Arm_serial_servo_write(id, angle, time)` call against the simulator or
+physical backend. `YahboomServoApiAdapter` normalizes those calls to complete
+named positions for `joint1` through `joint4` in radians plus a duration in
+milliseconds. `DofbotArm` then delegates to either an Isaac articulation
+backend or a Yahboom hardware backend.
+
+This preserves the vendor's application-level API while keeping safety checks
+and evaluation backend-neutral. It uses single-servo writes for the four
+validated arm joints rather than `Arm_serial_servo_write6`, because the wrist
+and gripper are not yet in the safe simulation contract.
+
+Official documentation supports servo IDs 1 through 4 matching the first four
+arm joints and 90 degrees as the centered/upright example pose. It does not
+prove the physical direction and per-device zero offset of the user's arm.
+Consequently, the checked-in `90 + degrees(radians)` conversion is explicitly
+unverified and the real backend refuses all reads and writes until a physical
+calibration is marked verified.

@@ -366,3 +366,38 @@
   instance and persistent disk were retained.
 - Conclusion: Goal 2 passed the policy-free machine contract and explicit user
   visual gate. Goal 3 camera capture remains out of scope for this experiment.
+
+## 2026-07-27 — DOFBOT shared Yahboom API bridge passed local dry-run
+
+- Branch: `codex/dofbot-yahboom-control-api`
+- Runtime: local pure Python only
+- Shared application API: Yahboom's documented
+  `Arm_serial_servo_write(id, angle, time)` and
+  `Arm_serial_servo_read(id)` method shapes
+- Normalized command: named `joint1` through `joint4` positions in radians and
+  a positive duration in milliseconds
+- Isaac integration: the existing Goal 2 runner now sends targets through the
+  vendor-shaped adapter and normalized `DofbotArm` interface
+- Yahboom integration: the hardware adapter exposes the official
+  `Arm_serial_servo_write(id, angle, time)` and
+  `Arm_serial_servo_read(id)` boundary
+- Candidate mapping: servo IDs `1` through `4` correspond to `joint1` through
+  `joint4`; zero radians maps to the documented 90-degree centered pose
+- Dry-run command:
+
+  ```bash
+  make dofbot-api-dry-run
+  ```
+
+- Dry-run result: 411 samples at 10 Hz encoded to 1,644 official single-servo
+  calls; each servo remained within `[85°, 95°]`
+- Failure-path coverage: incomplete/extra/non-finite commands, invalid
+  durations, out-of-range angles, malformed calibration, failed servo reads,
+  and unverified real-hardware reads/writes
+- Safety result: `Arm_Lib` was not imported, no GPU was started, no hardware
+  was commanded, and the physical backend made zero writes when calibration
+  was unverified
+- Physical result: not run; direction and per-device zero offsets must be
+  calibrated on the user's arm before setting `hardware_verified=true`
+- Conclusion: the common software API and translation are locally validated;
+  physical sim-to-real calibration remains a separate safety-gated experiment
