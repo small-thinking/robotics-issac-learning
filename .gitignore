@@ -68,6 +68,7 @@ artifacts/phase2/evaluations/*
 artifacts/dofbot/*
 !artifacts/dofbot/README.md
 !artifacts/dofbot/asset_contract.json
+!artifacts/dofbot/motion_contract.json
 
 # macOS and editors
 .DS_Store

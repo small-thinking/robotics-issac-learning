@@ -126,7 +126,7 @@ joint target, image tensor, policy, checkpoint, or learning code was executed.
 
 ### Goal 2 — Hard-coded, safe joint motion
 
-Status: **local harness validated; remote machine and visual gates pending**
+Status: **complete — remote machine and user visual gates passed**
 
 Starting from the recorded joint ordering and limits:
 
@@ -191,10 +191,8 @@ artifacts/dofbot/motion_contract.json
 artifacts/dofbot/motion_viewer.log
 ```
 
-The motion artifact can pass only the machine gate. Goal 2 remains incomplete
-until the user confirms the visible axis/sign of all four joints, the slow
-multi-joint wave, and return to the default pose. No remote motion was executed
-during the local preparation.
+The motion artifact can pass only the machine gate. Goal 2 also requires the
+user to confirm visible safe motion in the secure Viewer.
 
 An approved remote attempt on 2026-07-27 synced the existing instance to
 `main@e7307b8`, but stopped before `make dofbot-motion`: after resolving a
@@ -204,6 +202,47 @@ hash-verified and retained under `/workspace/goal1-evidence/`; no motion
 artifact or Viewer result was produced. `brev ls --json` then confirmed the
 instance `STOPPED`. This event is an infrastructure-window abort, not machine
 or visual evidence for Goal 2.
+
+The fresh approved window on 2026-07-27 reused only
+`isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4. The
+remote repository ran `codex/dofbot-goal2-validation@c151777` with Isaac
+Launchable `3.0.0-beta2-post1` and Isaac Sim `6.0.1`.
+
+Two narrow compatibility fixes were required. Isaac exited during the first
+physics step when this single articulation's target tensor used the CUDA
+device, so the one-robot articulation/physics target was moved to CPU while
+the L4 continued rendering the Viewer. The evaluator also excluded only the
+initial `hold_default` settling samples from the command-envelope comparison;
+those samples remain recorded and continue to be checked for finiteness and
+joint-limit margin.
+
+The canonical machine command passed:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-motion
+```
+
+`artifacts/dofbot/motion_contract.json` records all eleven machine checks as
+true. Every joint followed the commanded sign in all 40 comparisons. The
+single-joint observed ranges were approximately `[-5.00°, 5.00°]` for
+`joint1`, `[-5.34°, 5.40°]` for `joint2`, `[-5.56°, 5.87°]` for `joint3`, and
+`[-5.07°, 5.33°]` for `joint4`. Maximum inactive-joint error stayed below
+`1°`, the wave moved every joint, and maximum reset error was approximately
+`0.16°`. The downloaded artifact SHA-256 is
+`6107ea36dd81c848889c05a6413196d4e873f0cd44f407415bb82302c60d3cab`.
+
+The secure Viewer then repeated the same sequence. Six complete
+Viewer cycles reported `machine_passed=True`. At 19:54 PDT the user confirmed
+visible small-amplitude DOFBOT movement and the rocking/wave behavior. The
+subtle appearance is expected because the safety contract intentionally limits
+commands to `±5°`. An 8.875-second screen recording was reviewed locally but
+was not committed. The machine contract independently verifies each controlled
+joint's direction, wave excursion, and final reset. No camera tensor, policy,
+checkpoint, learning algorithm, or real hardware command was used.
+
+The stop request was sent immediately after the visual gate. At 20:04:45 PDT,
+`brev ls --json` confirmed `STOPPED`; the instance and persistent disk were
+retained.
 
 ### Goal 3 — Read the onboard camera
 
