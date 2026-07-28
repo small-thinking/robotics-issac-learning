@@ -1,19 +1,19 @@
 # Status
 
-- Updated: 2026-07-26 America/Los_Angeles
+- Updated: 2026-07-27 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goal 1 — complete; Goal 2
   safe-motion harness is locally validated; remote machine and visual
-  validation are pending and not authorized to run
+  validation are pending after an approved window was stopped before motion
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-26
-  22:43 PDT after successful Viewer confirmation
+- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-27
+  19:13 PDT after the aborted Goal 2 validation window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.58784/hour`
-  compute; checked 2026-07-26 before any restart
+  compute; checked 2026-07-27 before restart
 
 ## DOFBOT Goal 1 machine result
 
@@ -64,6 +64,27 @@
 - Remote motion executed: no
 - Goal 2 status: incomplete; machine artifact and user confirmation of the
   visible axis/sign for all four joints remain pending
+
+### 2026-07-27 remote validation window
+
+- Approved target: reuse only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4; no instance creation, resize, reset, or deletion
+- Paid-window start: 18:06:06 PDT
+- Remote source after sync: `main@e7307b8`
+- Sync initially stopped on the untracked Goal 1
+  `artifacts/dofbot/asset_contract.json`. Its SHA-256 matched the committed
+  contract, and a byte-identical backup was retained at
+  `/workspace/goal1-evidence/asset_contract.1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2.json`
+  before retrying the sync.
+- Safety stop: at 19:05:57 PDT the elapsed paid window was already about
+  59 minutes 51 seconds, beyond the approved 30-minute cap. The run was
+  stopped immediately before `make dofbot-motion`.
+- Machine result: not run; no `motion_contract.json` was produced
+- Viewer result: not run; no visual claim was made
+- Final resource state: `STOPPED`, verified with `brev ls --json`; instance and
+  persistent disk retained
+- Next gate: obtain a fresh quote and approval, then run the already-synced
+  headless command before opening the Viewer
 
 ## Phase 1 result
 

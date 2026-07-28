@@ -196,6 +196,15 @@ until the user confirms the visible axis/sign of all four joints, the slow
 multi-joint wave, and return to the default pose. No remote motion was executed
 during the local preparation.
 
+An approved remote attempt on 2026-07-27 synced the existing instance to
+`main@e7307b8`, but stopped before `make dofbot-motion`: after resolving a
+fail-closed checkout conflict around the untracked Goal 1 contract, the paid
+window had already exceeded its 30-minute maximum. The original contract was
+hash-verified and retained under `/workspace/goal1-evidence/`; no motion
+artifact or Viewer result was produced. `brev ls --json` then confirmed the
+instance `STOPPED`. This event is an infrastructure-window abort, not machine
+or visual evidence for Goal 2.
+
 ### Goal 3 — Read the onboard camera
 
 Status: **planned; out of scope for Goal 2**

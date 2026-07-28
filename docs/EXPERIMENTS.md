@@ -285,3 +285,28 @@
   Viewer axis/sign confirmation, and reset confirmation remain pending
 - Conclusion: the local harness is ready for a separately quoted and approved
   remote validation window, but Goal 2 is not complete
+
+## 2026-07-27 — DOFBOT Goal 2 remote window stopped before motion
+
+- Approved resource: existing `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4 at the checked `$1.58784/hour` compute quote
+- Scope: sync the merged safe-motion harness, run the headless motion contract,
+  then request Viewer confirmation; no learning, camera capture, or resource
+  creation/deletion
+- Start: 18:06:06 PDT
+- Remote sync result: passed; repository reached `main@e7307b8`
+- Sync safeguard: checkout initially refused to overwrite the untracked Goal 1
+  asset contract. Its expected SHA-256
+  `1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2`
+  was verified, then the file was retained under
+  `/workspace/goal1-evidence/` before the successful retry.
+- Stop decision: when sync completed, the paid window had reached about
+  59 minutes 51 seconds, beyond the approved 30-minute maximum. Stop was
+  requested at 19:05:57 PDT before invoking `make dofbot-motion`.
+- Machine result: not run; no `artifacts/dofbot/motion_contract.json`
+- Visual result: not run; no Viewer confirmation
+- Final infrastructure result: `STOPPED` verified with `brev ls --json`;
+  instance and persistent disk retained
+- Conclusion: this is an aborted infrastructure window, not a Goal 2 motion
+  result. Goal 2 remains incomplete and requires a freshly quoted and approved
+  window.
