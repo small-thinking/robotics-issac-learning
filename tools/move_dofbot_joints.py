@@ -134,12 +134,11 @@ def _run_cycle(
     current_segment: str | None = None
 
     for step in range(step_count + 1):
-        # In Isaac Sim 6, a policy-free headless app can report not-running
-        # after its first physics step even though SimulationContext remains
-        # usable. Finite machine-validation cycles must therefore run their
-        # declared number of steps and let sim.step() fail loudly if the
-        # simulator is actually unavailable. Viewer cycles still honor the app
-        # lifecycle so closing the Viewer terminates the repeating motion.
+        # Finite machine-validation cycles do not render. On the Isaac
+        # Launchable 3.0 / Isaac Sim 6 stack, processing a rendered Kit update
+        # in default headless mode handles the app's quit event after the first
+        # step and exits cleanly before an artifact can be written. Viewer
+        # cycles render and still honor the app lifecycle.
         if stop_when_app_closes and not simulation_app.is_running():
             return None
 
@@ -163,7 +162,7 @@ def _run_cycle(
             joint_ids=controlled_joint_ids,
         )
         scene.write_data_to_sim()
-        sim.step()
+        sim.step(render=stop_when_app_closes)
         scene.update(physics_dt)
 
         if step % sample_stride == 0 or step == step_count:
