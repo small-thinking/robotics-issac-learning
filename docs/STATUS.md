@@ -1,20 +1,20 @@
 # Status
 
-- Updated: 2026-07-27 America/Los_Angeles
+- Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
-  ActionChunk v1 small-amplitude config passed its Isaac machine gate but
-  failed the user amplitude gate; the revised visible-motion config is locally
-  validated and awaits Isaac/Viewer revalidation
+  ActionChunk v1 profiles have passed Isaac machine gates but failed two visual
+  gates (first amplitude, then smoothness/decisiveness); a pose-boundary API
+  dispatch revision is locally validated and awaits Isaac/Viewer revalidation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-27
-  23:23:08 PDT after the ActionChunk validation window
+- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
+  08:40 PDT after the second ActionChunk validation window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.58784/hour`
-  compute; checked 2026-07-27 before restart
+  compute; checked 2026-07-28 before restart
 
 ## DOFBOT Goal 1 machine result
 
@@ -116,13 +116,13 @@
 
 ## DOFBOT ActionChunk v1 configured-motion status
 
-- Current validation branch: `codex/dofbot-motion-config-validation`
+- Current validation branch: `codex/dofbot-visible-envelope-fix`
 - Input contract:
   `configs/dofbot/motions/safe_api_wave.json`
 - Command schema: complete absolute angles for servo IDs `1` through `4`,
   expressed in integer degrees, plus per-pose movement and hold durations
-- Fixed control rate: `10 Hz`; every compiled sample expands to four
-  `Arm_serial_servo_write(id, angle, time)` calls
+- Observation rate: `10 Hz`; in the current local revision only pose boundaries
+  dispatch `Arm_serial_servo_write(id, angle, time)`, once per controlled servo
 - Original remote-tested profile: `[85°, 95°]`, at most `5°` between
   configured poses, 9 seconds, 90 complete-pose samples, and 360 calls
 - Original machine result: all six checks passed; maximum checkpoint error
@@ -130,14 +130,25 @@
   `0.076°`
 - Original visual result: failed. The user saw the repeated motion but judged
   it too subtle and closer to rocking than a clear bend.
-- Revised local profile: every pose contains all four servos, stays within
-  `[75°, 105°]`, changes no servo by more than `15°` between configured poses,
-  starts and ends at `[90°, 90°, 90°, 90°]`, and completes within 60 seconds
-- Revised sequence: five poses over 12.4 seconds; compilation produced 124
-  complete-pose samples and 496 official single-servo calls. The base candidate
-  moves `±10°`; the other three controlled joints target `±14°`, leaving one
-  configured degree of margin inside the `[75°, 105°]` envelope for dynamic
-  tracking overshoot.
+- First visible-profile remote result (`83f24c6`): all six machine checks
+  passed after reserving one degree for tracking overshoot. The 12.4-second
+  sequence recorded 124 samples and made 496 official calls; maximum checkpoint
+  error was `0.866°`, maximum observed excursion `15.175°`, and final neutral
+  error `0.114°`. Contract SHA-256:
+  `2af0a94931ebd8c580611584a91ff4252742953723fc813672a85fc5fe93346b`.
+- First visible-profile visual result: failed. The user saw more range, but
+  rejected the slow stair-step motion, residual shaking, and insufficiently
+  decisive bend. At least cycles 1 through 13 each reported
+  `machine_passed=True`; this is still not a visual pass.
+- Current local profile: every pose contains all four servos, stays within
+  `[60°, 120°]`, changes no servo by more than `30°`, starts and ends at
+  `[90°, 90°, 90°, 90°]`, and completes in 5.6 seconds. The base targets
+  `±20°`; the other joints target `±28°`, leaving two configured degrees inside
+  the envelope.
+- Current dispatch model: five poses produce only 20 official calls (one per
+  servo per pose), while 56 independent 10 Hz observations remain available.
+  The Isaac-only backend models `duration_ms` with a physics-rate smoothstep;
+  the application layer no longer replays 100-millisecond waypoint calls.
 - Local acceptance: 71 total Python tests, remote-command previews, targeted
   Ruff, shell syntax, and `git diff --check` passed
 - Machine evidence:
@@ -146,9 +157,13 @@
   `4fe7d73b7ee778aacfe5cf20cec3b653bd6f45b387533706b84407e0b2ad3d8b`
 - Scope: no camera capture, policy, checkpoint, `Arm_Lib` import, or
   real-hardware command
-- Current result: the original config is machine-pass/visual-fail. The revised
-  visible-motion config is software-pass only; Isaac execution and user Viewer
-  confirmation require a fresh approved paid window after this change merges.
+- Current result: both remotely tested configs are machine-pass/visual-fail.
+  The pose-boundary dispatch revision is software-pass only; Isaac execution
+  and user Viewer confirmation require a fresh approved paid window after this
+  change merges.
+- 2026-07-28 compute lifecycle: existing instance started at 08:20:57 PDT;
+  stop requested immediately after the failed visual gate; terminal `STOPPED`
+  verified at 08:40 PDT. No instance or disk was deleted.
 - Latest paid window: started at 22:47:04 PDT; stop requested at 23:14:41 PDT
   within the 30-minute cap. Brev remained in `STOPPING` after a second
   idempotent stop request and reached terminal `STOPPED` at 23:23:08 PDT.

@@ -1,9 +1,9 @@
 """Execute a validated DOFBOT ActionChunk config in Isaac Lab.
 
-The config is compiled locally to 10 Hz integer-degree samples. Every sample
-is issued through Yahboom's documented single-servo API shape; the adapter
-then drives the Isaac articulation. No policy, camera tensor, or physical
-hardware backend is loaded.
+Each configured pose is issued once through Yahboom's documented single-servo
+API shape. The Isaac backend models the servo's duration internally with a
+physics-rate smooth trajectory while the runner records observations at 10 Hz.
+No policy, camera tensor, or physical hardware backend is loaded.
 """
 
 # Isaac Lab modules must be imported after AppLauncher starts Kit.
@@ -153,10 +153,54 @@ class _IsaacJointPositionBackend:
         self._robot = scene["dofbot"]
         self._controlled_joint_ids = controlled_joint_ids
         self._device = device
+        self._pending_goal: tuple[float, ...] | None = None
+        self._pending_duration_s: float | None = None
+        self._trajectory_start: tuple[float, ...] | None = None
+        self._trajectory_goal: tuple[float, ...] | None = None
+        self._trajectory_duration_s = 0.0
+        self._trajectory_elapsed_s = 0.0
 
     def command_joint_positions(self, command: JointPositionCommand) -> None:
+        # The four official single-servo calls arrive without simulation steps
+        # between them. Keep only the latest complete pose and begin one
+        # trajectory when physics advances, mirroring a servo that executes the
+        # API's duration internally.
+        self._pending_goal = tuple(command.positions_rad)
+        self._pending_duration_s = command.duration_ms / 1000.0
+
+    def advance(self, physics_dt: float) -> None:
+        if self._pending_goal is not None:
+            current = (
+                self._robot.data.joint_pos[0, self._controlled_joint_ids]
+                .detach()
+                .cpu()
+                .tolist()
+            )
+            self._trajectory_start = tuple(float(value) for value in current)
+            self._trajectory_goal = self._pending_goal
+            self._trajectory_duration_s = self._pending_duration_s or physics_dt
+            self._trajectory_elapsed_s = 0.0
+            self._pending_goal = None
+            self._pending_duration_s = None
+
+        if self._trajectory_start is None or self._trajectory_goal is None:
+            return
+        self._trajectory_elapsed_s = min(
+            self._trajectory_elapsed_s + physics_dt,
+            self._trajectory_duration_s,
+        )
+        progress = self._trajectory_elapsed_s / self._trajectory_duration_s
+        smooth_progress = progress * progress * (3.0 - 2.0 * progress)
+        target = [
+            start + (goal - start) * smooth_progress
+            for start, goal in zip(
+                self._trajectory_start,
+                self._trajectory_goal,
+                strict=True,
+            )
+        ]
         target_tensor = torch.tensor(
-            [list(command.positions_rad)],
+            [target],
             device=self._device,
             dtype=torch.float32,
         )
@@ -186,6 +230,7 @@ def _step_simulation(
     *,
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
+    backend: _IsaacJointPositionBackend,
     physics_steps: int,
     render: bool,
 ) -> bool:
@@ -193,6 +238,8 @@ def _step_simulation(
         if render and not simulation_app.is_running():
             return False
         try:
+            backend.advance(sim.get_physics_dt())
+            scene.write_data_to_sim()
             sim.step(render=render)
         except SystemExit as error:
             raise RuntimeError(
@@ -229,6 +276,7 @@ def _run_cycle(
     sim: sim_utils.SimulationContext,
     arm: DofbotArm,
     yahboom_api: YahboomServoApiAdapter,
+    backend: _IsaacJointPositionBackend,
     samples: tuple[CompiledMotionSample, ...],
     physics_steps_per_sample: int,
     cycle_index: int,
@@ -247,10 +295,10 @@ def _run_cycle(
                 flush=True,
             )
         _issue_sample(yahboom_api=yahboom_api, sample=sample)
-        scene.write_data_to_sim()
         if not _step_simulation(
             scene=scene,
             sim=sim,
+            backend=backend,
             physics_steps=physics_steps_per_sample,
             render=render,
         ):
@@ -296,13 +344,12 @@ def main() -> None:
     )
 
     controlled_joint_ids = _controlled_joint_ids(scene)
-    arm = DofbotArm(
-        _IsaacJointPositionBackend(
-            scene=scene,
-            controlled_joint_ids=controlled_joint_ids,
-            device=args_cli.device,
-        )
+    backend = _IsaacJointPositionBackend(
+        scene=scene,
+        controlled_joint_ids=controlled_joint_ids,
+        device=args_cli.device,
     )
+    arm = DofbotArm(backend)
     yahboom_api = YahboomServoApiAdapter(arm)
 
     physics_dt = sim.get_physics_dt()
@@ -329,7 +376,6 @@ def main() -> None:
                 angle_deg,
                 CONTROL_INTERVAL_MS,
             )
-        scene.write_data_to_sim()
         hold_steps = round(viewer_hold / physics_dt)
         print(
             f"[CONFIG] viewer_connection_hold_seconds={viewer_hold:g}",
@@ -338,6 +384,7 @@ def main() -> None:
         if not _step_simulation(
             scene=scene,
             sim=sim,
+            backend=backend,
             physics_steps=hold_steps,
             render=render,
         ):
@@ -352,6 +399,7 @@ def main() -> None:
             sim=sim,
             arm=arm,
             yahboom_api=yahboom_api,
+            backend=backend,
             samples=samples,
             physics_steps_per_sample=physics_steps_per_sample,
             cycle_index=cycle_index,
@@ -381,9 +429,12 @@ def main() -> None:
             "control": {
                 "application_api": "Arm_serial_servo_write(id, angle, time)",
                 "control_hz": config.control_hz,
+                "api_dispatch_mode": "once_per_servo_per_pose",
                 "sample_duration_ms": CONTROL_INTERVAL_MS,
                 "sample_count": len(samples),
-                "official_api_call_count": len(samples) * 4,
+                "official_api_call_count": sum(
+                    len(sample.api_writes()) for sample in samples
+                ),
                 "policy_free": True,
             },
             "measurement": {
