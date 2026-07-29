@@ -159,7 +159,7 @@ class DofbotReachingTest(unittest.TestCase):
             controller=self.config.state_controller,
         )
         self.assertTrue(all(isinstance(value, int) for value in target))
-        self.assertTrue(all(63 <= value <= 117 for value in target))
+        self.assertTrue(all(64 <= value <= 116 for value in target))
         self.assertTrue(
             all(
                 abs(value - 90) <= math.ceil(self.config.state_controller.maximum_joint_delta_deg)
