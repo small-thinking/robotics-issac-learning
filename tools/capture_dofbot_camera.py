@@ -243,6 +243,28 @@ def _set_arm_angles(
     )
 
 
+def _write_arm_angles_for_camera_setup(
+    scene: InteractiveScene,
+    sim: sim_utils.SimulationContext,
+    controlled_joint_ids: list[int],
+    angles_deg: tuple[int, ...],
+) -> None:
+    robot = scene["dofbot"]
+    joint_positions = robot.data.default_joint_pos.clone()
+    joint_velocities = torch.zeros_like(joint_positions)
+    joint_positions[0, controlled_joint_ids] = torch.tensor(
+        [
+            math.radians(float(angle_deg) - 90.0)
+            for angle_deg in angles_deg
+        ],
+        device=robot.device,
+        dtype=torch.float32,
+    )
+    robot.write_joint_state_to_sim(joint_positions, joint_velocities)
+    sim.forward()
+    scene.update(0.0)
+
+
 def _step_scene(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
@@ -329,12 +351,12 @@ def _select_camera_observation_pose(
         if angles_deg in seen:
             continue
         seen.add(angles_deg)
-        _set_arm_angles(scene, controlled_joint_ids, angles_deg)
-        settle_steps = round(
-            (max(step.duration_ms, 700) / 1000.0 + 0.3)
-            / sim.get_physics_dt()
+        _write_arm_angles_for_camera_setup(
+            scene,
+            sim,
+            controlled_joint_ids,
+            angles_deg,
         )
-        _step_scene(scene, sim, settle_steps)
         camera_world = _world_matrix(camera_prim)
         camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
         record: dict[str, Any] = {
@@ -368,12 +390,21 @@ def _select_camera_observation_pose(
             valid_candidates.append((score, angles_deg, positions))
         candidate_records.append(record)
     if not valid_candidates:
+        print(
+            "[CAMERA POSE] "
+            + json.dumps(candidate_records, separators=(",", ":")),
+            flush=True,
+        )
         raise CameraConfigError(
             "none of the accepted ActionChunk poses points the camera at the tabletop"
         )
     _, selected_angles, _ = min(valid_candidates, key=lambda item: item[0])
-    _set_arm_angles(scene, controlled_joint_ids, selected_angles)
-    _step_scene(scene, sim, round(1.0 / sim.get_physics_dt()))
+    _write_arm_angles_for_camera_setup(
+        scene,
+        sim,
+        controlled_joint_ids,
+        selected_angles,
+    )
     selected_positions = _ray_tabletop_target_positions(
         config,
         _world_matrix(camera_prim),
