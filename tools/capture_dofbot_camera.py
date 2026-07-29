@@ -138,23 +138,37 @@ def _world_matrix(prim: Usd.Prim) -> Gf.Matrix4d:
     )
 
 
-def _camera_world_from_sensor(camera: Any) -> Gf.Matrix4d:
-    position = _as_torch(camera.data.pos_w)[0].detach().cpu().tolist()
-    quaternion_xyzw = (
-        _as_torch(camera.data.quat_w_opengl)[0].detach().cpu().tolist()
-    )
+def _matrix_from_pose_wxyz(
+    position: torch.Tensor,
+    quaternion_wxyz: torch.Tensor,
+) -> Gf.Matrix4d:
+    position_values = position.detach().cpu().tolist()
+    quaternion_values = quaternion_wxyz.detach().cpu().tolist()
     quaternion = Gf.Quatd(
-        float(quaternion_xyzw[3]),
+        float(quaternion_values[0]),
         Gf.Vec3d(
-            float(quaternion_xyzw[0]),
-            float(quaternion_xyzw[1]),
-            float(quaternion_xyzw[2]),
+            float(quaternion_values[1]),
+            float(quaternion_values[2]),
+            float(quaternion_values[3]),
         ),
     )
     matrix = Gf.Matrix4d(1.0)
     matrix.SetRotate(Gf.Rotation(quaternion))
-    matrix.SetTranslateOnly(Gf.Vec3d(*map(float, position)))
+    matrix.SetTranslateOnly(Gf.Vec3d(*map(float, position_values)))
     return matrix
+
+
+def _camera_world_from_articulation(
+    scene: InteractiveScene,
+    camera_local_to_link4: Gf.Matrix4d,
+) -> Gf.Matrix4d:
+    robot = scene["dofbot"]
+    link4_index = robot.body_names.index("link4")
+    link4_world = _matrix_from_pose_wxyz(
+        robot.data.body_pos_w[0, link4_index],
+        robot.data.body_quat_w[0, link4_index],
+    )
+    return camera_local_to_link4 * link4_world
 
 
 def _matrix_rows(matrix: Gf.Matrix4d) -> list[list[float]]:
@@ -351,7 +365,7 @@ def _select_camera_observation_pose(
     config: DofbotCameraConfig,
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
-    camera: Any,
+    camera_local_to_link4: Gf.Matrix4d,
     controlled_joint_ids: list[int],
 ) -> tuple[
     tuple[int, ...],
@@ -378,7 +392,10 @@ def _select_camera_observation_pose(
             controlled_joint_ids,
             angles_deg,
         )
-        camera_world = _camera_world_from_sensor(camera)
+        camera_world = _camera_world_from_articulation(
+            scene,
+            camera_local_to_link4,
+        )
         camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
         record: dict[str, Any] = {
             "step_name": step.name,
@@ -428,7 +445,7 @@ def _select_camera_observation_pose(
     )
     selected_positions = _ray_tabletop_target_positions(
         config,
-        _camera_world_from_sensor(camera),
+        _camera_world_from_articulation(scene, camera_local_to_link4),
     )
     return selected_angles, selected_positions, candidate_records
 
@@ -650,6 +667,9 @@ def main() -> None:
     scene = InteractiveScene(scene_cfg)
     stage = sim_utils.get_current_stage()
     camera_prim = _camera_prim(stage, config.prim_path)
+    camera_local_to_link4 = UsdGeom.Xformable(
+        camera_prim
+    ).GetLocalTransformation()
     camera_world_at_spawn = _world_matrix(camera_prim)
     target_positions = _planar_target_world_positions(
         config,
@@ -669,7 +689,7 @@ def main() -> None:
         config=config,
         scene=scene,
         sim=sim,
-        camera=camera,
+        camera_local_to_link4=camera_local_to_link4,
         controlled_joint_ids=controlled_joint_ids,
     )
     _move_targets(target_positions)
@@ -729,7 +749,10 @@ def main() -> None:
     if latest_rgb is None:
         raise CameraConfigError("camera produced no non-empty RGB tensor")
     saved_png_sha256 = _save_rgb_png(latest_rgb, args_cli.rgb_output)
-    camera_world = _camera_world_from_sensor(camera)
+    camera_world = _camera_world_from_articulation(
+        scene,
+        camera_local_to_link4,
+    )
     intrinsic_matrix = (
         _as_torch(camera.data.intrinsic_matrices)[0].detach().cpu().tolist()
     )
