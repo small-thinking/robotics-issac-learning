@@ -876,3 +876,42 @@
 - Conclusion: Goal 4 is **not complete**. Local and remote machine gates pass,
   but a new base-frame front/rear contract, corrected work-side scene, and
   fresh machine plus Viewer validation are required.
+
+## 2026-07-28 — Goal 4 physical-front correction passed local preparation
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; PR #21 remains Draft
+- Scope: local correction only; no Brev/GPU start, Isaac execution, real
+  hardware, gripper command, cube contact/motion, camera controller input,
+  policy, checkpoint, PPO, or VLA
+- Root-frame contract: the user-reviewed Isaac Perspective layout defines
+  world `+Y` as the workspace front and world `-Y` as the
+  Jetson/electronics rear; the official robot asset remains unrotated
+- Corrected scene: table center `(0.00, +0.25, 0.10) m`, target cube center
+  `(0.00, +0.18, 0.145) m`, approach waypoint
+  `(0.00, +0.18, 0.235) m`, and exactly `0.10 m` clearance from the base to
+  the nearest table edge
+- Corrected scripted comparison: the accepted rear-side poses were mirrored
+  around neutral to `[90,82,80,82]`, `[90,76,75,79]`, and
+  `[90,82,80,82]`; neutral start/end, 20 Yahboom-shaped pose-boundary API
+  calls, and the 60°-120° envelope are unchanged
+- Fail-closed additions: schema v2 requires the known front/rear vectors,
+  rejects a relabeled frame and any rear-side table or target, records both
+  front clearances, adds three orientation checks to the machine contract,
+  and mirrors the default Perspective camera across world `Y`
+- Commands:
+
+  ```bash
+  make test
+  make dofbot-reach-dry-run
+  make show-dofbot-reach
+  make show-dofbot-reach-view
+  ```
+
+- Local result: all 112 repository tests passed, including 15 focused Goal 4
+  tests; the dry-run reported every preparation check true and
+  `gpu_started=false`; targeted Ruff, shell syntax, and both remote command
+  previews passed
+- Acceptance: **corrected v2 local preparation passed / corrected v2 remote
+  machine pending / corrected v2 Viewer pending**. The historical v1 remote
+  artifact remains immutable evidence but cannot satisfy the corrected gate.
+  Goal 4 is not complete.

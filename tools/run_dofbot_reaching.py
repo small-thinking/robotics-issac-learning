@@ -560,8 +560,8 @@ def main() -> None:
 
     sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(device=args_cli.device))
     sim.set_camera_view(
-        eye=[0.55, 0.55, 0.45],
-        target=[0.0, -0.20, 0.20],
+        eye=[0.55, -0.55, 0.45],
+        target=[0.0, 0.20, 0.20],
     )
     scene = InteractiveScene(DofbotAssetSceneCfg(num_envs=1, env_spacing=2.0))
     _spawn_physical_scene(config)
@@ -691,8 +691,11 @@ def main() -> None:
                 "value": config.to_dict(),
             },
             "scene": {
+                "robot_frame": config.robot_frame.to_dict(),
                 "table": config.table.to_dict(),
                 "target_cube": config.target_cube.to_dict(),
+                "table_front_clearance_m": config.table_front_clearance_m,
+                "target_front_clearance_m": config.target_front_clearance_m,
                 "target_prim_has_rigid_body_api": not target_is_static,
                 "approach_target_world_m": list(config.approach_target_world_m),
                 "end_effector_body_name": config.end_effector_body_name,
@@ -715,6 +718,7 @@ def main() -> None:
                 "machine": evaluation,
                 "visual": {
                     "status": "pending_user_confirmation",
+                    "workspace_on_physical_front_opposite_electronics": None,
                     "table_and_static_cube_visible": None,
                     "scripted_and_state_approaches_visible": None,
                     "gripper_remained_open": None,

@@ -1,17 +1,22 @@
 {
-  "schema_version": 1,
-  "name": "goal4_fixed_tabletop_reach_v1",
+  "schema_version": 2,
+  "name": "goal4_fixed_tabletop_front_reach_v2",
   "scene": {
+    "robot_frame": {
+      "workspace_front_world_unit": [0.0, 1.0, 0.0],
+      "electronics_rear_world_unit": [0.0, -1.0, 0.0],
+      "provenance": "User-reviewed Isaac Perspective: the Jetson electronics carrier defines the physical rear side."
+    },
     "table": {
       "prim_path": "/World/ReachScene/Table",
-      "center_world_m": [0.0, -0.25, 0.1],
+      "center_world_m": [0.0, 0.25, 0.1],
       "size_m": [0.5, 0.3, 0.04],
       "color_rgb": [0.35, 0.22, 0.12],
       "collision_enabled": true
     },
     "target_cube": {
       "prim_path": "/World/ReachScene/TargetCube",
-      "center_world_m": [0.0, -0.18, 0.145],
+      "center_world_m": [0.0, 0.18, 0.145],
       "size_m": [0.05, 0.05, 0.05],
       "color_rgb": [0.8, 0.08, 0.05],
       "static": true,
@@ -25,7 +30,7 @@
   },
   "scripted_baseline": {
     "schema_version": 1,
-    "name": "goal4_scripted_approach",
+    "name": "goal4_front_side_scripted_approach",
     "control_hz": 10,
     "steps": [
       {
@@ -36,19 +41,19 @@
       },
       {
         "name": "scripted_preapproach",
-        "angles_deg": [90, 98, 100, 98],
+        "angles_deg": [90, 82, 80, 82],
         "duration_ms": 700,
         "hold_ms": 300
       },
       {
         "name": "scripted_approach",
-        "angles_deg": [90, 104, 105, 101],
+        "angles_deg": [90, 76, 75, 79],
         "duration_ms": 800,
         "hold_ms": 500
       },
       {
         "name": "scripted_retract",
-        "angles_deg": [90, 98, 100, 98],
+        "angles_deg": [90, 82, 80, 82],
         "duration_ms": 700,
         "hold_ms": 300
       },

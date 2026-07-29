@@ -47,7 +47,7 @@ def build_preview(*, reaching_config_path: Path) -> dict[str, Any]:
         (0.00, 0.10, 0.00, 0.00),
         (0.00, 0.00, 0.10, 0.05),
     )
-    synthetic_error = (0.03, -0.02, -0.01)
+    synthetic_error = (0.03, 0.02, -0.01)
     synthetic_next_angles = next_state_controller_angles(
         current_angles_deg=(90.0, 90.0, 90.0, 90.0),
         translation_jacobian=synthetic_jacobian,
@@ -55,6 +55,19 @@ def build_preview(*, reaching_config_path: Path) -> dict[str, Any]:
         controller=config.state_controller,
     )
     checks = {
+        "workspace_front_is_world_positive_y": (
+            config.robot_frame.workspace_front_world_unit == (0.0, 1.0, 0.0)
+        ),
+        "electronics_rear_is_world_negative_y": (
+            config.robot_frame.electronics_rear_world_unit == (0.0, -1.0, 0.0)
+        ),
+        "table_is_on_workspace_front": (
+            config.table_front_clearance_m
+            >= config.robot_base_keepout_radius_m - 1e-9
+        ),
+        "target_cube_is_on_workspace_front": (
+            config.target_front_clearance_m > 0.0
+        ),
         "table_collision_enabled": config.table.collision_enabled,
         "target_cube_static": config.target_cube.static,
         "target_cube_collision_enabled": config.target_cube.collision_enabled,

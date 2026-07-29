@@ -444,18 +444,21 @@ physical-mount/joint-calibration task.
 
 ### Goal 4 — Fixed-tabletop reaching baseline
 
-Status: **remote machine passed; Viewer rejected the physical front/back
-composition**
+Status: **corrected front-side v2 passed local preparation; fresh remote
+machine and Viewer gates pending**
 
 Goal 4 replaces the floating camera-calibration fixture with the first
 physically composed task scene:
 
-- a `0.50 x 0.30 x 0.04 m` collision-enabled static tabletop whose top is at
-  world `z=0.12 m` and whose near edge remains outside a `0.10 m` robot-base
-  keepout;
+- an explicit base-frame contract: world `+Y` is workspace front, world `-Y`
+  is the Jetson/electronics rear, and the complete official robot asset stays
+  fixed;
+- a `0.50 x 0.30 x 0.04 m` collision-enabled static tabletop centered at
+  `(0.00, +0.25, 0.10) m`, whose top is at world `z=0.12 m` and whose near
+  edge remains outside a `0.10 m` robot-base keepout;
 - one collision-enabled static red `0.05 m` cube centered at
-  `(0.00, -0.18, 0.145) m`, so its bottom rests exactly on the table;
-- a `Wrist_Twist` approach waypoint at `(0.00, -0.18, 0.235) m`, nine
+  `(0.00, +0.18, 0.145) m`, so its bottom rests exactly on the table;
+- a `Wrist_Twist` approach waypoint at `(0.00, +0.18, 0.235) m`, nine
   centimeters above the cube center.
 
 This is reaching, not manipulation. The cube remains world-fixed, the gripper
@@ -467,8 +470,9 @@ The strict input is
 `configs/dofbot/reaching/goal4_fixed_tabletop.json`. It contains two
 comparisons:
 
-1. a five-pose ActionChunk scripted approach/retract sequence, compiled to
-   exactly 20 pose-boundary calls shaped as
+1. a five-pose ActionChunk scripted approach/retract sequence whose three
+   non-neutral poses are `[90,82,80,82]`, `[90,76,75,79]`, and
+   `[90,82,80,82]`; it compiles to exactly 20 pose-boundary calls shaped as
    `Arm_serial_servo_write(id, angle, time)`;
 2. a 5 Hz state controller that reads the live `Wrist_Twist` position and
    translational Jacobian, computes a damped-least-squares joint delta, clamps
@@ -491,15 +495,17 @@ BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
 ```
 
 The headless result is
-`artifacts/dofbot/reaching_contract.json`. Machine acceptance requires the
-recorded Goal 1 asset to match the live articulation; the table, static cube,
-and `Wrist_Twist` body to exist; the cube target to remain world-fixed; every
+`artifacts/dofbot/reaching_contract.json`. Corrected v2 machine acceptance
+requires the recorded Goal 1 asset to match the live articulation; the table,
+static cube, and `Wrist_Twist` body to exist; the frame to remain `+Y`
+work-front and `-Y` electronics-rear; the table and cube to remain in the
+declared work-front half-plane; the cube target to remain world-fixed; every
 observed angle to remain inside the safe envelope; the wrist to stay at least
-  four centimeters above the tabletop; both the scripted and state-based
-  approaches to improve distance by at least three centimeters; the state
-  controller to finish within four centimeters of the approach waypoint; the
-  official API call count to match exactly; and the arm to return to within one
-  degree of neutral.
+four centimeters above the tabletop; both the scripted and state-based
+approaches to improve distance by at least three centimeters; the state
+controller to finish within four centimeters of the approach waypoint; the
+official API call count to match exactly; and the arm to return to within one
+degree of neutral.
 
 The Viewer waits 20 seconds at neutral and then repeats the scripted comparison
 and state-based approach. Visual acceptance requires the user to see the table
@@ -507,7 +513,8 @@ and cube, both approaches, an open gripper, a stationary cube, and the final
 neutral reset. Until the remote machine artifact passes and the user confirms
 the Viewer, Goal 4 remains incomplete.
 
-The approved remote run at commit `d12b987` passed all eleven machine checks.
+The historical rear-side remote run at commit `d12b987` passed all eleven
+machine checks.
 The state controller reduced the approach-waypoint distance from `0.20660 m`
 to `0.02035 m`; the scripted baseline improved by `0.13493 m`; minimum
 wrist/table clearance was `0.12693 m`; all 48 Yahboom-shaped calls were
@@ -522,13 +529,18 @@ of Goal 3's camera optical plane as if it were the robot's physical front.
 Goal 3 explicitly made no tabletop or physical-mount claim, so that inference
 was invalid.
 
-Do not repair this by rotating the complete robot asset and its Jetson carrier
-by 180 degrees. Before another GPU window, define the base-frame work side
-separately from camera optical forward, preserve the electronics as the rear
-side, move the tabletop and target to the work side, mirror or recalibrate the
-safe scripted poses, and add a fail-closed test that rejects a rear-side
-workspace. The corrected state controller must then pass a fresh machine gate
-before the Viewer is reopened. Goal 4 remains incomplete.
+The corrected v2 preparation does not rotate the complete robot asset or its
+Jetson carrier. It declares `+Y` as physical work-front and `-Y` as
+electronics-rear, moves the table and cube to `+Y`, mirrors the accepted
+non-neutral poses around 90°, mirrors the default Viewer camera, and rejects a
+rear-side workspace or relabeled frame before Isaac can launch. All 112 local
+tests, including 15 focused Goal 4 tests, the pure dry-run, Ruff, shell syntax,
+and both remote command previews pass. No GPU or real hardware was started.
+
+This local result does not reuse the rear-side v1 machine pass. The corrected
+state controller must pass a fresh 14-check machine gate before the Viewer is
+reopened. Visual acceptance must confirm the table/cube are opposite the
+Jetson/electronics rear. Goal 4 remains incomplete.
 
 ## Later milestones
 

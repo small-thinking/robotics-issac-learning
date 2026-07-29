@@ -8,6 +8,8 @@ from pathlib import Path
 
 from tools.dofbot_motion_config import compile_motion_config
 from tools.dofbot_reaching import (
+    EXPECTED_ELECTRONICS_REAR_WORLD_UNIT,
+    EXPECTED_WORKSPACE_FRONT_WORLD_UNIT,
     ReachingConfigError,
     damped_least_squares_delta,
     evaluate_reaching_observations,
@@ -80,6 +82,23 @@ class DofbotReachingTest(unittest.TestCase):
         )
         self.assertEqual(len(self.source_sha256), 64)
 
+    def test_workspace_is_on_physical_front_opposite_electronics(self) -> None:
+        self.assertEqual(
+            self.config.robot_frame.workspace_front_world_unit,
+            EXPECTED_WORKSPACE_FRONT_WORLD_UNIT,
+        )
+        self.assertEqual(
+            self.config.robot_frame.electronics_rear_world_unit,
+            EXPECTED_ELECTRONICS_REAR_WORLD_UNIT,
+        )
+        self.assertGreaterEqual(
+            self.config.table_front_clearance_m + 1e-9,
+            self.config.robot_base_keepout_radius_m,
+        )
+        self.assertGreater(self.config.target_front_clearance_m, 0.0)
+        self.assertGreater(self.config.table.center_world_m[1], 0.0)
+        self.assertGreater(self.config.target_cube.center_world_m[1], 0.0)
+
     def test_scripted_baseline_is_safe_boundary_only_actionchunk(self) -> None:
         samples = compile_motion_config(self.config.scripted_baseline)
         writes = [write for sample in samples for write in sample.api_writes()]
@@ -87,6 +106,40 @@ class DofbotReachingTest(unittest.TestCase):
         self.assertEqual(samples[-1].angles_deg, (90, 90, 90, 90))
         self.assertEqual(len(writes), 20)
         self.assertTrue(all(60 <= write.angle_deg <= 120 for write in writes))
+        self.assertEqual(
+            [step.angles_deg for step in self.config.scripted_baseline.steps[1:4]],
+            [
+                (90, 82, 80, 82),
+                (90, 76, 75, 79),
+                (90, 82, 80, 82),
+            ],
+        )
+        self.assertTrue(
+            all(
+                step.angles_deg[0] == 90
+                and all(angle < 90 for angle in step.angles_deg[1:])
+                for step in self.config.scripted_baseline.steps[1:4]
+            )
+        )
+
+    def test_parser_rejects_relabeling_rear_as_workspace_front(self) -> None:
+        wrong_front = copy.deepcopy(self.raw_config)
+        wrong_front["scene"]["robot_frame"]["workspace_front_world_unit"] = [
+            0.0,
+            -1.0,
+            0.0,
+        ]
+        with self.assertRaisesRegex(ReachingConfigError, r"world \+Y"):
+            parse_reaching_config(wrong_front)
+
+        wrong_rear = copy.deepcopy(self.raw_config)
+        wrong_rear["scene"]["robot_frame"]["electronics_rear_world_unit"] = [
+            0.0,
+            1.0,
+            0.0,
+        ]
+        with self.assertRaisesRegex(ReachingConfigError, "world -Y"):
+            parse_reaching_config(wrong_rear)
 
     def test_parser_rejects_cube_that_does_not_rest_on_table(self) -> None:
         broken = copy.deepcopy(self.raw_config)
@@ -101,9 +154,15 @@ class DofbotReachingTest(unittest.TestCase):
             parse_reaching_config(off_table)
 
         overlap = copy.deepcopy(self.raw_config)
-        overlap["scene"]["table"]["center_world_m"][1] = -0.2
+        overlap["scene"]["table"]["center_world_m"][1] = 0.2
         with self.assertRaisesRegex(ReachingConfigError, "base keepout"):
             parse_reaching_config(overlap)
+
+        rear_side = copy.deepcopy(self.raw_config)
+        rear_side["scene"]["table"]["center_world_m"][1] = -0.25
+        rear_side["scene"]["target_cube"]["center_world_m"][1] = -0.18
+        with self.assertRaisesRegex(ReachingConfigError, "workspace-front"):
+            parse_reaching_config(rear_side)
 
     def test_parser_rejects_dynamic_target_or_unvalidated_end_effector(self) -> None:
         dynamic = copy.deepcopy(self.raw_config)
@@ -155,7 +214,7 @@ class DofbotReachingTest(unittest.TestCase):
                 (0.00, 0.10, 0.00, 0.00),
                 (0.00, 0.00, 0.10, 0.05),
             ),
-            position_error_m=(0.03, -0.02, -0.01),
+            position_error_m=(0.03, 0.02, -0.01),
             controller=self.config.state_controller,
         )
         self.assertTrue(all(isinstance(value, int) for value in target))
@@ -167,6 +226,7 @@ class DofbotReachingTest(unittest.TestCase):
             )
         )
         self.assertNotEqual(target, (90, 90, 90, 90))
+        self.assertGreater(target[1], 90)
 
     def test_controller_rejects_bad_shape_nonfinite_or_unsafe_current_pose(
         self,
@@ -230,6 +290,15 @@ class DofbotReachingTest(unittest.TestCase):
         self.assertFalse(preview["scope"]["real_hardware_commanded"])
         self.assertFalse(preview["scope"]["gripper_commanded"])
         self.assertFalse(preview["scope"]["target_cube_moved"])
+        self.assertTrue(
+            preview["acceptance"]["checks"]["workspace_front_is_world_positive_y"]
+        )
+        self.assertTrue(
+            preview["acceptance"]["checks"]["table_is_on_workspace_front"]
+        )
+        self.assertTrue(
+            preview["acceptance"]["checks"]["target_cube_is_on_workspace_front"]
+        )
 
     def test_isaac_runner_keeps_preflight_before_kit_and_uses_api_boundary(
         self,
@@ -245,6 +314,12 @@ class DofbotReachingTest(unittest.TestCase):
         self.assertIn("Arm_serial_servo_write", source)
         self.assertNotIn("Arm_Lib", source)
         self.assertNotIn("CameraCfg", source)
+        self.assertIn("eye=[0.55, -0.55, 0.45]", source)
+        self.assertIn("target=[0.0, 0.20, 0.20]", source)
+        self.assertIn(
+            '"workspace_on_physical_front_opposite_electronics": None',
+            source,
+        )
 
 
 if __name__ == "__main__":

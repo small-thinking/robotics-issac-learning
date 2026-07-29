@@ -3,8 +3,8 @@
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goal 4 fixed-tabletop reaching;
-  local software and remote Isaac machine gates passed, while the user Viewer
-  gate rejected the physical front/back composition
+  corrected front-side v2 passed local software preparation; fresh remote
+  machine and user Viewer gates are pending
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
   23:47 PDT after Goal 4 remote validation
@@ -17,55 +17,69 @@
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
-- Branch: `codex/dofbot-goal4-jacobian-compat`; remote commit `d12b987`
+- Branch: `codex/dofbot-goal4-jacobian-compat`; PR #21 remains Draft
+- Historical rear-side remote commit: `d12b987`
 - Scope: safe reach/approach/retract only; no target contact, pushing, grasping,
   lifting, placing, gripper command, camera controller input, learning, or real
   hardware
 - Scene contract:
   `configs/dofbot/reaching/goal4_fixed_tabletop.json`
-- Physical composition: collision-enabled static table with top at `z=0.12 m`;
-  collision-enabled static 5 cm red cube resting exactly on the table; table
-  remains outside a 10 cm robot-base keepout
+- Corrected v2 base-frame contract: world `+Y` is workspace front and world
+  `-Y` is the Jetson/electronics rear. The complete official robot asset stays
+  fixed.
+- Corrected v2 physical composition: collision-enabled static table centered
+  at `(0.00, +0.25, 0.10) m`, with top at `z=0.12 m`; collision-enabled static
+  5 cm red cube centered at `(0.00, +0.18, 0.145) m` and resting exactly on
+  the table; the nearest tabletop edge remains 10 cm in front of the base
 - End-effector contract: `Wrist_Twist`; approach waypoint
-  `(0.00, -0.18, 0.235) m`, nine centimeters above the cube center
-- Scripted comparison: five ActionChunk poses, 20 official pose-boundary
-  `Arm_serial_servo_write(id, angle, time)` calls, neutral start/end, and
-  60°-120° safe angles
+  `(0.00, +0.18, 0.235) m`, nine centimeters above the cube center
+- Corrected v2 scripted comparison: five ActionChunk poses, with the three
+  non-neutral poses mirrored around 90° to
+  `[90,82,80,82]`, `[90,76,75,79]`, and `[90,82,80,82]`; 20 official
+  pose-boundary `Arm_serial_servo_write(id, angle, time)` calls, neutral
+  start/end, and 60°-120° safe angles
 - State controller: 5 Hz damped-least-squares translation Jacobian, at most 30
   steps, at most 4° per joint per step, same absolute-angle Yahboom API
-- Local fail-closed gates: physical table/cube geometry, static target,
-  keepout, end-effector body, controller cadence and safe envelope, Jacobian
-  shape/finite math, bounded API output, synthetic pass/failure evaluation,
-  reset, no hardware/Isaac use in dry-run, and remote-runner wiring
-- Local validation: all 110 repository tests pass, including 13 focused Goal 4
-  tests, Git LFS checks, and remote command previews; targeted Ruff, shell
-  syntax, the local dry-run, and both reach command previews also pass
+- Corrected v2 local fail-closed gates: fixed `+Y` work-front and `-Y`
+  electronics-rear vectors, rejection of a rear-side table or relabeled
+  frame, physical table/cube geometry, static target, keepout, end-effector
+  body, controller cadence and safe envelope, Jacobian shape/finite math,
+  bounded API output, synthetic pass/failure evaluation, reset, no
+  hardware/Isaac use in dry-run, and mirrored Viewer-camera wiring
+- Corrected v2 local validation: all 112 repository tests pass, including 15
+  focused Goal 4 tests, Git LFS checks, and remote command previews; targeted
+  Ruff, shell syntax, the local dry-run, and both reach command previews also
+  pass
 - Remote Viewer machine evidence:
   `artifacts/dofbot/reaching_viewer_contract.json`
-- Remote machine gates: physical prims and static target present, live asset
-  compatibility, angle envelope, four-centimeter table clearance, at least
-  three-centimeter distance improvement for both the scripted and state-based
-  approaches, final state distance at most four centimeters, exact API call
-  count, and neutral reset within one degree
+- Historical v1 remote machine gates: physical prims and static target present,
+  live asset compatibility, angle envelope, four-centimeter table clearance,
+  at least three-centimeter distance improvement for both the scripted and
+  state-based approaches, final state distance at most four centimeters, exact
+  API call count, and neutral reset within one degree
 - Viewer contract: 20-second neutral connection hold followed by a loop of the
   scripted comparison and state-based approach
-- Remote machine result: **passed**. All eleven checks passed; the scripted
+- Historical v1 remote machine result: **passed**. All eleven checks passed; the scripted
   waypoint distance improved by `0.13493 m`, the state controller improved
   from `0.20660 m` to `0.02035 m`, the minimum wrist/table clearance was
   `0.12693 m`, 48/48 official API calls were accounted for, and neutral reset
   error was `0.6012 deg`
-- Viewer result: **failed physical composition**. The user saw a safe,
+- Historical v1 Viewer result: **failed physical composition**. The user saw a safe,
   strategy-correct downward approach with an open gripper and stationary cube,
   but the table and cube were on the same visible side of the base as the
   Jetson/electronics carrier. The runner had treated world `-Y` camera-forward
   as robot-front even though Goal 3 explicitly did not define a physical
   tabletop frame.
-- Current acceptance: **local preparation passed / remote machine passed /
-  visual front-back gate failed**. Goal 4 is not complete.
-- Next free local gate: define an explicit base-frame front/electronics-rear
-  contract, move the workspace to the physical front side, mirror or
-  recalibrate the safe arm poses, and add tests that reject a rear-side table
-  before another paid run
+- Current acceptance: **corrected v2 local preparation passed / corrected v2
+  remote machine pending / corrected v2 Viewer pending**. The earlier v1
+  remote pass does not validate the corrected geometry. Goal 4 is not
+  complete.
+- Next paid gate: obtain a fresh quote and explicit approval, run the corrected
+  v2 machine check, inspect its 14 checks, then open the looping Viewer only if
+  the machine artifact passes. Human acceptance must confirm that the table
+  and cube are opposite the Jetson/electronics rear, both safe approach paths
+  are visible, the gripper stays open, the cube stays fixed, and the arm
+  returns to neutral.
 - Compute lifecycle: stop was requested at approximately 23:33 PDT after the
   active Viewer check. Brev reported `STOPPING` with shell access unavailable,
   and terminal `STOPPED` was verified at 23:47 PDT. No instance or disk was
@@ -428,9 +442,11 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the Goal 4 local-preparation
-PR. In a later short paid window, obtain a fresh quote and explicit approval,
-run `make dofbot-reach`, inspect the immutable machine contract, and only then
-open `make dofbot-reach-view`. Do not mark Goal 4 complete until the machine
-gate passes and the user confirms the table, stationary cube, both approach
-paths, open gripper, and neutral reset.
+Keep the Brev instance stopped and review PR #21's corrected front-side v2
+preparation. In a later short paid window, obtain a fresh quote and explicit
+approval, run `make dofbot-reach`, inspect the new immutable 14-check machine
+contract, and only then open `make dofbot-reach-view`. Do not mark Goal 4
+complete until that corrected machine gate passes and the user confirms the
+table and stationary cube are physically in front of the arm and opposite the
+Jetson/electronics rear, both approach paths are visible, the gripper remains
+open, and the arm resets to neutral.

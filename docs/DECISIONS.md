@@ -175,3 +175,13 @@ axis. The complete robot asset, Jetson carrier, and base frame stay fixed;
 scene placement and safe joint/servo mapping are corrected relative to that
 frame. A local parser test must reject a rear-side table before any renewed
 GPU validation.
+
+For the current official USD and the user-reviewed Perspective layout, this
+contract is world `+Y = workspace front` and world
+`-Y = Jetson/electronics rear`. Goal 4 schema v2 locks those calibrated
+vectors, computes each box's nearest front-side clearance by projection, and
+rejects a relabeled frame or rear-side workspace before Isaac starts. The
+previously machine-accepted `-Y` scripted poses are mirrored around the 90°
+neutral servo angle rather than rotating the complete robot asset. This is a
+simulation-frame correction only; it does not claim the physical-servo
+direction/offset mapping has been hardware-calibrated.
