@@ -340,6 +340,10 @@ def _write_arm_angles_for_camera_setup(
         device=robot.device,
         dtype=torch.float32,
     )
+    robot.set_joint_position_target(
+        joint_positions[:, controlled_joint_ids],
+        joint_ids=controlled_joint_ids,
+    )
     robot.write_joint_state_to_sim(joint_positions, joint_velocities)
     sim.forward()
     scene.update(0.0)

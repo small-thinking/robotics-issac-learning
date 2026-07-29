@@ -119,6 +119,26 @@ class DofbotCameraRunnerBindingTest(unittest.TestCase):
             1,
         )
 
+    def test_direct_camera_setup_pose_is_also_held_as_control_target(self) -> None:
+        self.assertEqual(
+            len(
+                self._calls_named(
+                    "_write_arm_angles_for_camera_setup",
+                    "write_joint_state_to_sim",
+                )
+            ),
+            1,
+        )
+        self.assertEqual(
+            len(
+                self._calls_named(
+                    "_write_arm_angles_for_camera_setup",
+                    "set_joint_position_target",
+                )
+            ),
+            1,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
