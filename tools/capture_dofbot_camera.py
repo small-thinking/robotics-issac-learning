@@ -365,7 +365,6 @@ def _write_arm_angles_for_camera_setup(
             sim=sim,
             camera=camera,
             binding=binding,
-            write_scene_data=False,
         )
     return expected_camera_world, _camera_world_transform(camera)
 

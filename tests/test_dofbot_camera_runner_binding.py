@@ -139,6 +139,22 @@ class DofbotCameraRunnerBindingTest(unittest.TestCase):
             1,
         )
 
+    def test_camera_setup_refresh_writes_held_target_into_physics(self) -> None:
+        calls = self._calls_named(
+            "_write_arm_angles_for_camera_setup",
+            "_step_with_camera_binding",
+        )
+        self.assertEqual(len(calls), 1)
+        write_scene_data = next(
+            (
+                keyword.value
+                for keyword in calls[0].keywords
+                if keyword.arg == "write_scene_data"
+            ),
+            None,
+        )
+        self.assertIsNone(write_scene_data)
+
 
 if __name__ == "__main__":
     unittest.main()
