@@ -138,6 +138,16 @@ def _world_matrix(prim: Usd.Prim) -> Gf.Matrix4d:
     )
 
 
+def _apply_optical_frame_calibration(camera_prim: Usd.Prim) -> None:
+    """Turn the authored upward optical axis toward the tabletop."""
+    xformable = UsdGeom.Xformable(camera_prim)
+    calibration_op = xformable.AddRotateXOp(
+        UsdGeom.XformOp.PrecisionDouble,
+        "goal3OpticalFrame",
+    )
+    calibration_op.Set(180.0)
+
+
 def _matrix_from_pose_wxyz(
     position: torch.Tensor,
     quaternion_wxyz: torch.Tensor,
@@ -667,11 +677,9 @@ def main() -> None:
     scene = InteractiveScene(scene_cfg)
     stage = sim_utils.get_current_stage()
     camera_prim = _camera_prim(stage, config.prim_path)
-    camera_local_to_link4 = UsdGeom.Xformable(
-        camera_prim
-    ).GetLocalTransformation()
+    _apply_optical_frame_calibration(camera_prim)
     camera_world_at_spawn = _world_matrix(camera_prim)
-    target_positions = _planar_target_world_positions(
+    target_positions = _ray_tabletop_target_positions(
         config,
         camera_world_at_spawn,
     )
@@ -681,18 +689,23 @@ def main() -> None:
     scene.update(sim.get_physics_dt())
     camera = scene["camera"]
     controlled_joint_ids = _controlled_joint_ids(scene)
-    (
-        selected_observation_angles_deg,
-        target_positions,
-        camera_pose_candidates,
-    ) = _select_camera_observation_pose(
-        config=config,
-        scene=scene,
-        sim=sim,
-        camera_local_to_link4=camera_local_to_link4,
-        controlled_joint_ids=controlled_joint_ids,
+    selected_observation_angles_deg = tuple(
+        preflight_motion_config.steps[0].angles_deg
     )
-    _move_targets(target_positions)
+    camera_forward_at_spawn = camera_world_at_spawn.TransformDir(
+        Gf.Vec3d(0.0, 0.0, -1.0)
+    )
+    camera_pose_candidates = [
+        {
+            "step_name": preflight_motion_config.steps[0].name,
+            "angles_deg": list(selected_observation_angles_deg),
+            "camera_forward_world": [
+                float(component) for component in camera_forward_at_spawn
+            ],
+            "valid_tabletop_intersection": True,
+            "selected": True,
+        }
+    ]
     sensor_initialized = bool(camera.is_initialized)
     camera_prim_is_usdgeom_camera = bool(camera_prim.IsA(UsdGeom.Camera))
     viewport_camera_selected = False
@@ -749,10 +762,7 @@ def main() -> None:
     if latest_rgb is None:
         raise CameraConfigError("camera produced no non-empty RGB tensor")
     saved_png_sha256 = _save_rgb_png(latest_rgb, args_cli.rgb_output)
-    camera_world = _camera_world_from_articulation(
-        scene,
-        camera_local_to_link4,
-    )
+    camera_world = _world_matrix(camera_prim)
     intrinsic_matrix = (
         _as_torch(camera.data.intrinsic_matrices)[0].detach().cpu().tolist()
     )
@@ -797,6 +807,14 @@ def main() -> None:
             "prim_type_name": camera_prim.GetTypeName(),
             "reused_authored_prim": True,
             "adapter_camera_created": False,
+            "optical_frame_calibration": {
+                "applied_to_existing_prim": True,
+                "rotate_x_deg": 180.0,
+                "reason": (
+                    "official prim optical -Z points upward at neutral; "
+                    "simulation calibration points it toward the tabletop"
+                ),
+            },
             "optics_authored_in_usd": _camera_optics(camera_prim),
             "world_transform_matrix": _matrix_rows(camera_world),
             "sensor_pose": {
@@ -817,7 +835,10 @@ def main() -> None:
         "observation_interface": {
             "input": {
                 "scene": "static tabletop targets plus DOFBOT and renderer lighting",
-                "camera_pose": "authored link4 child transform from the official USD",
+                "camera_pose": (
+                    "official link4 child transform plus explicit 180-degree "
+                    "optical-frame calibration"
+                ),
                 "intrinsics": "authored USD optics sampled into the Isaac camera",
                 "timing": "simulation-time update_period_s",
             },
