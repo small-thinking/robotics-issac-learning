@@ -50,8 +50,10 @@ lightweight VLA post-training, and optional real hardware.
   variants largely retained success, while a wide training boundary produced
   one catastrophic seed.
 - Brev `isaac-launchable-f150a5`: stopped; persistent disk retained.
-- DOFBOT Goals 1 and 2 plus the vendor-shaped ActionChunk extension: machine-
-  and Viewer-accepted.
+- DOFBOT Goals 1-3 plus the vendor-shaped ActionChunk extension: machine- and
+  Viewer-accepted.
+- Goal 4 fixed-tabletop reaching: local software preparation complete; remote
+  Isaac machine and Viewer gates remain pending.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -66,11 +68,15 @@ The CartPole stage is complete. The canonical next-stage plan is
 2. Goal 2: complete — hard-coded joint motion, limits, sign, and reset.
 3. Goal 2 extension: complete — versioned ActionChunk through the shared
    Yahboom API, with machine and Viewer acceptance.
-4. Goal 3: local contract ready — read and save one deterministic onboard RGB
-   observation; remote Isaac capture and user Viewer confirmation are pending.
+4. Goal 3: complete — deterministic onboard RGB contract and explicit
+   `link4`-camera binding, with machine and Viewer acceptance.
+5. Goal 4: local preparation complete — add a collision-enabled tabletop, a
+   static cube, a safe scripted approach, and a Jacobian state-controller
+   approach through the same Yahboom API. Remote machine and visual checks are
+   the next paid-window work.
 
-Do not introduce PPO, SFT, imitation learning, a CV training pipeline, or real
-hardware commands during these three infrastructure goals. The older
+Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
+or real hardware commands during Goal 4. The older
 OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
 No GPU should be started for local code, tests, documentation, or chart

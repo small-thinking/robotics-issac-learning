@@ -787,3 +787,39 @@
 - Conclusion: Goal 3 is complete for simulated RGB observation and explicit
   `link4` camera binding. Realistic tabletop composition and physical camera
   calibration remain future work.
+
+## 2026-07-28 — Goal 4 fixed-tabletop reaching passed local preparation
+
+- Branch: `codex/dofbot-goal4-reaching-prep`
+- Scope: local preparation only; no GPU, Isaac execution, real hardware,
+  gripper command, target contact/motion, camera controller input, policy, or
+  checkpoint
+- Config:
+  `configs/dofbot/reaching/goal4_fixed_tabletop.json`
+- Scene: a collision-enabled static table with top at `z=0.12 m`; a
+  collision-enabled static 5 cm red cube resting on the table; and a
+  `Wrist_Twist` approach waypoint nine centimeters above the cube center
+- Scripted baseline: five safe absolute poses, neutral start/end, 60°-120°
+  envelope, and 20 official pose-boundary
+  `Arm_serial_servo_write(id, angle, time)` calls
+- State baseline: 5 Hz damped-least-squares translation-Jacobian controller,
+  maximum 4° joint change per step, maximum 30 steps, and the same Yahboom API
+  boundary
+- Machine criteria prepared: physical prim/static-target presence, live asset
+  compatibility, safe angles, wrist/table clearance, distance improvement,
+  approach tolerance, exact API-call count, and neutral reset
+- Commands:
+
+  ```bash
+  make dofbot-reach-dry-run
+  make show-dofbot-reach
+  make show-dofbot-reach-view
+  ```
+
+- Local result: all 110 repository tests passed, including 13 focused Goal 4
+  tests, Git LFS checks, and remote command previews. Targeted Ruff, shell
+  syntax, the pure local dry-run, and both reach command previews also passed.
+- Acceptance: local software preparation passed; simulator machine and user
+  visual gates remain pending. Goal 4 is not complete.
+- Resource lifecycle: the retained Brev instance was not started;
+  `brev ls --json` verified it `STOPPED` at 22:59 PDT.

@@ -101,9 +101,9 @@ The detailed first-stage contract lives in
 2. Drive each arm joint with small, hard-coded position targets and verify
    axis, sign, limits, and reset behavior.
 3. Render and save an onboard RGB observation from a deterministic test scene.
-   The strict RGB-only config, three-object calibration scene, timing contract,
-   artifact schema, and local fail-closed tests are implemented; remote Isaac
-   machine capture and user Viewer confirmation remain pending.
+   The strict RGB-only config, three-object calibration scene, explicit
+   `link4` binding, timing contract, and artifact schema passed both remote
+   machine and user Viewer gates.
 4. Expose the vendor-shaped single-servo API over one backend-neutral
    named-joint core. The documented `joint1`-through-`joint4` to servo-ID
    mapping, local dry-run bridge, and fail-closed JSON ActionChunk compiler are
@@ -111,7 +111,10 @@ The detailed first-stage contract lives in
    direction and zero-offset calibration remain a separate fail-closed
    real-hardware gate.
 5. Establish scripted and state-based reaching baselines before adding vision
-   or choosing a learning algorithm.
+   or choosing a learning algorithm. The fixed collision-enabled tabletop,
+   static cube, scripted comparison, damped-least-squares controller, Yahboom
+   API boundary, and local fail-closed tests are prepared; remote Isaac
+   machine and Viewer validation remain pending.
 
 ## Phase 4 — Demonstrations and imitation learning
 

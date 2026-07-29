@@ -442,17 +442,81 @@ world-fixed fixture above the moving DOFBOT. Goal 3 therefore passed both
 machine and visual gates. A realistic tabletop composition remains a later
 physical-mount/joint-calibration task.
 
+### Goal 4 — Fixed-tabletop reaching baseline
+
+Status: **local preparation complete; remote machine and Viewer gates pending**
+
+Goal 4 replaces the floating camera-calibration fixture with the first
+physically composed task scene:
+
+- a `0.50 x 0.30 x 0.04 m` collision-enabled static tabletop whose top is at
+  world `z=0.12 m` and whose near edge remains outside a `0.10 m` robot-base
+  keepout;
+- one collision-enabled static red `0.05 m` cube centered at
+  `(0.00, -0.18, 0.145) m`, so its bottom rests exactly on the table;
+- a `Wrist_Twist` approach waypoint at `(0.00, -0.18, 0.235) m`, nine
+  centimeters above the cube center.
+
+This is reaching, not manipulation. The cube remains world-fixed, the gripper
+stays open and uncommanded, and the baseline must not touch, push, grasp, lift,
+or place an object. The physical robot backend, onboard RGB controller input,
+policy, checkpoint, PPO, and VLA are also excluded.
+
+The strict input is
+`configs/dofbot/reaching/goal4_fixed_tabletop.json`. It contains two
+comparisons:
+
+1. a five-pose ActionChunk scripted approach/retract sequence, compiled to
+   exactly 20 pose-boundary calls shaped as
+   `Arm_serial_servo_write(id, angle, time)`;
+2. a 5 Hz state controller that reads the live `Wrist_Twist` position and
+   translational Jacobian, computes a damped-least-squares joint delta, clamps
+   each step to at most `4°`, and sends the resulting absolute 60°-120°
+   servo-angle target through the same Yahboom API.
+
+Local preparation and command previews:
+
+```bash
+make dofbot-reach-dry-run
+make show-dofbot-reach
+make show-dofbot-reach-view
+```
+
+After a fresh quote and explicit paid-window approval, the remote gates are:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
+```
+
+The headless result is
+`artifacts/dofbot/reaching_contract.json`. Machine acceptance requires the
+recorded Goal 1 asset to match the live articulation; the table, static cube,
+and `Wrist_Twist` body to exist; the cube target to remain world-fixed; every
+observed angle to remain inside the safe envelope; the wrist to stay at least
+  four centimeters above the tabletop; both the scripted and state-based
+  approaches to improve distance by at least three centimeters; the state
+  controller to finish within four centimeters of the approach waypoint; the
+  official API call count to match exactly; and the arm to return to within one
+  degree of neutral.
+
+The Viewer waits 20 seconds at neutral and then repeats the scripted comparison
+and state-based approach. Visual acceptance requires the user to see the table
+and cube, both approaches, an open gripper, a stationary cube, and the final
+neutral reset. Until the remote machine artifact passes and the user confirms
+the Viewer, Goal 4 remains incomplete.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to
    vendor-servo angle mapping.
-2. Establish scripted and state-based reaching baselines in simulation.
-3. Evaluate a state-based controller under fixed initial conditions.
-4. Execute a few safety-reviewed hard-coded poses on the real DOFBOT.
-5. Add an off-the-shelf detector and camera-closed-loop reaching.
-6. Compare scripted control, PPO, and imitation learning only when the task and
+2. Extend accepted reaching to contact-aware push and then grasp/place, each
+   behind separate collision, gripper, and task-success contracts.
+3. Execute a few safety-reviewed hard-coded poses on the real DOFBOT.
+4. Add an off-the-shelf detector and camera-closed-loop reaching.
+5. Compare scripted control, PPO, and imitation learning only when the task and
    data contract make that comparison meaningful.
-7. Add language-conditioned skills or VLA post-training only after the
+6. Add language-conditioned skills or VLA post-training only after the
    low-level closed loop is reliable.
 
 The older

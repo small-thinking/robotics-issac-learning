@@ -201,4 +201,37 @@ assert_contains "$dofbot_camera_view_output" '--viz kit'
 assert_contains "$dofbot_camera_view_output" 'Viewer uses the onboard camera while the accepted safe motion repeats until stopped'
 assert_contains "$dofbot_camera_view_output" '[dry-run] Command displayed but not executed.'
 
+dofbot_reach_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REACHING=configs/dofbot/reaching/goal4_fixed_tabletop.json \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_reaching.sh
+)"
+
+assert_contains "$dofbot_reach_output" 'run_dofbot_reaching.py'
+assert_contains "$dofbot_reach_output" '/workspace/robotics-issac-learning/configs/dofbot/reaching/goal4_fixed_tabletop.json'
+assert_contains "$dofbot_reach_output" 'reaching_contract.json'
+assert_contains "$dofbot_reach_output" '--cycles 1'
+assert_contains "$dofbot_reach_output" '--viewer-connection-hold-seconds 0'
+assert_contains "$dofbot_reach_output" '--device cpu'
+assert_contains "$dofbot_reach_output" '--headless'
+assert_contains "$dofbot_reach_output" '[dry-run] Command displayed but not executed.'
+
+dofbot_reach_view_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REACHING=configs/dofbot/reaching/goal4_fixed_tabletop.json \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/view_dofbot_reaching.sh
+)"
+
+assert_contains "$dofbot_reach_view_output" 'run_dofbot_reaching.py'
+assert_contains "$dofbot_reach_view_output" 'reaching_viewer_contract.json'
+assert_contains "$dofbot_reach_view_output" 'reaching_viewer.log'
+assert_contains "$dofbot_reach_view_output" '--cycles -1'
+assert_contains "$dofbot_reach_view_output" '--viewer-connection-hold-seconds 20'
+assert_contains "$dofbot_reach_view_output" '--livestream 2'
+assert_contains "$dofbot_reach_view_output" '--viz kit'
+assert_contains "$dofbot_reach_view_output" 'fixed-tabletop reaching repeats until the process or instance is stopped'
+assert_contains "$dofbot_reach_view_output" '[dry-run] Command displayed but not executed.'
+
 printf 'remote command preview tests passed\n'
