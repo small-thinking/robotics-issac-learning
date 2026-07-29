@@ -306,8 +306,15 @@ def _write_arm_angles_for_camera_setup(
     )
     robot.write_joint_state_to_sim(joint_positions, joint_velocities)
     sim.forward()
-    sim.step(render=True)
-    scene.update(sim.get_physics_dt())
+    refresh_steps = (
+        math.ceil(
+            preflight_config.update_period_s / sim.get_physics_dt()
+        )
+        + 1
+    )
+    for _ in range(refresh_steps):
+        sim.step(render=True)
+        scene.update(sim.get_physics_dt())
 
 
 def _step_scene(
