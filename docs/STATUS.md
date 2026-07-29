@@ -1,58 +1,100 @@
 # Status
 
-- Updated: 2026-07-28 America/Los_Angeles
+- Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goal 4 fixed-tabletop reaching;
-  local software preparation passed, while remote Isaac machine and user
-  Viewer gates remain pending
+- Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
+  no-contact reaching passed local, remote machine, and user Viewer gates
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  22:59 PDT after Goal 4 local preparation
+- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
+  08:44 PDT after corrected Goal 4 validation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
-- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
-  compute; checked 2026-07-28 before restart
+- Latest live L4 quote: existing AWS `g6.4xlarge` class was
+  `$1.58784/hour` compute; checked 2026-07-29 before restart
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
-- Branch: `codex/dofbot-goal4-reaching-prep`
+- Branch: `codex/dofbot-goal4-jacobian-compat`; corrected remote commit
+  `eb7a266`; PR #21
+- Historical rear-side remote commit: `d12b987`
 - Scope: safe reach/approach/retract only; no target contact, pushing, grasping,
   lifting, placing, gripper command, camera controller input, learning, or real
   hardware
 - Scene contract:
   `configs/dofbot/reaching/goal4_fixed_tabletop.json`
-- Physical composition: collision-enabled static table with top at `z=0.12 m`;
-  collision-enabled static 5 cm red cube resting exactly on the table; table
-  remains outside a 10 cm robot-base keepout
+- Corrected v2 base-frame contract: world `+Y` is workspace front and world
+  `-Y` is the Jetson/electronics rear. The complete official robot asset stays
+  fixed.
+- Corrected v2 physical composition: collision-enabled static table centered
+  at `(0.00, +0.25, 0.10) m`, with top at `z=0.12 m`; collision-enabled static
+  5 cm red cube centered at `(0.00, +0.18, 0.145) m` and resting exactly on
+  the table; the nearest tabletop edge remains 10 cm in front of the base
 - End-effector contract: `Wrist_Twist`; approach waypoint
-  `(0.00, -0.18, 0.235) m`, nine centimeters above the cube center
-- Scripted comparison: five ActionChunk poses, 20 official pose-boundary
-  `Arm_serial_servo_write(id, angle, time)` calls, neutral start/end, and
-  60°-120° safe angles
+  `(0.00, +0.18, 0.235) m`, nine centimeters above the cube center
+- Corrected v2 scripted comparison: five ActionChunk poses, with the three
+  non-neutral poses mirrored around 90° to
+  `[90,82,80,82]`, `[90,76,75,79]`, and `[90,82,80,82]`; 20 official
+  pose-boundary `Arm_serial_servo_write(id, angle, time)` calls, neutral
+  start/end, and 60°-120° safe angles
 - State controller: 5 Hz damped-least-squares translation Jacobian, at most 30
   steps, at most 4° per joint per step, same absolute-angle Yahboom API
-- Local fail-closed gates: physical table/cube geometry, static target,
-  keepout, end-effector body, controller cadence and safe envelope, Jacobian
-  shape/finite math, bounded API output, synthetic pass/failure evaluation,
-  reset, no hardware/Isaac use in dry-run, and remote-runner wiring
-- Local validation: all 110 repository tests pass, including 13 focused Goal 4
-  tests, Git LFS checks, and remote command previews; targeted Ruff, shell
-  syntax, the local dry-run, and both reach command previews also pass
-- Planned remote machine evidence:
-  `artifacts/dofbot/reaching_contract.json`
-- Remote machine gates: physical prims and static target present, live asset
-  compatibility, angle envelope, four-centimeter table clearance, at least
-  three-centimeter distance improvement for both the scripted and state-based
-  approaches, final state distance at most four centimeters, exact API call
-  count, and neutral reset within one degree
+- Corrected v2 local fail-closed gates: fixed `+Y` work-front and `-Y`
+  electronics-rear vectors, rejection of a rear-side table or relabeled
+  frame, physical table/cube geometry, static target, keepout, end-effector
+  body, controller cadence and safe envelope, Jacobian shape/finite math,
+  bounded API output, synthetic pass/failure evaluation, reset, no
+  hardware/Isaac use in dry-run, and mirrored Viewer-camera wiring
+- Corrected v2 local validation: all 112 repository tests pass, including 15
+  focused Goal 4 tests, Git LFS checks, and remote command previews; targeted
+  Ruff, shell syntax, the local dry-run, and both reach command previews also
+  pass
+- Corrected v2 remote Viewer evidence:
+  `artifacts/dofbot/reaching_viewer_contract.json`, cycle 27, SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`
+- Machine gates: physical prims and static target present,
+  live asset compatibility, angle envelope, four-centimeter table clearance,
+  at least three-centimeter distance improvement for both the scripted and
+  state-based approaches, final state distance at most four centimeters, exact
+  API call count, neutral reset within one degree, the fixed front/rear frame,
+  and table/cube placement on the physical work side
 - Viewer contract: 20-second neutral connection hold followed by a loop of the
   scripted comparison and state-based approach
-- Current acceptance: **local preparation passed / remote machine pending /
-  visual pending**. Goal 4 is not complete.
-- Compute lifecycle: no GPU was started for this preparation; `brev ls --json`
-  verified the retained `g6.4xlarge` / L4 instance `STOPPED` at 22:59 PDT.
+- Corrected v2 remote machine result: **passed**. All fourteen checks passed;
+  the headless scripted distance improved from `0.18821 m` to `0.07579 m`,
+  the state controller improved from `0.21226 m` to `0.02037 m`, minimum
+  wrist/table clearance was `0.13258 m`, 52/52 official API calls were
+  accounted for, and neutral reset error was `0.2295 deg`
+- Corrected v2 Viewer machine result: **passed**. The downloaded cycle-27
+  artifact again passed 14/14 checks; its state-controller final distance was
+  `0.02037 m`, minimum clearance was `0.13258 m`, and neutral reset error was
+  `0.2028 deg`
+- Corrected v2 Viewer result: **passed for safe no-contact reaching**. The user
+  confirmed that the table/cube and Jetson/electronics are on opposite sides
+  and that the arm approaches in the correct direction. The open gripper and
+  static cube were visible, and four screenshots were reviewed but not
+  committed.
+- Motion-quality limitation: the user correctly observed only roughly
+  30°-45° of required visible bending and an awkward motion. The target/table
+  are close and high, the controlled point is `Wrist_Twist` rather than the
+  fingertip grasp frame, and the 5 Hz translation-only damped-least-squares
+  controller does not constrain gripper orientation or prefer a natural elbow
+  posture. These are expected baseline limitations, not evidence of grasp
+  readiness.
+- Current acceptance: **local passed / corrected remote machine passed /
+  corrected user Viewer passed**. Goal 4 is complete for safe, policy-free,
+  no-contact reaching only.
+- Next free local gate: recalibrate table height and target reach distance,
+  define a fingertip/grasp pose frame, and design pose-aware IK with preferred
+  posture and smoother velocity/acceleration before any contact, pushing,
+  grasping, or placing experiment.
+- Compute lifecycle: the existing instance was started after the unchanged
+  `$1.58784/hour` quote was verified. Stop was requested at approximately
+  08:35 PDT after artifact retrieval and human review; Brev reported
+  `STOPPING` during asynchronous cleanup and terminal `STOPPED` at 08:44 PDT.
+  The instance and persistent disk were retained; neither was deleted or
+  resized.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -411,9 +453,10 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the Goal 4 local-preparation
-PR. In a later short paid window, obtain a fresh quote and explicit approval,
-run `make dofbot-reach`, inspect the immutable machine contract, and only then
-open `make dofbot-reach-view`. Do not mark Goal 4 complete until the machine
-gate passes and the user confirms the table, stationary cube, both approach
-paths, open gripper, and neutral reset.
+Keep the Brev instance stopped and review/merge PR #21 after its corrected v2
+evidence update. Before another paid run, do the free local design work for the
+next task contract: choose a less trivial table height and cube distance,
+define the grasp frame at the fingers rather than `Wrist_Twist`, and add
+orientation, preferred-posture, collision, and smoothness constraints. Goal 4
+does not authorize contact or grasping; those require a new explicit machine
+and Viewer gate.

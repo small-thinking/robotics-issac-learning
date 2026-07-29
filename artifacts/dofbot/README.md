@@ -53,11 +53,50 @@ generated evidence.
 `motion_config_viewer_contract.json` and `motion_config_viewer.log` remain
 ignored machine-specific evidence.
 
-Goal 3 will write `camera_contract.json` and `camera_rgb.png` only after the
-RGB-only machine gate passes on the installed Isaac runtime. The JSON will
-record the original authored camera prim and optics, effective intrinsics and
-pose conventions, five frame summaries, simulation-time cadence, diagnostic
-target projections, and PNG/raw hashes. The PNG is covered by Git LFS. Viewer
-logs and Viewer-only camera artifacts remain ignored machine-specific
-evidence. Until those files are retrieved byte-identically from the remote
-runtime, Goal 3 remains machine pending and visual pending.
+Goal 3 wrote `camera_contract.json` and `camera_rgb.png` after the RGB-only
+machine gate passed on the installed Isaac runtime. The JSON records the
+original authored camera prim and optics, effective intrinsics and pose
+conventions, five frame summaries, simulation-time cadence, diagnostic target
+projections, and PNG/raw hashes. The PNG is covered by Git LFS. Goal 3 later
+passed its separate Viewer gate; Viewer logs and Viewer-only camera artifacts
+remain ignored machine-specific evidence.
+
+Goal 4's approved 2026-07-28 Viewer run wrote
+`reaching_viewer_contract.json` at commit `d12b987`. It was downloaded
+byte-identically after cycle 31; its SHA-256 is
+`37d40d45fcbf1c1e6aadaabf0d42b005d809f5aa61080d1f2ff07327d23cdf49`.
+All eleven machine checks passed. The state controller reduced the
+`Wrist_Twist` waypoint distance from `0.20660 m` to `0.02035 m`, the static
+cube remained fixed, the minimum wrist/table clearance was `0.12693 m`, all 48
+official API calls were accounted for, and the maximum neutral reset error was
+`0.6012 deg`.
+
+The machine artifact remains immutable with its machine-time visual status
+`pending_user_confirmation`. The later human review rejected the physical
+front/back composition: the table and target were placed on world `-Y`, the
+same visible side as the Jetson/electronics carrier, even though the reaching
+motion itself was visible and safe. The three user screenshots were reviewed
+but are intentionally not committed. `reaching_viewer.log` remains ignored
+local evidence; it reached `Simulation App Startup Complete`, `app ready`, and
+32 complete `machine_passed=True` cycles before evidence retrieval.
+
+Goal 4's corrected physical-front run at commit `eb7a266` replaced the tracked
+Viewer artifact on 2026-07-29. The byte-identical downloaded
+`reaching_viewer_contract.json` is from cycle 27 and has SHA-256
+`87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`.
+All fourteen machine checks passed. The v2 frame declares world `+Y` as
+workspace front and world `-Y` as Jetson/electronics rear; the state controller
+reduced the `Wrist_Twist` waypoint distance from `0.21226 m` to `0.02037 m`;
+the static cube remained fixed; minimum wrist/table clearance was
+`0.13258 m`; all 52 official API calls were accounted for; and maximum neutral
+reset error was `0.2028 deg`.
+
+The artifact remains immutable with its machine-time visual status
+`pending_user_confirmation`. The later human review is recorded in the
+experiment and status documents: the user confirmed the table/cube and
+Jetson/electronics were on opposite sides and the arm approached in the
+correct direction. The user also observed that the current scene is close and
+high enough to need only roughly 30°-45° of visible bending, and that the
+position-only controller looks awkward. Four screenshots were reviewed but are
+intentionally not committed. These are task-calibration and motion-quality
+limitations, not failures of the safe, no-contact reaching gate.

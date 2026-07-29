@@ -384,7 +384,7 @@ def _translation_jacobian(
         jacobian_body_id = wrist_body_id
     if jacobian_body_id < 0:
         raise ReachingConfigError("end-effector body cannot be the fixed articulation root")
-    jacobian = robot.root_physx_view.get_jacobians()[
+    jacobian = robot.data.body_link_jacobian_w.torch[
         0,
         jacobian_body_id,
         0:3,
@@ -502,12 +502,14 @@ def _reset_to_neutral(
     arm: DofbotArm,
     yahboom_api: YahboomServoApiAdapter,
     backend: _IsaacJointPositionBackend,
+    duration_ms: int,
+    hold_ms: int,
     render: bool,
 ) -> tuple[float, int] | None:
     api_calls = _issue_angles(
         yahboom_api=yahboom_api,
         angles_deg=NEUTRAL_ANGLES_DEG,
-        duration_ms=CONTROL_INTERVAL_MS,
+        duration_ms=duration_ms,
     )
     if not _step_simulation(
         scene=scene,
@@ -515,7 +517,7 @@ def _reset_to_neutral(
         backend=backend,
         physics_steps=max(
             1,
-            round((CONTROL_INTERVAL_MS / 1000.0) / sim.get_physics_dt()),
+            round(((duration_ms + hold_ms) / 1000.0) / sim.get_physics_dt()),
         ),
         render=render,
     ):
@@ -558,8 +560,8 @@ def main() -> None:
 
     sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(device=args_cli.device))
     sim.set_camera_view(
-        eye=[0.55, 0.55, 0.45],
-        target=[0.0, -0.20, 0.20],
+        eye=[0.55, -0.55, 0.45],
+        target=[0.0, 0.20, 0.20],
     )
     scene = InteractiveScene(DofbotAssetSceneCfg(num_envs=1, env_spacing=2.0))
     _spawn_physical_scene(config)
@@ -656,6 +658,8 @@ def main() -> None:
             arm=arm,
             yahboom_api=yahboom_api,
             backend=backend,
+            duration_ms=config.scripted_baseline.steps[-1].duration_ms,
+            hold_ms=config.scripted_baseline.steps[-1].hold_ms,
             render=render,
         )
         if reset_result is None:
@@ -687,8 +691,11 @@ def main() -> None:
                 "value": config.to_dict(),
             },
             "scene": {
+                "robot_frame": config.robot_frame.to_dict(),
                 "table": config.table.to_dict(),
                 "target_cube": config.target_cube.to_dict(),
+                "table_front_clearance_m": config.table_front_clearance_m,
+                "target_front_clearance_m": config.target_front_clearance_m,
                 "target_prim_has_rigid_body_api": not target_is_static,
                 "approach_target_world_m": list(config.approach_target_world_m),
                 "end_effector_body_name": config.end_effector_body_name,
@@ -711,6 +718,7 @@ def main() -> None:
                 "machine": evaluation,
                 "visual": {
                     "status": "pending_user_confirmation",
+                    "workspace_on_physical_front_opposite_electronics": None,
                     "table_and_static_cube_visible": None,
                     "scripted_and_state_approaches_visible": None,
                     "gripper_remained_open": None,
@@ -740,9 +748,14 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    failure: BaseException | None = None
     try:
         main()
     except MotionConfigError as error:
-        raise ReachingConfigError(str(error)) from error
-    finally:
+        failure = ReachingConfigError(str(error))
+    except BaseException as error:
+        failure = error
+    if failure is not None:
+        raise failure
+    else:
         simulation_app.close()

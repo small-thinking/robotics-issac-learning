@@ -823,3 +823,151 @@
   visual gates remain pending. Goal 4 is not complete.
 - Resource lifecycle: the retained Brev instance was not started;
   `brev ls --json` verified it `STOPPED` at 22:59 PDT.
+
+## 2026-07-28 — Goal 4 machine gate passed but physical front/back Viewer gate failed
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; remote commit: `d12b987`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at `$1.58784/hour`; no instance
+  creation, resize, deletion, disk deletion, physical-hardware command,
+  gripper command, camera controller input, policy, or checkpoint
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach
+  ```
+
+- Installed-runtime fixes: use Isaac Lab 3.0's public
+  `robot.data.body_link_jacobian_w.torch` link Jacobian instead of the direct
+  PhysX view; preserve nonzero failure exits; add safe state-command headroom;
+  and allow the neutral trajectory to settle before evaluating reset
+- Machine result: **passed**. Scripted distance improved from `0.20392 m` to
+  `0.06898 m`; state distance improved from `0.20660 m` to `0.02035 m`;
+  minimum wrist/table clearance was `0.12693 m`; 48/48 official API calls were
+  accounted for; maximum neutral reset error was `0.6012 deg`; and every one
+  of the eleven machine checks passed
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
+  ```
+
+- Viewer runtime: `Simulation App Startup Complete`, `app ready`, and 32
+  complete logged cycles with `machine_passed=True`; the downloaded immutable
+  contract records cycle 31
+- Human result: **failed physical front/back composition**. The user saw the
+  intended safe downward approach, open gripper, no cube contact, and
+  stationary cube, but observed that the table and target were on the same
+  visible side as the Jetson/electronics carrier. The motion strategy itself
+  was accepted.
+- Root cause: the Goal 4 parser explicitly forced the table into world `-Y`.
+  Goal 3's neutral camera optical fixture also occupied `-Y`, but its contract
+  explicitly disclaimed any realistic tabletop or physical-mount meaning.
+  Camera optical forward was therefore incorrectly reused as robot workspace
+  front.
+- Evidence: `artifacts/dofbot/reaching_viewer_contract.json`, SHA-256
+  `37d40d45fcbf1c1e6aadaabf0d42b005d809f5aa61080d1f2ff07327d23cdf49`.
+  The three user screenshots and full Viewer log were reviewed but remain
+  uncommitted supporting evidence.
+- Resource lifecycle: stop was requested at approximately 23:33 PDT, after the
+  active run and visual review. Brev remained `STOPPING` with shell access
+  unavailable during control-plane cleanup; `brev ls --json` reported terminal
+  `STOPPED` at 23:47 PDT. The instance and existing disk were retained.
+- Conclusion: Goal 4 is **not complete**. Local and remote machine gates pass,
+  but a new base-frame front/rear contract, corrected work-side scene, and
+  fresh machine plus Viewer validation are required.
+
+## 2026-07-28 — Goal 4 physical-front correction passed local preparation
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; PR #21 remains Draft
+- Scope: local correction only; no Brev/GPU start, Isaac execution, real
+  hardware, gripper command, cube contact/motion, camera controller input,
+  policy, checkpoint, PPO, or VLA
+- Root-frame contract: the user-reviewed Isaac Perspective layout defines
+  world `+Y` as the workspace front and world `-Y` as the
+  Jetson/electronics rear; the official robot asset remains unrotated
+- Corrected scene: table center `(0.00, +0.25, 0.10) m`, target cube center
+  `(0.00, +0.18, 0.145) m`, approach waypoint
+  `(0.00, +0.18, 0.235) m`, and exactly `0.10 m` clearance from the base to
+  the nearest table edge
+- Corrected scripted comparison: the accepted rear-side poses were mirrored
+  around neutral to `[90,82,80,82]`, `[90,76,75,79]`, and
+  `[90,82,80,82]`; neutral start/end, 20 Yahboom-shaped pose-boundary API
+  calls, and the 60°-120° envelope are unchanged
+- Fail-closed additions: schema v2 requires the known front/rear vectors,
+  rejects a relabeled frame and any rear-side table or target, records both
+  front clearances, adds three orientation checks to the machine contract,
+  and mirrors the default Perspective camera across world `Y`
+- Commands:
+
+  ```bash
+  make test
+  make dofbot-reach-dry-run
+  make show-dofbot-reach
+  make show-dofbot-reach-view
+  ```
+
+- Local result: all 112 repository tests passed, including 15 focused Goal 4
+  tests; the dry-run reported every preparation check true and
+  `gpu_started=false`; targeted Ruff, shell syntax, and both remote command
+  previews passed
+- Acceptance: **corrected v2 local preparation passed / corrected v2 remote
+  machine pending / corrected v2 Viewer pending**. The historical v1 remote
+  artifact remains immutable evidence but cannot satisfy the corrected gate.
+  Goal 4 is not complete.
+
+## 2026-07-29 — Goal 4 corrected physical-front reaching passed remote and Viewer gates
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; commit: `eb7a266`; PR #21
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the unchanged live quote of
+  `$1.58784/hour`; no instance creation, resize, deletion, disk deletion,
+  physical-hardware command, gripper command, camera controller input, policy,
+  checkpoint, PPO, or VLA
+- Corrected frame and scene: world `+Y` workspace front, world `-Y`
+  Jetson/electronics rear, table center `(0.00, +0.25, 0.10) m`, static cube
+  center `(0.00, +0.18, 0.145) m`, and `Wrist_Twist` approach waypoint
+  `(0.00, +0.18, 0.235) m`
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach
+  ```
+
+- Headless result: **passed 14/14 checks**. Scripted distance improved from
+  `0.18821 m` to `0.07579 m`; state-controller distance improved from
+  `0.21226 m` to `0.02037 m`; minimum wrist/table clearance was `0.13258 m`;
+  52/52 Yahboom-shaped calls matched; and neutral reset error was
+  `0.2295 deg`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
+  ```
+
+- Viewer runtime: `Simulation App Startup Complete`, `app ready`, and repeated
+  `machine_passed=True` cycles. The byte-identical downloaded cycle-27
+  artifact again passed 14/14 checks and has SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`.
+- Human result: **passed the corrected physical-front, safe no-contact reaching
+  gate**. The user confirmed that the table/cube and Jetson/electronics are on
+  opposite sides and that the arm bends toward the correct work side. The open
+  gripper and static cube remained visible. Four user screenshots were
+  reviewed but intentionally not committed.
+- Limitation: the user observed only roughly 30°-45° of needed visible bending
+  and an awkward motion. The table/cube are close and high, the controlled
+  point is `Wrist_Twist` rather than a fingertip grasp frame, and the 5 Hz
+  translation-only damped-least-squares controller has no orientation target,
+  preferred elbow posture, collision-aware task geometry, or acceleration
+  smoothing. This is acceptable for Goal 4 approach validation but is not
+  grasp readiness.
+- Local regression after evidence update: `make test` passed all 112 tests;
+  the tracked artifact's commit, cycle, 14 checks, and machine pass were
+  verified with `jq`; `git diff --check` passed
+- Resource lifecycle: stop was requested at approximately 08:35 PDT; terminal
+  `STOPPED` was verified with `brev ls --json` at 08:44 PDT. The instance and
+  persistent disk were retained; neither was deleted or resized.
+- Conclusion: Goal 4 is **complete for safe, policy-free, no-contact reaching**.
+  Before any contact or grasping experiment, recalibrate table height and
+  target distance, define the finger grasp pose, and add pose-aware IK,
+  preferred-posture, collision, and trajectory-smoothness constraints.

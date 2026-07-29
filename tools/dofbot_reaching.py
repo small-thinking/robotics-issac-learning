@@ -31,10 +31,13 @@ except ImportError:
         parse_motion_config,
     )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 CONTROLLED_JOINT_COUNT = 4
 EXPECTED_END_EFFECTOR_BODY = "Wrist_Twist"
+EXPECTED_WORKSPACE_FRONT_WORLD_UNIT = (0.0, 1.0, 0.0)
+EXPECTED_ELECTRONICS_REAR_WORLD_UNIT = (0.0, -1.0, 0.0)
 MAX_STATE_CONTROLLER_STEPS = 100
+STATE_COMMAND_LIMIT_MARGIN_DEG = 4
 _NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
@@ -77,6 +80,20 @@ class TargetCube(BoxGeometry):
 
 
 @dataclass(frozen=True)
+class RobotFrame:
+    workspace_front_world_unit: tuple[float, float, float]
+    electronics_rear_world_unit: tuple[float, float, float]
+    provenance: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "workspace_front_world_unit": list(self.workspace_front_world_unit),
+            "electronics_rear_world_unit": list(self.electronics_rear_world_unit),
+            "provenance": self.provenance,
+        }
+
+
+@dataclass(frozen=True)
 class StateControllerConfig:
     control_hz: int
     maximum_steps: int
@@ -111,6 +128,7 @@ class StateControllerConfig:
 @dataclass(frozen=True)
 class DofbotReachingConfig:
     name: str
+    robot_frame: RobotFrame
     table: BoxGeometry
     target_cube: TargetCube
     robot_base_keepout_radius_m: float
@@ -132,14 +150,31 @@ class DofbotReachingConfig:
             )
         )
 
+    @property
+    def table_front_clearance_m(self) -> float:
+        return _box_front_clearance_m(
+            self.table,
+            self.robot_frame.workspace_front_world_unit,
+        )
+
+    @property
+    def target_front_clearance_m(self) -> float:
+        return _box_front_clearance_m(
+            self.target_cube,
+            self.robot_frame.workspace_front_world_unit,
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": SCHEMA_VERSION,
             "name": self.name,
             "scene": {
+                "robot_frame": self.robot_frame.to_dict(),
                 "table": self.table.to_dict(),
                 "target_cube": self.target_cube.to_dict(),
                 "robot_base_keepout_radius_m": (self.robot_base_keepout_radius_m),
+                "table_front_clearance_m": self.table_front_clearance_m,
+                "target_front_clearance_m": self.target_front_clearance_m,
             },
             "end_effector": {
                 "body_name": self.end_effector_body_name,
@@ -229,6 +264,64 @@ def _box(value: Any, label: str, *, target: bool) -> BoxGeometry | TargetCube:
             raise ReachingConfigError(f"{label}.static must be true")
         return TargetCube(**common, static=True)
     return BoxGeometry(**common)
+
+
+def _robot_frame(value: Any) -> RobotFrame:
+    raw = _strict_object(
+        value,
+        {
+            "workspace_front_world_unit",
+            "electronics_rear_world_unit",
+            "provenance",
+        },
+        "scene.robot_frame",
+    )
+    workspace_front = _vector3(
+        raw["workspace_front_world_unit"],
+        "scene.robot_frame.workspace_front_world_unit",
+    )
+    electronics_rear = _vector3(
+        raw["electronics_rear_world_unit"],
+        "scene.robot_frame.electronics_rear_world_unit",
+    )
+    if workspace_front != EXPECTED_WORKSPACE_FRONT_WORLD_UNIT:
+        raise ReachingConfigError(
+            "scene.robot_frame.workspace_front_world_unit must equal world +Y"
+        )
+    if electronics_rear != EXPECTED_ELECTRONICS_REAR_WORLD_UNIT:
+        raise ReachingConfigError(
+            "scene.robot_frame.electronics_rear_world_unit must equal world -Y"
+        )
+    if any(
+        not math.isclose(front, -rear, abs_tol=1e-9)
+        for front, rear in zip(workspace_front, electronics_rear, strict=True)
+    ):
+        raise ReachingConfigError("workspace front and electronics rear must be opposite")
+    provenance = raw["provenance"]
+    if not isinstance(provenance, str) or len(provenance.strip()) < 20:
+        raise ReachingConfigError(
+            "scene.robot_frame.provenance must explain the physical frame calibration"
+        )
+    return RobotFrame(
+        workspace_front_world_unit=workspace_front,
+        electronics_rear_world_unit=electronics_rear,
+        provenance=provenance.strip(),
+    )
+
+
+def _box_front_clearance_m(
+    box: BoxGeometry,
+    workspace_front_world_unit: tuple[float, float, float],
+) -> float:
+    front_x, front_y, _ = workspace_front_world_unit
+    center_projection = (
+        box.center_world_m[0] * front_x + box.center_world_m[1] * front_y
+    )
+    half_extent_projection = (
+        abs(front_x) * box.size_m[0] / 2.0
+        + abs(front_y) * box.size_m[1] / 2.0
+    )
+    return center_projection - half_extent_projection
 
 
 def _state_controller(value: Any) -> StateControllerConfig:
@@ -341,9 +434,15 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
 
     scene = _strict_object(
         raw["scene"],
-        {"table", "target_cube", "robot_base_keepout_radius_m"},
+        {
+            "robot_frame",
+            "table",
+            "target_cube",
+            "robot_base_keepout_radius_m",
+        },
         "scene",
     )
+    robot_frame = _robot_frame(scene["robot_frame"])
     table = _box(scene["table"], "scene.table", target=False)
     target = _box(scene["target_cube"], "scene.target_cube", target=True)
     assert isinstance(table, BoxGeometry)
@@ -363,9 +462,26 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
         cube_half = target.size_m[axis] / 2.0
         if abs(target.center_world_m[axis] - table.center_world_m[axis]) + cube_half > table_half:
             raise ReachingConfigError("target cube footprint must stay on table")
-    table_near_edge_y = table.center_world_m[1] + table.size_m[1] / 2.0
-    if table_near_edge_y > -keepout:
-        raise ReachingConfigError("table must remain outside robot base keepout")
+    table_front_clearance = _box_front_clearance_m(
+        table,
+        robot_frame.workspace_front_world_unit,
+    )
+    if table_front_clearance < keepout and not math.isclose(
+        table_front_clearance,
+        keepout,
+        abs_tol=1e-9,
+    ):
+        raise ReachingConfigError(
+            "table must remain on the workspace-front side outside robot base keepout"
+        )
+    target_front_clearance = _box_front_clearance_m(
+        target,
+        robot_frame.workspace_front_world_unit,
+    )
+    if target_front_clearance <= 0.0:
+        raise ReachingConfigError(
+            "target cube must remain on the workspace-front side of the robot base"
+        )
 
     end_effector = _strict_object(
         raw["end_effector"],
@@ -411,6 +527,7 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
 
     return DofbotReachingConfig(
         name=raw["name"],
+        robot_frame=robot_frame,
         table=table,
         target_cube=target,
         robot_base_keepout_radius_m=keepout,
@@ -537,8 +654,11 @@ def next_state_controller_angles(
     if maximum > controller.maximum_joint_delta_deg:
         scale = controller.maximum_joint_delta_deg / maximum
         scaled_delta_deg = [value * scale for value in scaled_delta_deg]
+    command_min = controller.safe_angle_min_deg + STATE_COMMAND_LIMIT_MARGIN_DEG
+    command_max = controller.safe_angle_max_deg - STATE_COMMAND_LIMIT_MARGIN_DEG
     target = tuple(
-        int(round(angle + delta)) for angle, delta in zip(current, scaled_delta_deg, strict=True)
+        max(command_min, min(command_max, int(round(angle + delta))))
+        for angle, delta in zip(current, scaled_delta_deg, strict=True)
     )
     if any(
         value < controller.safe_angle_min_deg or value > controller.safe_angle_max_deg
@@ -663,6 +783,19 @@ def evaluate_reaching_observations(
         "maximum_neutral_reset_error_deg",
     )
     checks = {
+        "robot_frame_matches_physical_front_rear_contract": (
+            config.robot_frame.workspace_front_world_unit
+            == EXPECTED_WORKSPACE_FRONT_WORLD_UNIT
+            and config.robot_frame.electronics_rear_world_unit
+            == EXPECTED_ELECTRONICS_REAR_WORLD_UNIT
+        ),
+        "table_on_workspace_front_outside_base_keepout": (
+            config.table_front_clearance_m
+            >= config.robot_base_keepout_radius_m - 1e-9
+        ),
+        "target_cube_on_workspace_front": (
+            config.target_front_clearance_m > 0.0
+        ),
         "end_effector_body_present": end_effector_body_present is True,
         "physical_table_prim_present": table_prim_present is True,
         "static_target_cube_prim_present": target_prim_present is True,

@@ -154,3 +154,34 @@ each sample expands to four documented `Arm_serial_servo_write` calls. This
 compiled representation is the stable boundary that later scripts, state
 machines, policies, or VLA action decoders can produce without changing the
 Isaac or physical backends.
+
+## 2026-07-28 — Separate camera optical forward from robot workspace front
+
+Goal 3 placed diagnostic objects in the neutral camera's optical plane. That
+proved camera geometry and link binding, but it deliberately did not define a
+physical tabletop or robot-base frame. Goal 4 incorrectly reused the optical
+plane's world `-Y` side as the work side and even made the parser reject tables
+outside that half-plane.
+
+The remote machine gate still passed because Cartesian distance, clearance,
+API-call accounting, and reset checks are invariant to whether a reachable
+target is in front of or behind the base. The Viewer exposed the missing
+semantic contract: the world `-Y` table was visibly on the same side as the
+Jetson/electronics carrier.
+
+Future tabletop tasks must declare a base-frame workspace-front direction and
+an electronics-rear direction independently of the moving camera optical
+axis. The complete robot asset, Jetson carrier, and base frame stay fixed;
+scene placement and safe joint/servo mapping are corrected relative to that
+frame. A local parser test must reject a rear-side table before any renewed
+GPU validation.
+
+For the current official USD and the user-reviewed Perspective layout, this
+contract is world `+Y = workspace front` and world
+`-Y = Jetson/electronics rear`. Goal 4 schema v2 locks those calibrated
+vectors, computes each box's nearest front-side clearance by projection, and
+rejects a relabeled frame or rear-side workspace before Isaac starts. The
+previously machine-accepted `-Y` scripted poses are mirrored around the 90°
+neutral servo angle rather than rotating the complete robot asset. This is a
+simulation-frame correction only; it does not claim the physical-servo
+direction/offset mapping has been hardware-calibrated.

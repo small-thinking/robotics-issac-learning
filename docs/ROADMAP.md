@@ -111,10 +111,12 @@ The detailed first-stage contract lives in
    direction and zero-offset calibration remain a separate fail-closed
    real-hardware gate.
 5. Establish scripted and state-based reaching baselines before adding vision
-   or choosing a learning algorithm. The fixed collision-enabled tabletop,
-   static cube, scripted comparison, damped-least-squares controller, Yahboom
-   API boundary, and local fail-closed tests are prepared; remote Isaac
-   machine and Viewer validation remain pending.
+   or choosing a learning algorithm. The corrected physical-front,
+   collision-enabled tabletop, static cube, scripted comparison,
+   damped-least-squares controller, Yahboom API boundary, and fail-closed tests
+   passed local, remote machine, and user Viewer gates for safe no-contact
+   reaching. Scene calibration and posture-aware pose control are required
+   before contact or grasping.
 
 ## Phase 4 — Demonstrations and imitation learning
 

@@ -52,8 +52,9 @@ lightweight VLA post-training, and optional real hardware.
 - Brev `isaac-launchable-f150a5`: stopped; persistent disk retained.
 - DOFBOT Goals 1-3 plus the vendor-shaped ActionChunk extension: machine- and
   Viewer-accepted.
-- Goal 4 fixed-tabletop reaching: local software preparation complete; remote
-  Isaac machine and Viewer gates remain pending.
+- Goal 4 fixed-tabletop reaching: corrected physical-front v2 passed local,
+  remote Isaac machine, and user Viewer gates for safe no-contact reaching.
+  Scene depth/height and motion quality remain explicit pre-grasp limitations.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -70,18 +71,21 @@ The CartPole stage is complete. The canonical next-stage plan is
    Yahboom API, with machine and Viewer acceptance.
 4. Goal 3: complete — deterministic onboard RGB contract and explicit
    `link4`-camera binding, with machine and Viewer acceptance.
-5. Goal 4: local preparation complete — add a collision-enabled tabletop, a
-   static cube, a safe scripted approach, and a Jacobian state-controller
-   approach through the same Yahboom API. Remote machine and visual checks are
-   the next paid-window work.
+5. Goal 4: complete for safe no-contact reaching — the collision-enabled
+   tabletop, static cube, corrected physical-front frame, safe scripted
+   approach, and Jacobian state-controller approach passed local, remote
+   machine, and visual gates through the same Yahboom API.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
 OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
-No GPU should be started for local code, tests, documentation, or chart
-rendering. Any remote run requires a new cost quote, explicit approval, and
-prompt shutdown after validation.
+Before any contact or grasping work, recalibrate table height and target
+distance, define a fingertip grasp pose instead of using `Wrist_Twist` alone,
+and add orientation, preferred-posture, collision, and trajectory-smoothness
+constraints. No GPU should be started for that local design, tests,
+documentation, or chart rendering. Any later remote run requires a new cost
+quote, explicit approval, and prompt shutdown after validation.
 
 ## Sources of truth
 
