@@ -2,14 +2,12 @@
 
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
-  the ActionChunk v1 pose-boundary API extension is also machine- and
-  Viewer-accepted; Goal 3 onboard RGB capture reached the remote machine gate
-  and its dynamic-camera binding remediation is locally implemented, with
-  remote machine and Viewer revalidation still pending
+- Current experiment: Phase 3 / `02_dofbot`, Goals 1, 2, and 3 — complete;
+  the ActionChunk v1 pose-boundary API extension and the explicit onboard
+  camera binding are machine- and Viewer-accepted
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  21:11 PDT after the Goal 3 diagnostic window
+  22:22 PDT after Goal 3 acceptance
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -31,9 +29,11 @@
   This is an explicit simulator observation rate, not a claim about the
   unresolved physical camera model, exposure, transport latency, or measured
   hardware FPS.
-- Deterministic static scene: red cube, green cylinder, and blue cuboid on the
-  tabletop, placed at a fixed forward distance and lateral spacing using the
-  authored camera frame
+- Deterministic static scene: a red cube, green cylinder, and blue cuboid in a
+  world-fixed optical calibration plane `0.32 m` in front of the settled
+  neutral camera, with `0.08 m` lateral spacing. The objects intentionally
+  float above the robot; this validates camera geometry and dynamic binding,
+  not a physically realistic tabletop scene.
 - Planned remote inspection: authored focal length, horizontal and vertical
   aperture, aperture offsets, clipping range, focus distance, f-stop, derived
   field of view, world transform, ROS/OpenGL pose, and the effective intrinsic
@@ -47,19 +47,18 @@
   inside the image, the fixed `link4`-to-camera extrinsic round-trips within
   tolerance, the applied camera world pose matches that extrinsic, the camera
   pose changes with `link4`, and the PNG is saved with a SHA-256
-- Local validation: `make test` passed all 94 tests; targeted Ruff, Python
+- Local validation: `make test` passed all 97 tests; targeted Ruff, Python
   compilation, and `git diff --check` passed
 - Remote static sensor facts on Isaac Sim `6.0.1`: the official prim is a
   `UsdGeom.Camera`; the sensor initializes; RGB is
   `torch.uint8[1,480,640,3]`; five frames advance at the exact configured
   `0.1 s` simulation cadence; the effective intrinsic matrix has
   `fx=fy=732.9993`, `cx=320`, and `cy=240`
-- Dynamic blocker: after accepted ActionChunk poses were written and at least
-  one full camera update period was rendered, `camera.data.pos_w` and
-  `camera.data.quat_w_opengl` remained at the neutral authored pose. The
-  Camera `FrameView` therefore did not follow the PhysX articulation link in
-  this runtime. A static prim-bound Viewer would not show a changing onboard
-  view and was intentionally not offered for acceptance.
+- Remote binding result at `dbd09a7`: the official camera remained the sensor
+  prim, while the explicit adapter followed live `link4` motion. Maximum
+  dynamic translation was `0.065636 m` and maximum dynamic rotation was
+  `57.4071 deg`; maximum applied position/orientation errors were
+  `1.46e-8 m` and `1.12e-5 deg`.
 - Rejected diagnostic: a 180-degree optical-frame flip made all target centers
   project inside the image but rendered five all-zero frames because the view
   pointed into the robot body. This is not a valid camera calibration and was
@@ -73,13 +72,18 @@
   `(x,y,z,w)` quaternion boundary is explicitly converted to the internal
   scalar-first transform representation; the adapter does not create a
   replacement camera or change the official optics.
-- Current acceptance: remediation local pass / prior remote machine fail /
-  user visual not run. Goal 3 is not complete until a fresh machine artifact
-  passes the new pose-binding gates and the user confirms the changing
-  onboard view.
-- Compute lifecycle: stop requested after the failed machine gate; Brev stayed
-  in asynchronous `STOPPING` before terminal `STOPPED` was verified at
-  21:11 PDT. Instance and persistent disk were retained.
+- Current acceptance: **complete**. All machine checks passed, including
+  non-constant RGB, exact 10 Hz simulation cadence, three in-frame target
+  centers, fixed-extrinsic round-trip, applied-pose accuracy, and dynamic
+  camera motion. At 2026-07-28 22:13 PDT the user confirmed the onboard view
+  contained the red cube, green cylinder, and blue cuboid, then switched to
+  Perspective and confirmed their expected world-relative placement above the
+  moving DOFBOT.
+- Machine evidence: `artifacts/dofbot/camera_contract.json`; captured RGB:
+  `artifacts/dofbot/camera_rgb.png` through Git LFS.
+- Compute lifecycle: stop requested immediately after visual acceptance;
+  terminal `STOPPED` was verified with `brev ls --json` at 22:22 PDT.
+  Instance and persistent disk were retained, with no deletion or resize.
 
 ## DOFBOT Goal 1 machine result
 

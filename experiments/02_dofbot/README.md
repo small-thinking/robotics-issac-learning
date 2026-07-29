@@ -348,8 +348,8 @@ disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **explicit link4-camera binding locally ready; remote machine
-revalidation and Viewer confirmation pending**
+Status: **complete; explicit link4-camera binding passed machine and Viewer
+gates**
 
 The baseline reuses the exact camera prim discovered in Goal 1:
 `/World/envs/env_0/Dofbot/link4/Camera`. It binds `CameraCfg` with
@@ -364,15 +364,16 @@ The strict input is
 - one authored onboard camera;
 - RGB only at `640x480`;
 - a `0.1 s` update period, or nominal 10 Hz in simulation time;
-- three static tabletop diagnostics: a red cube, green cylinder, and blue
-  cuboid.
+- three world-fixed optical-plane diagnostics: a red cube, green cylinder,
+  and blue cuboid.
 
 The three shapes and colors make orientation, mirroring, cropping, field of
 view, and basic color failures visible without introducing a CV pipeline. They
-are placed deterministically in the camera's planar forward direction before
-simulation starts. Their actual world centers and projected pixel centers are
-recorded in the result. This initial sparse scene is a calibration fixture,
-not domain randomization or a finished photorealistic task environment.
+are spawned once in a plane `0.32 m` in front of the settled neutral camera,
+with `0.08 m` lateral spacing. Their actual world centers and projected pixel
+centers are recorded in the result. They intentionally float above the robot,
+so this sparse scene is a camera-geometry fixture, not domain randomization, a
+tabletop claim, or a finished photorealistic environment.
 
 The sensor's conceptual inputs are scene radiance, the link-mounted camera
 pose, authored USD optics, and simulation timing. Its Goal 3 output is
@@ -407,7 +408,7 @@ that the Viewer shows the same red cube, green cylinder, and blue cuboid as the
 saved RGB PNG. Depth, segmentation, feature extraction, CV training, arm
 motion, policies, checkpoints, and real hardware are out of scope.
 
-Local preparation passed all 80 repository tests plus targeted Ruff, Python
+Final local preparation passed all 97 repository tests plus targeted Ruff, Python
 compilation, shell syntax, remote-command preview, Git LFS, and diff checks.
 The first remote window confirmed the expected RGB tensor shape, dtype,
 intrinsics, advancing frames, and 10 Hz simulation-time cadence. It also found
@@ -429,9 +430,17 @@ public `(x,y,z,w)` quaternion order is converted explicitly at the boundary
 to the scalar-first order used by the pure transform math. The contract names
 this as adapter behavior and records calibration, desired/actual pose error,
 and observed dynamic motion rather than claiming automatic prim following.
-Pure transform, strict config, machine-gate, and runner-wiring tests pass
-locally. Goal 3 remains open until a new machine artifact passes and the user
-confirms the changing onboard view.
+Pure transform, strict config, machine-gate, and runner-wiring tests passed
+locally. The remote run at `dbd09a7` then passed every machine check: five
+non-constant `uint8[1,480,640,3]` RGB frames arrived at exact `0.1 s`
+simulation intervals; all three target centers projected inside the image;
+maximum camera motion across accepted ActionChunk poses was `0.065636 m` and
+`57.4071 deg`; and maximum applied binding error was `1.46e-8 m` and
+`1.12e-5 deg`. At 2026-07-28 22:13 PDT the user saw the three targets in the
+onboard view, switched to Perspective, and confirmed the corresponding
+world-fixed fixture above the moving DOFBOT. Goal 3 therefore passed both
+machine and visual gates. A realistic tabletop composition remains a later
+physical-mount/joint-calibration task.
 
 ## Later milestones
 

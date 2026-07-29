@@ -1,0 +1,684 @@
+{
+  "schema_version": 1,
+  "experiment": "02_dofbot_goal_3_onboard_rgb",
+  "generated_at_utc": "2026-07-29T05:06:11.696407+00:00",
+  "git_commit": "dbd09a777756f9d449fd493e47aa1fe28f6de9d8",
+  "asset_contract": {
+    "path": "/workspace/robotics-issac-learning/artifacts/dofbot/asset_contract.json",
+    "sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2"
+  },
+  "camera_config": {
+    "path": "/workspace/robotics-issac-learning/configs/dofbot/camera/goal3_onboard_rgb.json",
+    "sha256": "91a7a021476617e99a05bcf74c690847b5ade84b1b90920d1d7034819e830c73",
+    "value": {
+      "schema_version": 1,
+      "name": "goal3_onboard_rgb_v1",
+      "camera": {
+        "prim_path": "/World/envs/env_0/Dofbot/link4/Camera",
+        "data_types": [
+          "rgb"
+        ],
+        "width": 640,
+        "height": 480,
+        "update_period_s": 0.1,
+        "nominal_frequency_hz": 10.0,
+        "warmup_frames": 10,
+        "capture_frames": 5
+      },
+      "pose_binding": {
+        "mode": "explicit_link4_world_pose_sync",
+        "parent_body": "link4",
+        "orientation_convention": "opengl",
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 0.5,
+        "minimum_dynamic_translation_m": 0.005,
+        "minimum_dynamic_rotation_deg": 2.0
+      },
+      "target_scene": {
+        "placement": "camera_forward_optical_plane",
+        "forward_distance_m": 0.32,
+        "lateral_spacing_m": 0.08,
+        "targets": [
+          {
+            "name": "red_cube",
+            "prim_path": "/World/CameraTargets/RedCube",
+            "shape": "cuboid",
+            "size_m": [
+              0.05,
+              0.05,
+              0.05
+            ],
+            "color_rgb": [
+              0.8,
+              0.05,
+              0.05
+            ],
+            "lateral_index": -1
+          },
+          {
+            "name": "green_cylinder",
+            "prim_path": "/World/CameraTargets/GreenCylinder",
+            "shape": "cylinder",
+            "size_m": [
+              0.03,
+              0.06
+            ],
+            "color_rgb": [
+              0.05,
+              0.8,
+              0.05
+            ],
+            "lateral_index": 0
+          },
+          {
+            "name": "blue_cuboid",
+            "prim_path": "/World/CameraTargets/BlueCuboid",
+            "shape": "cuboid",
+            "size_m": [
+              0.08,
+              0.04,
+              0.05
+            ],
+            "color_rgb": [
+              0.05,
+              0.15,
+              0.8
+            ],
+            "lateral_index": 1
+          }
+        ]
+      }
+    }
+  },
+  "camera_pose_motion_config": {
+    "path": "/workspace/robotics-issac-learning/configs/dofbot/motions/safe_api_wave.json",
+    "sha256": "f53389a4742a7dfae854f675286eab1a10169bb9045458691b787329fb167cd7",
+    "selected_angles_deg": [
+      90,
+      90,
+      90,
+      90
+    ],
+    "candidate_measurements": [
+      {
+        "step_name": "neutral_start",
+        "angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "expected_camera_world": {
+          "translation_m": [
+            -0.0006147908770393583,
+            -0.055231340942469544,
+            0.32575140582039724
+          ],
+          "rotation_wxyz": [
+            -0.2038807763687313,
+            0.9789957098086967,
+            -0.00016470449650344993,
+            -4.5561810398692285e-05
+          ]
+        },
+        "actual_camera_world": {
+          "translation_m": [
+            -0.0006147908861748874,
+            -0.05523134022951126,
+            0.325751394033432
+          ],
+          "rotation_wxyz": [
+            -0.20388076368300545,
+            0.9789957124508808,
+            -0.00016471744116058055,
+            -4.550814775686747e-05
+          ]
+        },
+        "binding_position_error_m": 1.1808511441891189e-08,
+        "binding_orientation_error_deg": 6.15664931839995e-06,
+        "dynamic_translation_from_calibration_m": 0.019456443475929855,
+        "dynamic_rotation_from_calibration_deg": 23.671014911708802,
+        "camera_forward_world": [
+          2.193912767964944e-05,
+          -0.3991968019857188,
+          0.9168652642580863
+        ],
+        "valid_optical_plane_fixture": true,
+        "target_distances_m": [
+          0.3298484500494128,
+          0.32,
+          0.3298484500494129
+        ],
+        "score": 0.019696900098825687
+      },
+      {
+        "step_name": "pose_positive",
+        "angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "expected_camera_world": {
+          "translation_m": [
+            0.01291827162144256,
+            -0.03499019745915548,
+            0.2796043608790379
+          ],
+          "rotation_wxyz": [
+            -0.44673385868299437,
+            0.8776742561557616,
+            0.15372877975230745,
+            -0.08052466618061646
+          ]
+        },
+        "actual_camera_world": {
+          "translation_m": [
+            0.01291827205568552,
+            -0.03499019891023636,
+            0.27960437536239624
+          ],
+          "rotation_wxyz": [
+            -0.4467339455347996,
+            0.8776742122454441,
+            0.15372877544449645,
+            -0.08052467116719793
+          ]
+        },
+        "binding_position_error_m": 1.4562344304702835e-08,
+        "binding_orientation_error_deg": 1.1197136397927984e-05,
+        "dynamic_translation_from_calibration_m": 0.06563617846418841,
+        "dynamic_rotation_from_calibration_deg": 57.40707334702799,
+        "camera_forward_world": [
+          0.2787005794590941,
+          -0.7594158092779009,
+          0.5878891184806512
+        ],
+        "valid_optical_plane_fixture": true,
+        "target_distances_m": [
+          0.3298484500494129,
+          0.32,
+          0.3298484500494129
+        ],
+        "score": 0.019696900098825743
+      },
+      {
+        "step_name": "pose_negative",
+        "angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "expected_camera_world": {
+          "translation_m": [
+            -0.02129920970602839,
+            -0.053768632074626996,
+            0.33792619771225274
+          ],
+          "rotation_wxyz": [
+            0.060210153009376655,
+            0.9829273691131536,
+            -0.17364369141202712,
+            -0.008740306384030762
+          ]
+        },
+        "actual_camera_world": {
+          "translation_m": [
+            -0.02129920944571495,
+            -0.05376863107085228,
+            0.3379262089729309
+          ],
+          "rotation_wxyz": [
+            0.060210167056632416,
+            0.9829273606877809,
+            -0.17364373426772853,
+            -0.008740305711131083
+          ]
+        },
+        "binding_position_error_m": 1.130832434823198e-08,
+        "binding_orientation_error_deg": 5.122641877509564e-06,
+        "dynamic_translation_from_calibration_m": 0.022656808885544555,
+        "dynamic_rotation_from_calibration_deg": 21.15854789899016,
+        "camera_forward_world": [
+          0.038092407745687715,
+          0.11532904253844767,
+          0.9925966856781772
+        ],
+        "valid_optical_plane_fixture": true,
+        "target_distances_m": [
+          0.32984845004941277,
+          0.3199999999999999,
+          0.32984845004941277
+        ],
+        "score": 0.01969690009882563
+      }
+    ],
+    "purpose": "safe deterministic camera-forward calibration fixture"
+  },
+  "camera_pose_binding": {
+    "mode": "explicit_link4_world_pose_sync",
+    "parent_body": "link4",
+    "camera_prim_path": "/World/envs/env_0/Dofbot/link4/Camera",
+    "orientation_convention": "opengl",
+    "camera_in_link": {
+      "translation_m": [
+        -0.05276249277137529,
+        -0.05660380383819481,
+        -0.0006170416131224925
+      ],
+      "rotation_wxyz": [
+        -0.1430374825537158,
+        0.6925429528068856,
+        0.14278810425559238,
+        0.692485447056694
+      ]
+    },
+    "sync_timing": "after each physics/articulation update and before its render",
+    "adapter_behavior_applied": true,
+    "adapter_camera_created": false,
+    "calibration": {
+      "link4_world": {
+        "translation_m": [
+          6.8573754106182605e-06,
+          -0.01509119663387537,
+          0.27194440364837646
+        ],
+        "rotation_wxyz": [
+          0.6923586446931306,
+          -0.1439028150120922,
+          0.6923119146494885,
+          -0.14365131320195496
+        ]
+      },
+      "camera_world": {
+        "translation_m": [
+          -0.0005984625313431025,
+          -0.04600647836923599,
+          0.3428819179534912
+        ],
+        "rotation_wxyz": [
+          0.0012481808610663924,
+          0.9999992209935372,
+          -7.450580566033096e-08,
+          -7.539987532825493e-06
+        ]
+      },
+      "roundtrip_position_error_m": 1.4304896245381992e-17,
+      "roundtrip_orientation_error_deg": 0.0
+    },
+    "measurements": {
+      "calibration_roundtrip_position_error_m": 1.4304896245381992e-17,
+      "calibration_roundtrip_orientation_error_deg": 0.0,
+      "maximum_applied_position_error_m": 1.4562344304702835e-08,
+      "maximum_applied_orientation_error_deg": 1.1197136397927984e-05,
+      "maximum_dynamic_translation_m": 0.06563617846418841,
+      "maximum_dynamic_rotation_deg": 57.40707334702799
+    }
+  },
+  "camera": {
+    "prim_path": "/World/envs/env_0/Dofbot/link4/Camera",
+    "prim_type_name": "Camera",
+    "reused_authored_prim": true,
+    "adapter_camera_created": false,
+    "explicit_pose_adapter_applied": true,
+    "optics_authored_in_usd": {
+      "projection": "perspective",
+      "focal_length": 0.23999999463558197,
+      "horizontal_aperture": 0.20954999327659607,
+      "vertical_aperture": 0.15290799736976624,
+      "horizontal_aperture_offset": 0.0,
+      "vertical_aperture_offset": 0.0,
+      "clipping_range": [
+        0.009999999776482582,
+        10000.0
+      ],
+      "focus_distance": 4.0,
+      "f_stop": 0.0,
+      "derived_horizontal_fov_deg": 47.16855361090652,
+      "derived_vertical_fov_deg": 35.33942333752354
+    },
+    "world_transform_matrix": [
+      [
+        0.9999999414086526,
+        -0.0003045680249529985,
+        -0.00015627222936084067,
+        0.0
+      ],
+      [
+        -0.00034163084828933666,
+        -0.9168719942653725,
+        -0.3991811987308554,
+        0.0
+      ],
+      [
+        -2.170380128654263e-05,
+        0.39918122872970535,
+        -0.9168720445944396,
+        0.0
+      ],
+      [
+        -0.0006148321554064751,
+        -0.055228911340236664,
+        0.3257524371147156,
+        1.0
+      ]
+    ],
+    "sensor_pose": {
+      "position_world_m": [
+        -0.0006148321554064751,
+        -0.055228911340236664,
+        0.3257524371147156
+      ],
+      "quaternion_world_ros_xyzw": [
+        0.2038724422454834,
+        4.544854164123535e-05,
+        -0.00016501545906066895,
+        0.9789974093437195
+      ],
+      "quaternion_world_opengl_xyzw": [
+        0.9789974093437195,
+        -0.00016501545906066895,
+        -4.544854164123535e-05,
+        -0.2038724422454834
+      ]
+    },
+    "intrinsic_matrix": [
+      [
+        732.999267578125,
+        0.0,
+        320.0
+      ],
+      [
+        0.0,
+        732.999267578125,
+        240.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "frame_conventions": {
+      "usd_opengl": "forward -Z, up +Y",
+      "ros": "forward +Z, up -Y"
+    }
+  },
+  "observation_interface": {
+    "input": {
+      "scene": "world-fixed camera-forward calibration targets plus DOFBOT and renderer lighting",
+      "camera_pose": "fixed link4-to-camera extrinsic calibrated from the official USD and synchronized from live link4 state",
+      "intrinsics": "authored USD optics sampled into the Isaac camera",
+      "timing": "simulation-time update_period_s"
+    },
+    "output": {
+      "key": "rgb",
+      "shape": [
+        1,
+        480,
+        640,
+        3
+      ],
+      "dtype": "torch.uint8",
+      "layout": "NHWC",
+      "color_order": "RGB",
+      "device": "cpu"
+    },
+    "nominal_frequency_hz": 10.0,
+    "frequency_basis": "simulation time, not a physical-camera claim"
+  },
+  "target_scene": {
+    "static": true,
+    "placement": "camera_forward_optical_plane",
+    "targets": [
+      {
+        "name": "red_cube",
+        "prim_path": "/World/CameraTargets/RedCube",
+        "world_center_m": [
+          -0.08060776569286508,
+          -0.18295000015570226,
+          0.6191607801958965
+        ],
+        "camera_center_opengl_m": [
+          -0.07999988066668583,
+          8.123356942349447e-06,
+          -0.3200000324392286
+        ],
+        "depth_m": 0.3200000324392286,
+        "pixel_center_xy": [
+          136.75047502954723,
+          239.98139245598313
+        ],
+        "center_in_frame": true
+      },
+      {
+        "name": "green_cylinder",
+        "prim_path": "/World/CameraTargets/GreenCylinder",
+        "world_center_m": [
+          -0.0006077703653173996,
+          -0.18297431686494123,
+          0.6191482785960195
+        ],
+        "camera_center_opengl_m": [
+          1.193332993116832e-07,
+          8.078603994307598e-06,
+          -0.32000001314966287
+        ],
+        "depth_m": 0.32000001314966287,
+        "pixel_center_xy": [
+          320.00027334755436,
+          239.9814949669764
+        ],
+        "center_in_frame": true
+      },
+      {
+        "name": "blue_cuboid",
+        "prim_path": "/World/CameraTargets/BlueCuboid",
+        "world_center_m": [
+          0.07939222496223029,
+          -0.1829986335741802,
+          0.6191357769961425
+        ],
+        "camera_center_opengl_m": [
+          0.08000011933328448,
+          8.03385104626575e-06,
+          -0.31999999386009714
+        ],
+        "depth_m": 0.31999999386009714,
+        "pixel_center_xy": [
+          503.2500937581184,
+          239.9815974779821
+        ],
+        "center_in_frame": true
+      }
+    ]
+  },
+  "measurement": {
+    "physics_dt_s": 0.016666666666666666,
+    "frame_samples": [
+      {
+        "frame": 15,
+        "simulation_time_s": 1.0000000000000013,
+        "wall_elapsed_s": 0.6051573360000475,
+        "shape": [
+          1,
+          480,
+          640,
+          3
+        ],
+        "dtype": "torch.uint8",
+        "device": "cpu",
+        "min": 13,
+        "max": 248,
+        "mean": 212.67198181152344,
+        "std": 69.25297546386719,
+        "channel_mean_rgb": [
+          210.68362426757812,
+          214.070556640625,
+          213.26173400878906
+        ],
+        "raw_sha256": "469372a91a950f8ffce5e729b4db8b1f4e5275f819e6df0b9edf88168659095d"
+      },
+      {
+        "frame": 16,
+        "simulation_time_s": 1.100000000000001,
+        "wall_elapsed_s": 0.6478717019999749,
+        "shape": [
+          1,
+          480,
+          640,
+          3
+        ],
+        "dtype": "torch.uint8",
+        "device": "cpu",
+        "min": 14,
+        "max": 247,
+        "mean": 212.6605224609375,
+        "std": 69.2732162475586,
+        "channel_mean_rgb": [
+          210.67050170898438,
+          214.0644989013672,
+          213.24658203125
+        ],
+        "raw_sha256": "ee657d1d006cd59fda75028a0621790966f7e0b1ab35fef8d0ccb55060c6963a"
+      },
+      {
+        "frame": 17,
+        "simulation_time_s": 1.2000000000000006,
+        "wall_elapsed_s": 0.6894954460001372,
+        "shape": [
+          1,
+          480,
+          640,
+          3
+        ],
+        "dtype": "torch.uint8",
+        "device": "cpu",
+        "min": 9,
+        "max": 247,
+        "mean": 212.650146484375,
+        "std": 69.27947998046875,
+        "channel_mean_rgb": [
+          210.65664672851562,
+          214.04812622070312,
+          213.24562072753906
+        ],
+        "raw_sha256": "1d1e3cc04765ddeb560950c511b26ec43bc0703ebe26d23031a6a7f8be60ac08"
+      },
+      {
+        "frame": 18,
+        "simulation_time_s": 1.3000000000000003,
+        "wall_elapsed_s": 0.7304572670000198,
+        "shape": [
+          1,
+          480,
+          640,
+          3
+        ],
+        "dtype": "torch.uint8",
+        "device": "cpu",
+        "min": 6,
+        "max": 246,
+        "mean": 212.66561889648438,
+        "std": 69.2657241821289,
+        "channel_mean_rgb": [
+          210.6577606201172,
+          214.0644989013672,
+          213.27464294433594
+        ],
+        "raw_sha256": "046795103a90c019d2fbe3cb49de608b28e373c1963ec10f32fb552a6048cb09"
+      },
+      {
+        "frame": 19,
+        "simulation_time_s": 1.4,
+        "wall_elapsed_s": 0.7720339990000866,
+        "shape": [
+          1,
+          480,
+          640,
+          3
+        ],
+        "dtype": "torch.uint8",
+        "device": "cpu",
+        "min": 11,
+        "max": 246,
+        "mean": 212.67576599121094,
+        "std": 69.24907684326172,
+        "channel_mean_rgb": [
+          210.6710205078125,
+          214.0703582763672,
+          213.28591918945312
+        ],
+        "raw_sha256": "33726589ec7893d3752ca06cc1259ac1b18296a828e3125f174b4837f53f388b"
+      }
+    ],
+    "wall_capture_elapsed_s": 0.8136840429999666,
+    "rgb_png": {
+      "path": "/workspace/robotics-issac-learning/artifacts/dofbot/camera_rgb.png",
+      "sha256": "26312f05ac910fbc58503ecc537d8cf9a91ec29ba5c2c234af07b56eae17b7f4"
+    }
+  },
+  "viewer": {
+    "requested_onboard_camera": false,
+    "active_camera_selected": false,
+    "visual_status": "not_requested_in_machine_run"
+  },
+  "acceptance": {
+    "machine": {
+      "checks": {
+        "camera_prim_is_usdgeom_camera": true,
+        "sensor_initialized": true,
+        "rgb_only_scope": true,
+        "captured_expected_frame_count": true,
+        "frames_advance": true,
+        "rgb_shape_is_1x480x640x3": true,
+        "rgb_dtype_is_uint8": true,
+        "rgb_is_nonconstant": true,
+        "simulation_time_cadence_is_10_hz": true,
+        "all_target_centers_project_inside_frame": true,
+        "png_saved_with_sha256": true,
+        "link4_camera_calibration_roundtrip": true,
+        "camera_world_pose_matches_binding": true,
+        "camera_pose_changes_with_link4": true
+      },
+      "passed": true,
+      "expected_shape": [
+        1,
+        480,
+        640,
+        3
+      ],
+      "nominal_frequency_hz": 10.0,
+      "cadence_intervals_s": [
+        0.09999999999999964,
+        0.09999999999999964,
+        0.09999999999999964,
+        0.09999999999999964
+      ],
+      "cadence_tolerance_s": 0.025,
+      "pose_binding_tolerances": {
+        "mode": "explicit_link4_world_pose_sync",
+        "parent_body": "link4",
+        "orientation_convention": "opengl",
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 0.5,
+        "minimum_dynamic_translation_m": 0.005,
+        "minimum_dynamic_rotation_deg": 2.0
+      }
+    },
+    "visual": {
+      "status": "not_requested_in_machine_run",
+      "required_view": "onboard RGB view showing the red cube, green cylinder, and blue cuboid"
+    }
+  },
+  "scope": {
+    "rgb_captured": true,
+    "accepted_arm_pose_used_for_camera_orientation": true,
+    "explicit_link4_camera_binding_applied": true,
+    "depth_or_segmentation_captured": false,
+    "computer_vision_loaded": false,
+    "policy_or_checkpoint_loaded": false,
+    "real_hardware_commanded": false
+  }
+}

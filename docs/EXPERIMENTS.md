@@ -742,3 +742,48 @@
 - Conclusion: local remediation passes, but Goal 3 remains incomplete. A
   fresh approved GPU window must produce a passing machine artifact before
   the Viewer is opened for the user's changing-view confirmation.
+
+## 2026-07-28 — onboard RGB camera passed machine and Viewer gates
+
+- Branch: `codex/dofbot-camera-contract`; accepted remote commit: `dbd09a7`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at `$1.58784/hour`; no instance
+  creation, resize, deletion, disk deletion, policy, checkpoint, CV model, or
+  real-hardware command
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+  ```
+
+- Machine result: **passed**. The official
+  `/World/envs/env_0/Dofbot/link4/Camera` remained the `UsdGeom.Camera`;
+  RGB was `torch.uint8[1,480,640,3]` NHWC; five frames advanced at exact
+  `0.1 s` simulation cadence; RGB was non-constant; all three target centers
+  were in frame; and the PNG was hashed.
+- Dynamic binding: maximum observed camera translation/rotation across the
+  accepted ActionChunk poses was `0.065636 m` / `57.4071 deg`. Maximum
+  applied position/orientation error was `1.46e-8 m` / `1.12e-5 deg`.
+- Fixture: red cube, green cylinder, and blue cuboid were spawned once in a
+  world-fixed optical plane `0.32 m` in front of the settled neutral camera.
+  Their floating placement is deliberately diagnostic and is not a realistic
+  tabletop or physical-mount claim.
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera-view
+  ```
+
+- Visual result: **passed** at 2026-07-28 22:13 PDT. The user saw all three
+  targets from the onboard camera, switched the viewport to Perspective, and
+  confirmed the same world-fixed fixture above the moving DOFBOT.
+- Evidence: `artifacts/dofbot/camera_contract.json` and the Git-LFS-tracked
+  `artifacts/dofbot/camera_rgb.png`; the user screenshot was reviewed but is
+  not committed because it is supporting human evidence rather than the
+  canonical machine artifact.
+- Resource lifecycle: stop was requested immediately after visual acceptance;
+  `brev ls --json` verified terminal `STOPPED` at 2026-07-28 22:22 PDT.
+  Instance and existing persistent disk were retained.
+- Conclusion: Goal 3 is complete for simulated RGB observation and explicit
+  `link4` camera binding. Realistic tabletop composition and physical camera
+  calibration remain future work.
