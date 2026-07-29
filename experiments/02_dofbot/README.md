@@ -348,7 +348,8 @@ disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **local contract ready; remote machine and Viewer validation pending**
+Status: **local contract ready; remote machine failed on dynamic pose binding;
+Viewer not run**
 
 The baseline reuses the exact camera prim discovered in Goal 1:
 `/World/envs/env_0/Dofbot/link4/Camera`. It binds `CameraCfg` with
@@ -408,8 +409,23 @@ motion, policies, checkpoints, and real hardware are out of scope.
 
 Local preparation passed all 80 repository tests plus targeted Ruff, Python
 compilation, shell syntax, remote-command preview, Git LFS, and diff checks.
-This does not prove Isaac rendering or visual correctness, so Goal 3 remains
-open.
+The first remote window confirmed the expected RGB tensor shape, dtype,
+intrinsics, advancing frames, and 10 Hz simulation-time cadence. It also found
+that the `CameraCfg(spawn=None)` sensor pose remained fixed at its neutral USD
+pose while accepted ActionChunk poses moved the PhysX articulation. Waiting a
+full sensor update period did not change that result. A static Viewer would
+therefore not demonstrate an onboard view changing with the arm and was not
+started.
+
+A 180-degree optical-axis flip was tested and rejected: although its geometric
+projection placed all target centers inside the frame, the camera looked into
+the robot body and returned five all-zero RGB frames. The current direction is
+an explicit dynamic pose synchronizer: derive a fixed camera-to-`link4`
+extrinsic at neutral, drive the sensor from the live `link4` pose each frame,
+and retain the official prim's optics. That is an adapter behavior and must be
+named in the contract rather than represented as automatic prim following.
+Goal 3 remains open until a new machine artifact passes and the user confirms
+the changing onboard view.
 
 ## Later milestones
 

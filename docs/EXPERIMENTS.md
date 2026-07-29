@@ -666,3 +666,48 @@
 - Conclusion: local software gate passed only. Goal 3 remains remote machine
   pending and visual pending; a fresh price check and explicit paid-window
   approval are required before starting the existing Brev instance.
+
+## 2026-07-28 — onboard RGB remote gate found dynamic-pose blocker
+
+- Branch: `codex/dofbot-camera-contract`; latest remote diagnostic commit:
+  `db701ba`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4; no instance creation, resize,
+  deletion, disk deletion, policy, checkpoint, CV model, or real hardware
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+  ```
+
+- Confirmed sensor contract: official
+  `/World/envs/env_0/Dofbot/link4/Camera` is a `UsdGeom.Camera`; initialized
+  RGB output is `torch.uint8[1,480,640,3]` in NHWC order; five distinct
+  frames advanced at exact `0.1 s` simulation-time intervals
+- Confirmed optics: perspective projection, focal length `0.24`, horizontal
+  aperture `0.20955`, vertical aperture `0.152908`, derived FOV
+  `47.1686 x 35.3394` degrees, and effective intrinsics
+  `fx=fy=732.9993`, `cx=320`, `cy=240`
+- Failure: after direct accepted-pose writes, rendered synchronization, and a
+  wait longer than the configured camera period, the sensor world position
+  and OpenGL quaternion remained at the neutral authored pose. The
+  prim-bound Camera `FrameView` did not follow the live PhysX articulation
+  link, so the requested changing onboard view could not be honestly shown.
+- Rejected diagnostic: a simulation-only 180-degree optical-frame flip put
+  all three target centers inside the geometric image bounds, but every
+  captured pixel was zero in all five frames. The camera was looking into the
+  robot body; the flip was removed and is not an accepted calibration.
+- Machine result: **failed** (`rgb_is_nonconstant=false` in the flip
+  diagnostic; dynamic pose remained fixed in the official-prim diagnostic)
+- Visual result: **not run**. A static or black Viewer would not satisfy the
+  requested acceptance and was intentionally not presented.
+- Next hypothesis: retain the official optical parameters but explicitly
+  synchronize sensor world pose from live `link4` pose using a neutral
+  camera-to-link extrinsic. Record this as adapter behavior, then rerun the
+  immutable machine contract before opening Viewer.
+- Resource lifecycle: stop requested immediately after diagnosis; a second
+  idempotent stop was issued while Brev remained `STOPPING`; terminal
+  `STOPPED` was verified with `brev ls --json` at 21:11 PDT. Instance and
+  existing persistent disk were retained.
+- Conclusion: Goal 3 remains incomplete: local pass / remote machine fail /
+  visual not run.

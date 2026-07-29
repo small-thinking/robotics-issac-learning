@@ -4,11 +4,11 @@
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
   the ActionChunk v1 pose-boundary API extension is also machine- and
-  Viewer-accepted; Goal 3 onboard RGB capture is locally prepared and awaits
-  paid Isaac machine and Viewer validation
+  Viewer-accepted; Goal 3 onboard RGB capture reached the remote machine gate
+  and exposed a dynamic-camera binding blocker
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  19:33 PDT after the final ActionChunk validation window
+  21:11 PDT after the Goal 3 diagnostic window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -16,7 +16,7 @@
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
   compute; checked 2026-07-28 before restart
 
-## DOFBOT Goal 3 local camera gate
+## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
 - Official camera prim retained:
@@ -46,10 +46,28 @@
   inside the image, and the PNG is saved with a SHA-256
 - Local validation: `make test` passed all 80 tests; targeted Ruff, Python
   compilation, shell syntax, and `git diff --check` passed
-- Current acceptance: local pass / remote machine pending / user visual
-  pending. Goal 3 is not complete.
-- Compute lifecycle: no GPU was started for this local preparation; the last
-  verified Brev state remains `STOPPED`
+- Remote static sensor facts on Isaac Sim `6.0.1`: the official prim is a
+  `UsdGeom.Camera`; the sensor initializes; RGB is
+  `torch.uint8[1,480,640,3]`; five frames advance at the exact configured
+  `0.1 s` simulation cadence; the effective intrinsic matrix has
+  `fx=fy=732.9993`, `cx=320`, and `cy=240`
+- Dynamic blocker: after accepted ActionChunk poses were written and at least
+  one full camera update period was rendered, `camera.data.pos_w` and
+  `camera.data.quat_w_opengl` remained at the neutral authored pose. The
+  Camera `FrameView` therefore did not follow the PhysX articulation link in
+  this runtime. A static prim-bound Viewer would not show a changing onboard
+  view and was intentionally not offered for acceptance.
+- Rejected diagnostic: a 180-degree optical-frame flip made all target centers
+  project inside the image but rendered five all-zero frames because the view
+  pointed into the robot body. This is not a valid camera calibration and was
+  removed from the current branch.
+- Current acceptance: local pass / remote machine fail / user visual not run.
+  Goal 3 is not complete. The next implementation must explicitly synchronize
+  the sensor pose from live `link4` state while retaining the official optics,
+  then repeat both gates.
+- Compute lifecycle: stop requested after the failed machine gate; Brev stayed
+  in asynchronous `STOPPING` before terminal `STOPPED` was verified at
+  21:11 PDT. Instance and persistent disk were retained.
 
 ## DOFBOT Goal 1 machine result
 
