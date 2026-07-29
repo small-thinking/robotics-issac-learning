@@ -137,12 +137,6 @@ def _camera_prim(stage: Usd.Stage, path: str) -> Usd.Prim:
     return prim
 
 
-def _world_matrix(prim: Usd.Prim) -> Gf.Matrix4d:
-    return UsdGeom.Xformable(prim).ComputeLocalToWorldTransform(
-        Usd.TimeCode.Default()
-    )
-
-
 def _matrix_from_rigid_transform(transform: RigidTransform) -> Gf.Matrix4d:
     quaternion_values = transform.rotation_wxyz
     quaternion = Gf.Quatd(
@@ -531,17 +525,6 @@ def _select_camera_observation_pose(
     )
 
 
-def _move_targets(
-    positions: dict[str, tuple[float, float, float]],
-) -> None:
-    stage = sim_utils.get_current_stage()
-    for prim_path, position in positions.items():
-        prim = stage.GetPrimAtPath(prim_path)
-        if not prim.IsValid():
-            raise CameraConfigError(f"target prim does not exist: {prim_path}")
-        UsdGeom.XformCommonAPI(prim).SetTranslate(Gf.Vec3d(*position))
-
-
 def _spawn_targets(
     config: DofbotCameraConfig,
     positions: dict[str, tuple[float, float, float]],
@@ -753,12 +736,6 @@ def main() -> None:
     scene = InteractiveScene(scene_cfg)
     stage = sim_utils.get_current_stage()
     camera_prim = _camera_prim(stage, config.prim_path)
-    camera_world_at_spawn = _world_matrix(camera_prim)
-    target_positions = _camera_forward_target_world_positions(
-        config,
-        camera_world_at_spawn,
-    )
-    _spawn_targets(config, target_positions)
 
     sim.reset()
     scene.update(sim.get_physics_dt())
@@ -791,7 +768,11 @@ def main() -> None:
         calibration_roundtrip_error=calibration_roundtrip_error,
         controlled_joint_ids=controlled_joint_ids,
     )
-    _move_targets(target_positions)
+    # Spawn once at the final world poses. Moving already-rendered USD prims after
+    # reset can leave RTX/Fabric with stale transforms when geometry streaming is
+    # enabled in this Isaac Launchable.
+    _spawn_targets(config, target_positions)
+    sim.render()
     sensor_initialized = bool(camera.is_initialized)
     camera_prim_is_usdgeom_camera = bool(camera_prim.IsA(UsdGeom.Camera))
     viewport_camera_selected = False
