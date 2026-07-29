@@ -384,7 +384,7 @@ def _translation_jacobian(
         jacobian_body_id = wrist_body_id
     if jacobian_body_id < 0:
         raise ReachingConfigError("end-effector body cannot be the fixed articulation root")
-    jacobian = robot.root_physx_view.get_jacobians()[
+    jacobian = robot.data.body_link_jacobian_w.torch[
         0,
         jacobian_body_id,
         0:3,

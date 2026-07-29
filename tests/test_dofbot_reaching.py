@@ -238,7 +238,8 @@ class DofbotReachingTest(unittest.TestCase):
             source.index("preflight_config, preflight_config_sha256"),
             source.index("app_launcher = AppLauncher(args_cli)"),
         )
-        self.assertIn("get_jacobians", source)
+        self.assertIn("body_link_jacobian_w.torch", source)
+        self.assertNotIn("root_physx_view.get_jacobians", source)
         self.assertIn("Arm_serial_servo_write", source)
         self.assertNotIn("Arm_Lib", source)
         self.assertNotIn("CameraCfg", source)
