@@ -502,12 +502,13 @@ def _reset_to_neutral(
     arm: DofbotArm,
     yahboom_api: YahboomServoApiAdapter,
     backend: _IsaacJointPositionBackend,
+    duration_ms: int,
     render: bool,
 ) -> tuple[float, int] | None:
     api_calls = _issue_angles(
         yahboom_api=yahboom_api,
         angles_deg=NEUTRAL_ANGLES_DEG,
-        duration_ms=CONTROL_INTERVAL_MS,
+        duration_ms=duration_ms,
     )
     if not _step_simulation(
         scene=scene,
@@ -515,7 +516,7 @@ def _reset_to_neutral(
         backend=backend,
         physics_steps=max(
             1,
-            round((CONTROL_INTERVAL_MS / 1000.0) / sim.get_physics_dt()),
+            round((duration_ms / 1000.0) / sim.get_physics_dt()),
         ),
         render=render,
     ):
@@ -656,6 +657,7 @@ def main() -> None:
             arm=arm,
             yahboom_api=yahboom_api,
             backend=backend,
+            duration_ms=config.scripted_baseline.steps[-1].duration_ms,
             render=render,
         )
         if reset_result is None:
@@ -740,9 +742,17 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    failure: BaseException | None = None
     try:
         main()
     except MotionConfigError as error:
-        raise ReachingConfigError(str(error)) from error
-    finally:
+        failure = ReachingConfigError(str(error))
+    except BaseException as error:
+        failure = error
+    try:
         simulation_app.close()
+    except SystemExit as error:
+        if failure is None:
+            failure = error
+    if failure is not None:
+        raise failure

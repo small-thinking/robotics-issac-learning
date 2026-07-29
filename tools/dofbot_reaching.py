@@ -35,6 +35,7 @@ SCHEMA_VERSION = 1
 CONTROLLED_JOINT_COUNT = 4
 EXPECTED_END_EFFECTOR_BODY = "Wrist_Twist"
 MAX_STATE_CONTROLLER_STEPS = 100
+STATE_COMMAND_LIMIT_MARGIN_DEG = 3
 _NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
@@ -537,8 +538,11 @@ def next_state_controller_angles(
     if maximum > controller.maximum_joint_delta_deg:
         scale = controller.maximum_joint_delta_deg / maximum
         scaled_delta_deg = [value * scale for value in scaled_delta_deg]
+    command_min = controller.safe_angle_min_deg + STATE_COMMAND_LIMIT_MARGIN_DEG
+    command_max = controller.safe_angle_max_deg - STATE_COMMAND_LIMIT_MARGIN_DEG
     target = tuple(
-        int(round(angle + delta)) for angle, delta in zip(current, scaled_delta_deg, strict=True)
+        max(command_min, min(command_max, int(round(angle + delta))))
+        for angle, delta in zip(current, scaled_delta_deg, strict=True)
     )
     if any(
         value < controller.safe_angle_min_deg or value > controller.safe_angle_max_deg

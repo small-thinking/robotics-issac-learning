@@ -159,6 +159,7 @@ class DofbotReachingTest(unittest.TestCase):
             controller=self.config.state_controller,
         )
         self.assertTrue(all(isinstance(value, int) for value in target))
+        self.assertTrue(all(63 <= value <= 117 for value in target))
         self.assertTrue(
             all(
                 abs(value - 90) <= math.ceil(self.config.state_controller.maximum_joint_delta_deg)
@@ -240,6 +241,7 @@ class DofbotReachingTest(unittest.TestCase):
         )
         self.assertIn("body_link_jacobian_w.torch", source)
         self.assertNotIn("root_physx_view.get_jacobians", source)
+        self.assertIn("failure: BaseException | None", source)
         self.assertIn("Arm_serial_servo_write", source)
         self.assertNotIn("Arm_Lib", source)
         self.assertNotIn("CameraCfg", source)
