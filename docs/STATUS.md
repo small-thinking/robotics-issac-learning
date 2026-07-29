@@ -3,21 +3,21 @@
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goal 4 fixed-tabletop reaching;
-  local software preparation passed, while remote Isaac machine and user
-  Viewer gates remain pending
+  local software and remote Isaac machine gates passed, while the user Viewer
+  gate rejected the physical front/back composition
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  22:59 PDT after Goal 4 local preparation
+  23:47 PDT after Goal 4 remote validation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
-- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
-  compute; checked 2026-07-28 before restart
+- Latest live L4 quote: existing AWS `g6.4xlarge` class was
+  `$1.58784/hour` compute; checked 2026-07-28 before restart
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
-- Branch: `codex/dofbot-goal4-reaching-prep`
+- Branch: `codex/dofbot-goal4-jacobian-compat`; remote commit `d12b987`
 - Scope: safe reach/approach/retract only; no target contact, pushing, grasping,
   lifting, placing, gripper command, camera controller input, learning, or real
   hardware
@@ -40,8 +40,8 @@
 - Local validation: all 110 repository tests pass, including 13 focused Goal 4
   tests, Git LFS checks, and remote command previews; targeted Ruff, shell
   syntax, the local dry-run, and both reach command previews also pass
-- Planned remote machine evidence:
-  `artifacts/dofbot/reaching_contract.json`
+- Remote Viewer machine evidence:
+  `artifacts/dofbot/reaching_viewer_contract.json`
 - Remote machine gates: physical prims and static target present, live asset
   compatibility, angle envelope, four-centimeter table clearance, at least
   three-centimeter distance improvement for both the scripted and state-based
@@ -49,10 +49,27 @@
   count, and neutral reset within one degree
 - Viewer contract: 20-second neutral connection hold followed by a loop of the
   scripted comparison and state-based approach
-- Current acceptance: **local preparation passed / remote machine pending /
-  visual pending**. Goal 4 is not complete.
-- Compute lifecycle: no GPU was started for this preparation; `brev ls --json`
-  verified the retained `g6.4xlarge` / L4 instance `STOPPED` at 22:59 PDT.
+- Remote machine result: **passed**. All eleven checks passed; the scripted
+  waypoint distance improved by `0.13493 m`, the state controller improved
+  from `0.20660 m` to `0.02035 m`, the minimum wrist/table clearance was
+  `0.12693 m`, 48/48 official API calls were accounted for, and neutral reset
+  error was `0.6012 deg`
+- Viewer result: **failed physical composition**. The user saw a safe,
+  strategy-correct downward approach with an open gripper and stationary cube,
+  but the table and cube were on the same visible side of the base as the
+  Jetson/electronics carrier. The runner had treated world `-Y` camera-forward
+  as robot-front even though Goal 3 explicitly did not define a physical
+  tabletop frame.
+- Current acceptance: **local preparation passed / remote machine passed /
+  visual front-back gate failed**. Goal 4 is not complete.
+- Next free local gate: define an explicit base-frame front/electronics-rear
+  contract, move the workspace to the physical front side, mirror or
+  recalibrate the safe arm poses, and add tests that reject a rear-side table
+  before another paid run
+- Compute lifecycle: stop was requested at approximately 23:33 PDT after the
+  active Viewer check. Brev reported `STOPPING` with shell access unavailable,
+  and terminal `STOPPED` was verified at 23:47 PDT. No instance or disk was
+  deleted.
 
 ## DOFBOT Goal 3 camera gate
 

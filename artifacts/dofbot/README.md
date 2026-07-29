@@ -53,11 +53,29 @@ generated evidence.
 `motion_config_viewer_contract.json` and `motion_config_viewer.log` remain
 ignored machine-specific evidence.
 
-Goal 3 will write `camera_contract.json` and `camera_rgb.png` only after the
-RGB-only machine gate passes on the installed Isaac runtime. The JSON will
-record the original authored camera prim and optics, effective intrinsics and
-pose conventions, five frame summaries, simulation-time cadence, diagnostic
-target projections, and PNG/raw hashes. The PNG is covered by Git LFS. Viewer
-logs and Viewer-only camera artifacts remain ignored machine-specific
-evidence. Until those files are retrieved byte-identically from the remote
-runtime, Goal 3 remains machine pending and visual pending.
+Goal 3 wrote `camera_contract.json` and `camera_rgb.png` after the RGB-only
+machine gate passed on the installed Isaac runtime. The JSON records the
+original authored camera prim and optics, effective intrinsics and pose
+conventions, five frame summaries, simulation-time cadence, diagnostic target
+projections, and PNG/raw hashes. The PNG is covered by Git LFS. Goal 3 later
+passed its separate Viewer gate; Viewer logs and Viewer-only camera artifacts
+remain ignored machine-specific evidence.
+
+Goal 4's approved 2026-07-28 Viewer run wrote
+`reaching_viewer_contract.json` at commit `d12b987`. It was downloaded
+byte-identically after cycle 31; its SHA-256 is
+`37d40d45fcbf1c1e6aadaabf0d42b005d809f5aa61080d1f2ff07327d23cdf49`.
+All eleven machine checks passed. The state controller reduced the
+`Wrist_Twist` waypoint distance from `0.20660 m` to `0.02035 m`, the static
+cube remained fixed, the minimum wrist/table clearance was `0.12693 m`, all 48
+official API calls were accounted for, and the maximum neutral reset error was
+`0.6012 deg`.
+
+The machine artifact remains immutable with its machine-time visual status
+`pending_user_confirmation`. The later human review rejected the physical
+front/back composition: the table and target were placed on world `-Y`, the
+same visible side as the Jetson/electronics carrier, even though the reaching
+motion itself was visible and safe. The three user screenshots were reviewed
+but are intentionally not committed. `reaching_viewer.log` remains ignored
+local evidence; it reached `Simulation App Startup Complete`, `app ready`, and
+32 complete `machine_passed=True` cycles before evidence retrieval.

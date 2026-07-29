@@ -823,3 +823,56 @@
   visual gates remain pending. Goal 4 is not complete.
 - Resource lifecycle: the retained Brev instance was not started;
   `brev ls --json` verified it `STOPPED` at 22:59 PDT.
+
+## 2026-07-28 — Goal 4 machine gate passed but physical front/back Viewer gate failed
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; remote commit: `d12b987`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at `$1.58784/hour`; no instance
+  creation, resize, deletion, disk deletion, physical-hardware command,
+  gripper command, camera controller input, policy, or checkpoint
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach
+  ```
+
+- Installed-runtime fixes: use Isaac Lab 3.0's public
+  `robot.data.body_link_jacobian_w.torch` link Jacobian instead of the direct
+  PhysX view; preserve nonzero failure exits; add safe state-command headroom;
+  and allow the neutral trajectory to settle before evaluating reset
+- Machine result: **passed**. Scripted distance improved from `0.20392 m` to
+  `0.06898 m`; state distance improved from `0.20660 m` to `0.02035 m`;
+  minimum wrist/table clearance was `0.12693 m`; 48/48 official API calls were
+  accounted for; maximum neutral reset error was `0.6012 deg`; and every one
+  of the eleven machine checks passed
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
+  ```
+
+- Viewer runtime: `Simulation App Startup Complete`, `app ready`, and 32
+  complete logged cycles with `machine_passed=True`; the downloaded immutable
+  contract records cycle 31
+- Human result: **failed physical front/back composition**. The user saw the
+  intended safe downward approach, open gripper, no cube contact, and
+  stationary cube, but observed that the table and target were on the same
+  visible side as the Jetson/electronics carrier. The motion strategy itself
+  was accepted.
+- Root cause: the Goal 4 parser explicitly forced the table into world `-Y`.
+  Goal 3's neutral camera optical fixture also occupied `-Y`, but its contract
+  explicitly disclaimed any realistic tabletop or physical-mount meaning.
+  Camera optical forward was therefore incorrectly reused as robot workspace
+  front.
+- Evidence: `artifacts/dofbot/reaching_viewer_contract.json`, SHA-256
+  `37d40d45fcbf1c1e6aadaabf0d42b005d809f5aa61080d1f2ff07327d23cdf49`.
+  The three user screenshots and full Viewer log were reviewed but remain
+  uncommitted supporting evidence.
+- Resource lifecycle: stop was requested at approximately 23:33 PDT, after the
+  active run and visual review. Brev remained `STOPPING` with shell access
+  unavailable during control-plane cleanup; `brev ls --json` reported terminal
+  `STOPPED` at 23:47 PDT. The instance and existing disk were retained.
+- Conclusion: Goal 4 is **not complete**. Local and remote machine gates pass,
+  but a new base-frame front/rear contract, corrected work-side scene, and
+  fresh machine plus Viewer validation are required.

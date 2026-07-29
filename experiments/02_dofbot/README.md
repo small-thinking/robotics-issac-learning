@@ -444,7 +444,8 @@ physical-mount/joint-calibration task.
 
 ### Goal 4 — Fixed-tabletop reaching baseline
 
-Status: **local preparation complete; remote machine and Viewer gates pending**
+Status: **remote machine passed; Viewer rejected the physical front/back
+composition**
 
 Goal 4 replaces the floating camera-calibration fixture with the first
 physically composed task scene:
@@ -505,6 +506,29 @@ and state-based approach. Visual acceptance requires the user to see the table
 and cube, both approaches, an open gripper, a stationary cube, and the final
 neutral reset. Until the remote machine artifact passes and the user confirms
 the Viewer, Goal 4 remains incomplete.
+
+The approved remote run at commit `d12b987` passed all eleven machine checks.
+The state controller reduced the approach-waypoint distance from `0.20660 m`
+to `0.02035 m`; the scripted baseline improved by `0.13493 m`; minimum
+wrist/table clearance was `0.12693 m`; all 48 Yahboom-shaped calls were
+accounted for; and neutral reset error was `0.6012 deg`. The immutable Viewer
+artifact is `artifacts/dofbot/reaching_viewer_contract.json`.
+
+The separate human gate did not pass. The user saw the arm make the intended
+safe approach without contact, but correctly identified that the tabletop and
+target were on the same visible side as the Jetson/electronics carrier. The
+config parser had forced the table to world `-Y`, reusing the horizontal side
+of Goal 3's camera optical plane as if it were the robot's physical front.
+Goal 3 explicitly made no tabletop or physical-mount claim, so that inference
+was invalid.
+
+Do not repair this by rotating the complete robot asset and its Jetson carrier
+by 180 degrees. Before another GPU window, define the base-frame work side
+separately from camera optical forward, preserve the electronics as the rear
+side, move the tabletop and target to the work side, mirror or recalibrate the
+safe scripted poses, and add a fail-closed test that rejects a rear-side
+workspace. The corrected state controller must then pass a fresh machine gate
+before the Viewer is reopened. Goal 4 remains incomplete.
 
 ## Later milestones
 
