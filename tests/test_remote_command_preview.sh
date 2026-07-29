@@ -177,6 +177,7 @@ dofbot_camera_output="$(
 
 assert_contains "$dofbot_camera_output" 'capture_dofbot_camera.py'
 assert_contains "$dofbot_camera_output" 'goal3_onboard_rgb.json'
+assert_contains "$dofbot_camera_output" 'safe_api_wave.json'
 assert_contains "$dofbot_camera_output" 'camera_contract.json'
 assert_contains "$dofbot_camera_output" 'camera_rgb.png'
 assert_contains "$dofbot_camera_output" '--enable_cameras'
@@ -197,7 +198,7 @@ assert_contains "$dofbot_camera_view_output" '--keep-alive'
 assert_contains "$dofbot_camera_view_output" '--enable_cameras'
 assert_contains "$dofbot_camera_view_output" '--livestream 2'
 assert_contains "$dofbot_camera_view_output" '--viz kit'
-assert_contains "$dofbot_camera_view_output" 'Viewer uses the onboard camera and stays static until stopped'
+assert_contains "$dofbot_camera_view_output" 'Viewer uses the onboard camera while the accepted safe motion repeats until stopped'
 assert_contains "$dofbot_camera_view_output" '[dry-run] Command displayed but not executed.'
 
 printf 'remote command preview tests passed\n'

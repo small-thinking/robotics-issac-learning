@@ -28,6 +28,7 @@ from dofbot_camera_config import (
     evaluate_camera_observations,
     load_camera_config,
 )
+from dofbot_motion_config import load_motion_config
 
 parser = argparse.ArgumentParser(
     description="Capture the official DOFBOT onboard RGB camera."
@@ -46,6 +47,15 @@ parser.add_argument(
     default=Path(
         "/workspace/robotics-issac-learning/artifacts/dofbot/asset_contract.json"
     ),
+)
+parser.add_argument(
+    "--motion-config",
+    type=Path,
+    default=Path(
+        "/workspace/robotics-issac-learning/configs/dofbot/motions/"
+        "safe_api_wave.json"
+    ),
+    help="Previously accepted ActionChunk used only for safe camera poses.",
 )
 parser.add_argument(
     "--output",
@@ -73,6 +83,9 @@ args_cli = parser.parse_args()
 preflight_config, preflight_config_sha256 = load_camera_config(
     args_cli.camera_config
 )
+preflight_motion_config, preflight_motion_config_sha256 = load_motion_config(
+    args_cli.motion_config
+)
 
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
@@ -85,6 +98,7 @@ import isaaclab.sim as sim_utils
 from isaaclab.scene import InteractiveScene
 
 from dofbot_camera_scene_cfg import DofbotCameraSceneCfg
+from dofbot_control_api import CONTROLLED_JOINT_NAMES
 from dofbot_motion_plan import validate_recorded_asset_contract
 
 
@@ -166,7 +180,7 @@ def _camera_optics(camera_prim: Usd.Prim) -> dict[str, Any]:
     }
 
 
-def _target_world_positions(
+def _planar_target_world_positions(
     config: DofbotCameraConfig,
     camera_world: Gf.Matrix4d,
 ) -> dict[str, tuple[float, float, float]]:
@@ -199,6 +213,178 @@ def _target_world_positions(
         )
         for target in config.targets
     }
+
+
+def _controlled_joint_ids(scene: InteractiveScene) -> list[int]:
+    robot = scene["dofbot"]
+    name_to_index = {name: index for index, name in enumerate(robot.joint_names)}
+    missing = [name for name in CONTROLLED_JOINT_NAMES if name not in name_to_index]
+    if missing:
+        raise CameraConfigError(f"live articulation is missing joints: {missing}")
+    return [name_to_index[name] for name in CONTROLLED_JOINT_NAMES]
+
+
+def _set_arm_angles(
+    scene: InteractiveScene,
+    controlled_joint_ids: list[int],
+    angles_deg: tuple[int, ...],
+) -> None:
+    positions_rad = [
+        math.radians(float(angle_deg) - 90.0) for angle_deg in angles_deg
+    ]
+    target = torch.tensor(
+        [positions_rad],
+        device=scene["dofbot"].device,
+        dtype=torch.float32,
+    )
+    scene["dofbot"].set_joint_position_target(
+        target,
+        joint_ids=controlled_joint_ids,
+    )
+
+
+def _step_scene(
+    scene: InteractiveScene,
+    sim: sim_utils.SimulationContext,
+    steps: int,
+) -> None:
+    for _ in range(steps):
+        if not simulation_app.is_running():
+            raise CameraConfigError("simulation stopped during camera pose setup")
+        scene.write_data_to_sim()
+        sim.step(render=True)
+        scene.update(sim.get_physics_dt())
+
+
+def _ray_tabletop_target_positions(
+    config: DofbotCameraConfig,
+    camera_world: Gf.Matrix4d,
+) -> dict[str, tuple[float, float, float]]:
+    camera_position = camera_world.ExtractTranslation()
+    camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
+    forward_z = float(camera_forward[2])
+    if forward_z >= -1e-3:
+        raise CameraConfigError("camera optical axis does not point toward tabletop")
+    lateral_xy = (-float(camera_forward[1]), float(camera_forward[0]))
+    lateral_norm = math.hypot(*lateral_xy)
+    if lateral_norm < 1e-6:
+        camera_right = camera_world.TransformDir(Gf.Vec3d(1.0, 0.0, 0.0))
+        lateral_xy = (float(camera_right[0]), float(camera_right[1]))
+        lateral_norm = math.hypot(*lateral_xy)
+    if lateral_norm < 1e-6:
+        raise CameraConfigError("camera ray cannot define a tabletop lateral axis")
+    lateral_xy = (
+        lateral_xy[0] / lateral_norm,
+        lateral_xy[1] / lateral_norm,
+    )
+    positions: dict[str, tuple[float, float, float]] = {}
+    for target in config.targets:
+        target_z = config.tabletop_z_m + target.height_m / 2.0
+        ray_distance = (target_z - float(camera_position[2])) / forward_z
+        if ray_distance < 0.15 or ray_distance > 0.60:
+            raise CameraConfigError(
+                f"{target.name} tabletop ray distance {ray_distance:.3f} m "
+                "is outside [0.15, 0.60]"
+            )
+        positions[target.prim_path] = (
+            float(camera_position[0])
+            + ray_distance * float(camera_forward[0])
+            + target.lateral_index * config.lateral_spacing_m * lateral_xy[0],
+            float(camera_position[1])
+            + ray_distance * float(camera_forward[1])
+            + target.lateral_index * config.lateral_spacing_m * lateral_xy[1],
+            target_z,
+        )
+    return positions
+
+
+def _select_camera_observation_pose(
+    *,
+    config: DofbotCameraConfig,
+    scene: InteractiveScene,
+    sim: sim_utils.SimulationContext,
+    camera_prim: Usd.Prim,
+    controlled_joint_ids: list[int],
+) -> tuple[
+    tuple[int, ...],
+    dict[str, tuple[float, float, float]],
+    list[dict[str, Any]],
+]:
+    candidate_records: list[dict[str, Any]] = []
+    valid_candidates: list[
+        tuple[
+            float,
+            tuple[int, ...],
+            dict[str, tuple[float, float, float]],
+        ]
+    ] = []
+    seen: set[tuple[int, ...]] = set()
+    for step in preflight_motion_config.steps:
+        angles_deg = tuple(step.angles_deg)
+        if angles_deg in seen:
+            continue
+        seen.add(angles_deg)
+        _set_arm_angles(scene, controlled_joint_ids, angles_deg)
+        settle_steps = round(
+            (max(step.duration_ms, 700) / 1000.0 + 0.3)
+            / sim.get_physics_dt()
+        )
+        _step_scene(scene, sim, settle_steps)
+        camera_world = _world_matrix(camera_prim)
+        camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
+        record: dict[str, Any] = {
+            "step_name": step.name,
+            "angles_deg": list(angles_deg),
+            "camera_forward_world": [
+                float(component) for component in camera_forward
+            ],
+            "valid_tabletop_intersection": False,
+        }
+        try:
+            positions = _ray_tabletop_target_positions(config, camera_world)
+        except CameraConfigError as error:
+            record["rejection_reason"] = str(error)
+        else:
+            camera_position = camera_world.ExtractTranslation()
+            distances = [
+                math.dist(
+                    tuple(float(component) for component in camera_position),
+                    position,
+                )
+                for position in positions.values()
+            ]
+            score = sum(
+                abs(distance - config.forward_distance_m)
+                for distance in distances
+            )
+            record["valid_tabletop_intersection"] = True
+            record["target_ray_distances_m"] = distances
+            record["score"] = score
+            valid_candidates.append((score, angles_deg, positions))
+        candidate_records.append(record)
+    if not valid_candidates:
+        raise CameraConfigError(
+            "none of the accepted ActionChunk poses points the camera at the tabletop"
+        )
+    _, selected_angles, _ = min(valid_candidates, key=lambda item: item[0])
+    _set_arm_angles(scene, controlled_joint_ids, selected_angles)
+    _step_scene(scene, sim, round(1.0 / sim.get_physics_dt()))
+    selected_positions = _ray_tabletop_target_positions(
+        config,
+        _world_matrix(camera_prim),
+    )
+    return selected_angles, selected_positions, candidate_records
+
+
+def _move_targets(
+    positions: dict[str, tuple[float, float, float]],
+) -> None:
+    stage = sim_utils.get_current_stage()
+    for prim_path, position in positions.items():
+        prim = stage.GetPrimAtPath(prim_path)
+        if not prim.IsValid():
+            raise CameraConfigError(f"target prim does not exist: {prim_path}")
+        UsdGeom.XformCommonAPI(prim).SetTranslate(Gf.Vec3d(*position))
 
 
 def _spawn_targets(
@@ -359,6 +545,30 @@ def _save_rgb_png(rgb: torch.Tensor, path: Path) -> str:
     return _sha256(path)
 
 
+def _run_viewer_motion(
+    *,
+    scene: InteractiveScene,
+    sim: sim_utils.SimulationContext,
+    controlled_joint_ids: list[int],
+) -> None:
+    while simulation_app.is_running():
+        for step in preflight_motion_config.steps:
+            if not simulation_app.is_running():
+                return
+            print(f"[CAMERA VIEW] step={step.name}", flush=True)
+            _set_arm_angles(scene, controlled_joint_ids, tuple(step.angles_deg))
+            step_count = round(
+                ((step.duration_ms + step.hold_ms) / 1000.0)
+                / sim.get_physics_dt()
+            )
+            for _ in range(step_count):
+                if not simulation_app.is_running():
+                    return
+                scene.write_data_to_sim()
+                sim.step(render=True)
+                scene.update(sim.get_physics_dt())
+
+
 def main() -> None:
     config = preflight_config
     recorded_asset_contract, asset_contract_sha256 = _load_json_object(
@@ -379,11 +589,27 @@ def main() -> None:
     stage = sim_utils.get_current_stage()
     camera_prim = _camera_prim(stage, config.prim_path)
     camera_world_at_spawn = _world_matrix(camera_prim)
-    target_positions = _target_world_positions(config, camera_world_at_spawn)
+    target_positions = _planar_target_world_positions(
+        config,
+        camera_world_at_spawn,
+    )
     _spawn_targets(config, target_positions)
 
     sim.reset()
     scene.update(sim.get_physics_dt())
+    controlled_joint_ids = _controlled_joint_ids(scene)
+    (
+        selected_observation_angles_deg,
+        target_positions,
+        camera_pose_candidates,
+    ) = _select_camera_observation_pose(
+        config=config,
+        scene=scene,
+        sim=sim,
+        camera_prim=camera_prim,
+        controlled_joint_ids=controlled_joint_ids,
+    )
+    _move_targets(target_positions)
     camera = scene["camera"]
     sensor_initialized = bool(camera.is_initialized)
     camera_prim_is_usdgeom_camera = bool(camera_prim.IsA(UsdGeom.Camera))
@@ -474,6 +700,13 @@ def main() -> None:
             "sha256": preflight_config_sha256,
             "value": config.to_dict(),
         },
+        "camera_pose_motion_config": {
+            "path": str(args_cli.motion_config),
+            "sha256": preflight_motion_config_sha256,
+            "selected_angles_deg": list(selected_observation_angles_deg),
+            "candidate_measurements": camera_pose_candidates,
+            "purpose": "safe deterministic camera-to-tabletop orientation",
+        },
         "camera": {
             "prim_path": config.prim_path,
             "prim_type_name": camera_prim.GetTypeName(),
@@ -553,6 +786,7 @@ def main() -> None:
         },
         "scope": {
             "rgb_captured": True,
+            "accepted_arm_pose_used_for_camera_orientation": True,
             "depth_or_segmentation_captured": False,
             "computer_vision_loaded": False,
             "policy_or_checkpoint_loaded": False,
@@ -573,12 +807,14 @@ def main() -> None:
             "DOFBOT camera machine acceptance failed: " + ", ".join(failed)
         )
 
-    while args_cli.keep_alive and simulation_app.is_running():
+    if args_cli.keep_alive:
         if not viewport_camera_selected:
             viewport_camera_selected = _set_viewport_camera(config.prim_path)
-        scene.write_data_to_sim()
-        sim.step(render=True)
-        scene.update(physics_dt_s)
+        _run_viewer_motion(
+            scene=scene,
+            sim=sim,
+            controlled_joint_ids=controlled_joint_ids,
+        )
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@
     "width": 640,
     "height": 480,
     "update_period_s": 0.1,
-    "warmup_frames": 3,
+    "warmup_frames": 10,
     "capture_frames": 5
   },
   "target_scene": {
