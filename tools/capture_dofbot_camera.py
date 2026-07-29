@@ -138,6 +138,25 @@ def _world_matrix(prim: Usd.Prim) -> Gf.Matrix4d:
     )
 
 
+def _camera_world_from_sensor(camera: Any) -> Gf.Matrix4d:
+    position = _as_torch(camera.data.pos_w)[0].detach().cpu().tolist()
+    quaternion_xyzw = (
+        _as_torch(camera.data.quat_w_opengl)[0].detach().cpu().tolist()
+    )
+    quaternion = Gf.Quatd(
+        float(quaternion_xyzw[3]),
+        Gf.Vec3d(
+            float(quaternion_xyzw[0]),
+            float(quaternion_xyzw[1]),
+            float(quaternion_xyzw[2]),
+        ),
+    )
+    matrix = Gf.Matrix4d(1.0)
+    matrix.SetRotate(Gf.Rotation(quaternion))
+    matrix.SetTranslateOnly(Gf.Vec3d(*map(float, position)))
+    return matrix
+
+
 def _matrix_rows(matrix: Gf.Matrix4d) -> list[list[float]]:
     return [
         [float(matrix[row][column]) for column in range(4)]
@@ -330,7 +349,7 @@ def _select_camera_observation_pose(
     config: DofbotCameraConfig,
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
-    camera_prim: Usd.Prim,
+    camera: Any,
     controlled_joint_ids: list[int],
 ) -> tuple[
     tuple[int, ...],
@@ -357,7 +376,7 @@ def _select_camera_observation_pose(
             controlled_joint_ids,
             angles_deg,
         )
-        camera_world = _world_matrix(camera_prim)
+        camera_world = _camera_world_from_sensor(camera)
         camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
         record: dict[str, Any] = {
             "step_name": step.name,
@@ -407,7 +426,7 @@ def _select_camera_observation_pose(
     )
     selected_positions = _ray_tabletop_target_positions(
         config,
-        _world_matrix(camera_prim),
+        _camera_world_from_sensor(camera),
     )
     return selected_angles, selected_positions, candidate_records
 
@@ -638,6 +657,7 @@ def main() -> None:
 
     sim.reset()
     scene.update(sim.get_physics_dt())
+    camera = scene["camera"]
     controlled_joint_ids = _controlled_joint_ids(scene)
     (
         selected_observation_angles_deg,
@@ -647,11 +667,10 @@ def main() -> None:
         config=config,
         scene=scene,
         sim=sim,
-        camera_prim=camera_prim,
+        camera=camera,
         controlled_joint_ids=controlled_joint_ids,
     )
     _move_targets(target_positions)
-    camera = scene["camera"]
     sensor_initialized = bool(camera.is_initialized)
     camera_prim_is_usdgeom_camera = bool(camera_prim.IsA(UsdGeom.Camera))
     viewport_camera_selected = False
@@ -708,7 +727,7 @@ def main() -> None:
     if latest_rgb is None:
         raise CameraConfigError("camera produced no non-empty RGB tensor")
     saved_png_sha256 = _save_rgb_png(latest_rgb, args_cli.rgb_output)
-    camera_world = _world_matrix(camera_prim)
+    camera_world = _camera_world_from_sensor(camera)
     intrinsic_matrix = (
         _as_torch(camera.data.intrinsic_matrices)[0].detach().cpu().tolist()
     )
