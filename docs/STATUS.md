@@ -2,18 +2,88 @@
 
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
-  the ActionChunk v1 pose-boundary API extension is also machine- and
-  Viewer-accepted; Goal 3 onboard RGB capture is next
+- Current experiment: Phase 3 / `02_dofbot`, Goals 1, 2, and 3 — complete;
+  the ActionChunk v1 pose-boundary API extension and the explicit onboard
+  camera binding are machine- and Viewer-accepted
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  19:33 PDT after the final ActionChunk validation window
+  22:22 PDT after Goal 3 acceptance
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
   compute; checked 2026-07-28 before restart
+
+## DOFBOT Goal 3 camera gate
+
+- Branch: `codex/dofbot-camera-contract`
+- Official camera prim retained:
+  `/World/envs/env_0/Dofbot/link4/Camera`; the baseline sets
+  `CameraCfg.spawn=None` rather than creating a replacement sensor prim
+- Input contract:
+  `configs/dofbot/camera/goal3_onboard_rgb.json`
+- Baseline output: RGB only, `640x480`, `torch.uint8`, `NHWC`, one camera
+  instance; no depth, segmentation, CV model, policy, or checkpoint
+- Timing contract: `update_period_s=0.1`, nominally 10 Hz in simulation time.
+  This is an explicit simulator observation rate, not a claim about the
+  unresolved physical camera model, exposure, transport latency, or measured
+  hardware FPS.
+- Deterministic static scene: a red cube, green cylinder, and blue cuboid in a
+  world-fixed optical calibration plane `0.32 m` in front of the settled
+  neutral camera, with `0.08 m` lateral spacing. The objects intentionally
+  float above the robot; this validates camera geometry and dynamic binding,
+  not a physically realistic tabletop scene.
+- Planned remote inspection: authored focal length, horizontal and vertical
+  aperture, aperture offsets, clipping range, focus distance, f-stop, derived
+  field of view, world transform, ROS/OpenGL pose, and the effective intrinsic
+  matrix
+- Planned machine artifacts:
+  `artifacts/dofbot/camera_contract.json` and
+  `artifacts/dofbot/camera_rgb.png`; the PNG is covered by Git LFS
+- Machine gates: original prim is a `UsdGeom.Camera`, sensor initializes,
+  five distinct frames advance at 10 Hz simulation time, every tensor is
+  non-empty/non-constant `1x480x640x3 uint8`, all three target centers project
+  inside the image, the fixed `link4`-to-camera extrinsic round-trips within
+  tolerance, the applied camera world pose matches that extrinsic, the camera
+  pose changes with `link4`, and the PNG is saved with a SHA-256
+- Local validation: `make test` passed all 97 tests; targeted Ruff, Python
+  compilation, and `git diff --check` passed
+- Remote static sensor facts on Isaac Sim `6.0.1`: the official prim is a
+  `UsdGeom.Camera`; the sensor initializes; RGB is
+  `torch.uint8[1,480,640,3]`; five frames advance at the exact configured
+  `0.1 s` simulation cadence; the effective intrinsic matrix has
+  `fx=fy=732.9993`, `cx=320`, and `cy=240`
+- Remote binding result at `dbd09a7`: the official camera remained the sensor
+  prim, while the explicit adapter followed live `link4` motion. Maximum
+  dynamic translation was `0.065636 m` and maximum dynamic rotation was
+  `57.4071 deg`; maximum applied position/orientation errors were
+  `1.46e-8 m` and `1.12e-5 deg`.
+- Rejected diagnostic: a 180-degree optical-frame flip made all target centers
+  project inside the image but rendered five all-zero frames because the view
+  pointed into the robot body. This is not a valid camera calibration and was
+  removed from the current branch.
+- Local remediation: the runner now calibrates one fixed
+  `T_link4_camera` from the official neutral pose, computes
+  `T_world_camera = T_world_link4 * T_link4_camera`, and calls the Isaac
+  Camera world-pose API with the OpenGL convention before each rendered
+  capture and Viewer step. The same path records calibration, applied-pose,
+  and dynamic-motion errors in `camera_contract.json`. Isaac Lab 3.0's public
+  `(x,y,z,w)` quaternion boundary is explicitly converted to the internal
+  scalar-first transform representation; the adapter does not create a
+  replacement camera or change the official optics.
+- Current acceptance: **complete**. All machine checks passed, including
+  non-constant RGB, exact 10 Hz simulation cadence, three in-frame target
+  centers, fixed-extrinsic round-trip, applied-pose accuracy, and dynamic
+  camera motion. At 2026-07-28 22:13 PDT the user confirmed the onboard view
+  contained the red cube, green cylinder, and blue cuboid, then switched to
+  Perspective and confirmed their expected world-relative placement above the
+  moving DOFBOT.
+- Machine evidence: `artifacts/dofbot/camera_contract.json`; captured RGB:
+  `artifacts/dofbot/camera_rgb.png` through Git LFS.
+- Compute lifecycle: stop requested immediately after visual acceptance;
+  terminal `STOPPED` was verified with `brev ls --json` at 22:22 PDT.
+  Instance and persistent disk were retained, with no deletion or resize.
 
 ## DOFBOT Goal 1 machine result
 

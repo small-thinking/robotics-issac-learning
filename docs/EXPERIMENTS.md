@@ -631,3 +631,159 @@
   and persistent disk retained.
 - Conclusion: ActionChunk v1 pose-boundary execution is complete. Machine and
   user visual gates passed; Goal 3 onboard RGB capture is next.
+
+## 2026-07-28 — onboard RGB camera contract passed local gates
+
+- Branch: `codex/dofbot-camera-contract`
+- Scope: Goal 3 RGB preparation only; no GPU, arm motion, depth, segmentation,
+  CV model, policy, checkpoint, or real hardware
+- Source camera:
+  `/World/envs/env_0/Dofbot/link4/Camera`; the sensor config uses `spawn=None`
+  to retain the camera authored by NVIDIA's Yahboom DOFBOT USD
+- Input config:
+  `configs/dofbot/camera/goal3_onboard_rgb.json`
+- Observation contract: one `torch.uint8` RGB tensor in
+  `[1, 480, 640, 3]` `NHWC` layout, sampled every `0.1 s` of simulation time
+  for a nominal 10 Hz simulator rate
+- Timing boundary: the 10 Hz baseline is not a claim about the unresolved
+  physical camera FPS, exposure, lens distortion, or transport latency
+- Static calibration fixture: red cube, green cylinder, and blue cuboid on
+  the tabletop, deterministically placed from the authored camera frame before
+  simulation starts
+- Remote machine gates: original `UsdGeom.Camera`, initialized sensor, five
+  advancing frames, exact shape/dtype, non-constant RGB, 10 Hz simulation-time
+  cadence, all target centers geometrically inside the image, and a hashed PNG
+- Planned machine evidence:
+  `artifacts/dofbot/camera_contract.json` plus the Git-LFS-tracked
+  `artifacts/dofbot/camera_rgb.png`
+- Viewer contract: switch the secure viewport to the same onboard camera prim
+  and keep the scene alive until the user compares it with the saved PNG
+- Local command: `make test`
+- Local result: all 80 tests passed, including strict camera config,
+  synthetic failure cases, Git LFS rules, and remote command previews;
+  targeted Ruff, Python compilation, shell syntax, and `git diff --check`
+  also passed
+- Conclusion: local software gate passed only. Goal 3 remains remote machine
+  pending and visual pending; a fresh price check and explicit paid-window
+  approval are required before starting the existing Brev instance.
+
+## 2026-07-28 — onboard RGB remote gate found dynamic-pose blocker
+
+- Branch: `codex/dofbot-camera-contract`; latest remote diagnostic commit:
+  `db701ba`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4; no instance creation, resize,
+  deletion, disk deletion, policy, checkpoint, CV model, or real hardware
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+  ```
+
+- Confirmed sensor contract: official
+  `/World/envs/env_0/Dofbot/link4/Camera` is a `UsdGeom.Camera`; initialized
+  RGB output is `torch.uint8[1,480,640,3]` in NHWC order; five distinct
+  frames advanced at exact `0.1 s` simulation-time intervals
+- Confirmed optics: perspective projection, focal length `0.24`, horizontal
+  aperture `0.20955`, vertical aperture `0.152908`, derived FOV
+  `47.1686 x 35.3394` degrees, and effective intrinsics
+  `fx=fy=732.9993`, `cx=320`, `cy=240`
+- Failure: after direct accepted-pose writes, rendered synchronization, and a
+  wait longer than the configured camera period, the sensor world position
+  and OpenGL quaternion remained at the neutral authored pose. The
+  prim-bound Camera `FrameView` did not follow the live PhysX articulation
+  link, so the requested changing onboard view could not be honestly shown.
+- Rejected diagnostic: a simulation-only 180-degree optical-frame flip put
+  all three target centers inside the geometric image bounds, but every
+  captured pixel was zero in all five frames. The camera was looking into the
+  robot body; the flip was removed and is not an accepted calibration.
+- Machine result: **failed** (`rgb_is_nonconstant=false` in the flip
+  diagnostic; dynamic pose remained fixed in the official-prim diagnostic)
+- Visual result: **not run**. A static or black Viewer would not satisfy the
+  requested acceptance and was intentionally not presented.
+- Next hypothesis: retain the official optical parameters but explicitly
+  synchronize sensor world pose from live `link4` pose using a neutral
+  camera-to-link extrinsic. Record this as adapter behavior, then rerun the
+  immutable machine contract before opening Viewer.
+- Resource lifecycle: stop requested immediately after diagnosis; a second
+  idempotent stop was issued while Brev remained `STOPPING`; terminal
+  `STOPPED` was verified with `brev ls --json` at 21:11 PDT. Instance and
+  existing persistent disk were retained.
+- Conclusion: Goal 3 remains incomplete: local pass / remote machine fail /
+  visual not run.
+
+## 2026-07-28 — explicit link4-camera binding passed local gates
+
+- Branch: `codex/dofbot-camera-contract`
+- Scope: local Goal 3 remediation only; no GPU, depth, segmentation, CV
+  model, policy, checkpoint, real hardware, or billable-resource transition
+- Root-cause response: retain the official
+  `/World/envs/env_0/Dofbot/link4/Camera` prim and its optics, calibrate a
+  fixed `T_link4_camera` at neutral, and explicitly compute
+  `T_world_camera = T_world_link4 * T_link4_camera` from the live PhysX body
+  state
+- Runtime behavior: static capture, accepted-pose selection, and the looping
+  secure Viewer all call the Isaac Camera world-pose API in the `opengl`
+  convention; Isaac Lab 3.0 `(x,y,z,w)` articulation/camera quaternions cross
+  an explicit boundary into the scalar-first transform math, and no
+  replacement camera prim is created
+- New fail-closed gates: calibration round-trip position/orientation error,
+  maximum applied world-pose error, and minimum observed camera
+  translation/rotation as `link4` moves
+- Durable evidence schema: `camera_contract.json` now names the explicit
+  adapter behavior, fixed extrinsic, neutral calibration poses, synchronization
+  timing, per-candidate desired/actual poses, and aggregate binding metrics
+- Local command: `make test`
+- Local result: all 94 tests passed, including pure rigid-transform
+  composition/inversion, quaternion sign equivalence, strict binding config,
+  machine-gate failure cases, and AST checks that both capture and Viewer
+  invoke the public pose API; targeted Ruff, Python compilation, and
+  `git diff --check` also passed
+- Conclusion: local remediation passes, but Goal 3 remains incomplete. A
+  fresh approved GPU window must produce a passing machine artifact before
+  the Viewer is opened for the user's changing-view confirmation.
+
+## 2026-07-28 — onboard RGB camera passed machine and Viewer gates
+
+- Branch: `codex/dofbot-camera-contract`; accepted remote commit: `dbd09a7`
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at `$1.58784/hour`; no instance
+  creation, resize, deletion, disk deletion, policy, checkpoint, CV model, or
+  real-hardware command
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+  ```
+
+- Machine result: **passed**. The official
+  `/World/envs/env_0/Dofbot/link4/Camera` remained the `UsdGeom.Camera`;
+  RGB was `torch.uint8[1,480,640,3]` NHWC; five frames advanced at exact
+  `0.1 s` simulation cadence; RGB was non-constant; all three target centers
+  were in frame; and the PNG was hashed.
+- Dynamic binding: maximum observed camera translation/rotation across the
+  accepted ActionChunk poses was `0.065636 m` / `57.4071 deg`. Maximum
+  applied position/orientation error was `1.46e-8 m` / `1.12e-5 deg`.
+- Fixture: red cube, green cylinder, and blue cuboid were spawned once in a
+  world-fixed optical plane `0.32 m` in front of the settled neutral camera.
+  Their floating placement is deliberately diagnostic and is not a realistic
+  tabletop or physical-mount claim.
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera-view
+  ```
+
+- Visual result: **passed** at 2026-07-28 22:13 PDT. The user saw all three
+  targets from the onboard camera, switched the viewport to Perspective, and
+  confirmed the same world-fixed fixture above the moving DOFBOT.
+- Evidence: `artifacts/dofbot/camera_contract.json` and the Git-LFS-tracked
+  `artifacts/dofbot/camera_rgb.png`; the user screenshot was reviewed but is
+  not committed because it is supporting human evidence rather than the
+  canonical machine artifact.
+- Resource lifecycle: stop was requested immediately after visual acceptance;
+  `brev ls --json` verified terminal `STOPPED` at 2026-07-28 22:22 PDT.
+  Instance and existing persistent disk were retained.
+- Conclusion: Goal 3 is complete for simulated RGB observation and explicit
+  `link4` camera binding. Realistic tabletop composition and physical camera
+  calibration remain future work.

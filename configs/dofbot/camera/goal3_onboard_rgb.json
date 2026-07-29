@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "name": "goal3_onboard_rgb_v1",
+  "camera": {
+    "prim_path": "/World/envs/env_0/Dofbot/link4/Camera",
+    "data_types": [
+      "rgb"
+    ],
+    "width": 640,
+    "height": 480,
+    "update_period_s": 0.1,
+    "warmup_frames": 10,
+    "capture_frames": 5
+  },
+  "pose_binding": {
+    "mode": "explicit_link4_world_pose_sync",
+    "parent_body": "link4",
+    "orientation_convention": "opengl",
+    "position_tolerance_m": 0.001,
+    "orientation_tolerance_deg": 0.5,
+    "minimum_dynamic_translation_m": 0.005,
+    "minimum_dynamic_rotation_deg": 2.0
+  },
+  "target_scene": {
+    "placement": "camera_forward_optical_plane",
+    "forward_distance_m": 0.32,
+    "lateral_spacing_m": 0.08,
+    "targets": [
+      {
+        "name": "red_cube",
+        "prim_path": "/World/CameraTargets/RedCube",
+        "shape": "cuboid",
+        "size_m": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "color_rgb": [
+          0.8,
+          0.05,
+          0.05
+        ],
+        "lateral_index": -1
+      },
+      {
+        "name": "green_cylinder",
+        "prim_path": "/World/CameraTargets/GreenCylinder",
+        "shape": "cylinder",
+        "size_m": [
+          0.03,
+          0.06
+        ],
+        "color_rgb": [
+          0.05,
+          0.8,
+          0.05
+        ],
+        "lateral_index": 0
+      },
+      {
+        "name": "blue_cuboid",
+        "prim_path": "/World/CameraTargets/BlueCuboid",
+        "shape": "cuboid",
+        "size_m": [
+          0.08,
+          0.04,
+          0.05
+        ],
+        "color_rgb": [
+          0.05,
+          0.15,
+          0.8
+        ],
+        "lateral_index": 1
+      }
+    ]
+  }
+}

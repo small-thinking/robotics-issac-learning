@@ -101,6 +101,9 @@ The detailed first-stage contract lives in
 2. Drive each arm joint with small, hard-coded position targets and verify
    axis, sign, limits, and reset behavior.
 3. Render and save an onboard RGB observation from a deterministic test scene.
+   The strict RGB-only config, three-object calibration scene, timing contract,
+   artifact schema, and local fail-closed tests are implemented; remote Isaac
+   machine capture and user Viewer confirmation remain pending.
 4. Expose the vendor-shaped single-servo API over one backend-neutral
    named-joint core. The documented `joint1`-through-`joint4` to servo-ID
    mapping, local dry-run bridge, and fail-closed JSON ActionChunk compiler are

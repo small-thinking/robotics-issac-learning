@@ -348,18 +348,99 @@ disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **next**
+Status: **complete; explicit link4-camera binding passed machine and Viewer
+gates**
 
-First use the camera prim discovered in Goal 1. If the asset camera cannot
-produce an Isaac Lab tensor, attach an Isaac Lab `CameraCfg` to the same
-physical camera link and document that adaptation.
+The baseline reuses the exact camera prim discovered in Goal 1:
+`/World/envs/env_0/Dofbot/link4/Camera`. It binds `CameraCfg` with
+`spawn=None`, so it does not silently replace the camera or overwrite the
+official USD optics. Only if this binding fails in the installed runtime may a
+separate adapter camera be considered, and that would require an explicit
+contract change.
 
-Place a simple colored target in front of the robot, switch the Viewer to the
-onboard perspective, and save one RGB frame plus shape/dtype/prim metadata.
-Depth, segmentation, feature extraction, and CV training are out of scope.
+The strict input is
+`configs/dofbot/camera/goal3_onboard_rgb.json`:
 
-Acceptance requires a non-empty, non-constant RGB tensor whose saved image
-matches the secure Viewer perspective.
+- one authored onboard camera;
+- RGB only at `640x480`;
+- a `0.1 s` update period, or nominal 10 Hz in simulation time;
+- three world-fixed optical-plane diagnostics: a red cube, green cylinder,
+  and blue cuboid.
+
+The three shapes and colors make orientation, mirroring, cropping, field of
+view, and basic color failures visible without introducing a CV pipeline. They
+are spawned once in a plane `0.32 m` in front of the settled neutral camera,
+with `0.08 m` lateral spacing. Their actual world centers and projected pixel
+centers are recorded in the result. They intentionally float above the robot,
+so this sparse scene is a camera-geometry fixture, not domain randomization, a
+tabletop claim, or a finished photorealistic environment.
+
+The sensor's conceptual inputs are scene radiance, the link-mounted camera
+pose, authored USD optics, and simulation timing. Its Goal 3 output is
+`rgb: torch.uint8[1, 480, 640, 3]` in `NHWC` RGB order. The 10 Hz setting is
+our reproducible simulator observation contract, not an unverified claim about
+the physical Yahboom camera. Hardware resolution/FPS, exposure, rolling
+shutter, transport latency, lens distortion, and color response remain unknown
+until the physical camera is identified and measured.
+
+The machine run is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+```
+
+It must read and preserve the camera's authored focal length, apertures,
+aperture offsets, clipping range, focus distance, f-stop, local-to-world
+transform, ROS/OpenGL frame poses, effective intrinsic matrix, five distinct
+frame summaries, simulation-time cadence, and raw/PNG hashes. The immutable
+outputs are `artifacts/dofbot/camera_contract.json` and
+`artifacts/dofbot/camera_rgb.png`.
+
+The secure visual run is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera-view
+```
+
+It binds the Viewer to the same onboard camera prim and keeps the static view
+alive. Acceptance requires all machine checks to pass and the user to confirm
+that the Viewer shows the same red cube, green cylinder, and blue cuboid as the
+saved RGB PNG. Depth, segmentation, feature extraction, CV training, arm
+motion, policies, checkpoints, and real hardware are out of scope.
+
+Final local preparation passed all 97 repository tests plus targeted Ruff, Python
+compilation, shell syntax, remote-command preview, Git LFS, and diff checks.
+The first remote window confirmed the expected RGB tensor shape, dtype,
+intrinsics, advancing frames, and 10 Hz simulation-time cadence. It also found
+that the `CameraCfg(spawn=None)` sensor pose remained fixed at its neutral USD
+pose while accepted ActionChunk poses moved the PhysX articulation. Waiting a
+full sensor update period did not change that result. A static Viewer would
+therefore not demonstrate an onboard view changing with the arm and was not
+started.
+
+A 180-degree optical-axis flip was tested and rejected: although its geometric
+projection placed all target centers inside the frame, the camera looked into
+the robot body and returned five all-zero RGB frames. The current direction is
+now implemented locally as an explicit dynamic pose synchronizer. It derives a
+fixed camera-to-`link4` extrinsic at neutral, computes
+`T_world_camera = T_world_link4 * T_link4_camera` from the live articulation,
+and drives the original sensor through Isaac's public world-pose API in the
+OpenGL convention before every capture and Viewer step. Isaac Lab 3.0's
+public `(x,y,z,w)` quaternion order is converted explicitly at the boundary
+to the scalar-first order used by the pure transform math. The contract names
+this as adapter behavior and records calibration, desired/actual pose error,
+and observed dynamic motion rather than claiming automatic prim following.
+Pure transform, strict config, machine-gate, and runner-wiring tests passed
+locally. The remote run at `dbd09a7` then passed every machine check: five
+non-constant `uint8[1,480,640,3]` RGB frames arrived at exact `0.1 s`
+simulation intervals; all three target centers projected inside the image;
+maximum camera motion across accepted ActionChunk poses was `0.065636 m` and
+`57.4071 deg`; and maximum applied binding error was `1.46e-8 m` and
+`1.12e-5 deg`. At 2026-07-28 22:13 PDT the user saw the three targets in the
+onboard view, switched to Perspective, and confirmed the corresponding
+world-fixed fixture above the moving DOFBOT. Goal 3 therefore passed both
+machine and visual gates. A realistic tabletop composition remains a later
+physical-mount/joint-calibration task.
 
 ## Later milestones
 

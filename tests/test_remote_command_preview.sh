@@ -169,4 +169,36 @@ assert_contains "$dofbot_motion_config_view_output" '--viz kit'
 assert_contains "$dofbot_motion_config_view_output" 'configured motion repeats until the process or instance is stopped'
 assert_contains "$dofbot_motion_config_view_output" '[dry-run] Command displayed but not executed.'
 
+dofbot_camera_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/capture_dofbot_camera.sh
+)"
+
+assert_contains "$dofbot_camera_output" 'capture_dofbot_camera.py'
+assert_contains "$dofbot_camera_output" 'goal3_onboard_rgb.json'
+assert_contains "$dofbot_camera_output" 'safe_api_wave.json'
+assert_contains "$dofbot_camera_output" 'camera_contract.json'
+assert_contains "$dofbot_camera_output" 'camera_rgb.png'
+assert_contains "$dofbot_camera_output" '--enable_cameras'
+assert_contains "$dofbot_camera_output" '--headless'
+assert_not_contains "$dofbot_camera_output" '--keep-alive'
+assert_contains "$dofbot_camera_output" '[dry-run] Command displayed but not executed.'
+
+dofbot_camera_view_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/view_dofbot_camera.sh
+)"
+
+assert_contains "$dofbot_camera_view_output" 'capture_dofbot_camera.py'
+assert_contains "$dofbot_camera_view_output" 'camera_viewer_contract.json'
+assert_contains "$dofbot_camera_view_output" 'camera_viewer_rgb.png'
+assert_contains "$dofbot_camera_view_output" '--keep-alive'
+assert_contains "$dofbot_camera_view_output" '--enable_cameras'
+assert_contains "$dofbot_camera_view_output" '--livestream 2'
+assert_contains "$dofbot_camera_view_output" '--viz kit'
+assert_contains "$dofbot_camera_view_output" 'Viewer uses the onboard camera while the accepted safe motion repeats until stopped'
+assert_contains "$dofbot_camera_view_output" '[dry-run] Command displayed but not executed.'
+
 printf 'remote command preview tests passed\n'

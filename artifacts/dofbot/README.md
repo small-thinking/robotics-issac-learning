@@ -52,3 +52,12 @@ recorded in the experiment and status documents rather than rewriting
 generated evidence.
 `motion_config_viewer_contract.json` and `motion_config_viewer.log` remain
 ignored machine-specific evidence.
+
+Goal 3 will write `camera_contract.json` and `camera_rgb.png` only after the
+RGB-only machine gate passes on the installed Isaac runtime. The JSON will
+record the original authored camera prim and optics, effective intrinsics and
+pose conventions, five frame summaries, simulation-time cadence, diagnostic
+target projections, and PNG/raw hashes. The PNG is covered by Git LFS. Viewer
+logs and Viewer-only camera artifacts remain ignored machine-specific
+evidence. Until those files are retrieved byte-identically from the remote
+runtime, Goal 3 remains machine pending and visual pending.

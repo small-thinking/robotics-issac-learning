@@ -66,7 +66,8 @@ The CartPole stage is complete. The canonical next-stage plan is
 2. Goal 2: complete — hard-coded joint motion, limits, sign, and reset.
 3. Goal 2 extension: complete — versioned ActionChunk through the shared
    Yahboom API, with machine and Viewer acceptance.
-4. Goal 3: next — read and save one deterministic onboard RGB observation.
+4. Goal 3: local contract ready — read and save one deterministic onboard RGB
+   observation; remote Isaac capture and user Viewer confirmation are pending.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, or real
 hardware commands during these three infrastructure goals. The older

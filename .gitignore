@@ -71,6 +71,8 @@ artifacts/dofbot/*
 !artifacts/dofbot/motion_contract.json
 !artifacts/dofbot/motion_config_contract.json
 !artifacts/dofbot/motion_config_small_amplitude_*.json
+!artifacts/dofbot/camera_contract.json
+!artifacts/dofbot/camera_rgb.png
 
 # macOS and editors
 .DS_Store
