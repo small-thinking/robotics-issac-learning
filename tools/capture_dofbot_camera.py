@@ -1,9 +1,9 @@
 """Capture and validate the official DOFBOT onboard RGB camera.
 
 The runner is policy-free and RGB-only. It reuses the camera prim authored in
-NVIDIA's Yahboom DOFBOT USD, places three static diagnostic objects on the
-tabletop in the camera's planar forward direction, and writes one PNG plus a
-machine-readable contract.
+NVIDIA's Yahboom DOFBOT USD, places three static diagnostic objects in a
+camera-forward calibration plane, and writes one PNG plus a machine-readable
+contract.
 """
 
 # Isaac Lab modules must be imported after AppLauncher starts Kit.
@@ -258,36 +258,39 @@ def _camera_optics(camera_prim: Usd.Prim) -> dict[str, Any]:
     }
 
 
-def _planar_target_world_positions(
+def _camera_forward_target_world_positions(
     config: DofbotCameraConfig,
     camera_world: Gf.Matrix4d,
 ) -> dict[str, tuple[float, float, float]]:
     camera_position = camera_world.ExtractTranslation()
     camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
     camera_right = camera_world.TransformDir(Gf.Vec3d(1.0, 0.0, 0.0))
-    forward_xy_norm = math.hypot(float(camera_forward[0]), float(camera_forward[1]))
-    right_xy_norm = math.hypot(float(camera_right[0]), float(camera_right[1]))
-    if forward_xy_norm < 1e-6 or right_xy_norm < 1e-6:
+    forward_norm = math.sqrt(
+        sum(float(component) ** 2 for component in camera_forward)
+    )
+    right_norm = math.sqrt(
+        sum(float(component) ** 2 for component in camera_right)
+    )
+    if forward_norm < 1e-6 or right_norm < 1e-6:
         raise CameraConfigError(
-            "camera forward/right vectors cannot define a tabletop placement"
+            "camera forward/right vectors cannot define an optical-plane fixture"
         )
-    forward_xy = (
-        float(camera_forward[0]) / forward_xy_norm,
-        float(camera_forward[1]) / forward_xy_norm,
+    forward = tuple(
+        float(component) / forward_norm for component in camera_forward
     )
-    right_xy = (
-        float(camera_right[0]) / right_xy_norm,
-        float(camera_right[1]) / right_xy_norm,
+    right = tuple(
+        float(component) / right_norm for component in camera_right
     )
-    center_x = float(camera_position[0]) + config.forward_distance_m * forward_xy[0]
-    center_y = float(camera_position[1]) + config.forward_distance_m * forward_xy[1]
+    center = tuple(
+        float(camera_position[axis])
+        + config.forward_distance_m * forward[axis]
+        for axis in range(3)
+    )
     return {
-        target.prim_path: (
-            center_x
-            + target.lateral_index * config.lateral_spacing_m * right_xy[0],
-            center_y
-            + target.lateral_index * config.lateral_spacing_m * right_xy[1],
-            config.tabletop_z_m + target.height_m / 2.0,
+        target.prim_path: tuple(
+            center[axis]
+            + target.lateral_index * config.lateral_spacing_m * right[axis]
+            for axis in range(3)
         )
         for target in config.targets
     }
@@ -394,48 +397,6 @@ def _step_with_camera_binding(
     return camera_world
 
 
-def _ray_tabletop_target_positions(
-    config: DofbotCameraConfig,
-    camera_world: Gf.Matrix4d,
-) -> dict[str, tuple[float, float, float]]:
-    camera_position = camera_world.ExtractTranslation()
-    camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
-    forward_z = float(camera_forward[2])
-    if forward_z >= -1e-3:
-        raise CameraConfigError("camera optical axis does not point toward tabletop")
-    lateral_xy = (-float(camera_forward[1]), float(camera_forward[0]))
-    lateral_norm = math.hypot(*lateral_xy)
-    if lateral_norm < 1e-6:
-        camera_right = camera_world.TransformDir(Gf.Vec3d(1.0, 0.0, 0.0))
-        lateral_xy = (float(camera_right[0]), float(camera_right[1]))
-        lateral_norm = math.hypot(*lateral_xy)
-    if lateral_norm < 1e-6:
-        raise CameraConfigError("camera ray cannot define a tabletop lateral axis")
-    lateral_xy = (
-        lateral_xy[0] / lateral_norm,
-        lateral_xy[1] / lateral_norm,
-    )
-    positions: dict[str, tuple[float, float, float]] = {}
-    for target in config.targets:
-        target_z = config.tabletop_z_m + target.height_m / 2.0
-        ray_distance = (target_z - float(camera_position[2])) / forward_z
-        if ray_distance < 0.15 or ray_distance > 0.60:
-            raise CameraConfigError(
-                f"{target.name} tabletop ray distance {ray_distance:.3f} m "
-                "is outside [0.15, 0.60]"
-            )
-        positions[target.prim_path] = (
-            float(camera_position[0])
-            + ray_distance * float(camera_forward[0])
-            + target.lateral_index * config.lateral_spacing_m * lateral_xy[0],
-            float(camera_position[1])
-            + ray_distance * float(camera_forward[1])
-            + target.lateral_index * config.lateral_spacing_m * lateral_xy[1],
-            target_z,
-        )
-    return positions
-
-
 def _select_camera_observation_pose(
     *,
     config: DofbotCameraConfig,
@@ -498,29 +459,25 @@ def _select_camera_observation_pose(
             "camera_forward_world": [
                 float(component) for component in camera_forward
             ],
-            "valid_tabletop_intersection": False,
+            "valid_optical_plane_fixture": False,
         }
-        try:
-            positions = _ray_tabletop_target_positions(config, camera_world)
-        except CameraConfigError as error:
-            record["rejection_reason"] = str(error)
-        else:
-            camera_position = camera_world.ExtractTranslation()
-            distances = [
-                math.dist(
-                    tuple(float(component) for component in camera_position),
-                    position,
-                )
-                for position in positions.values()
-            ]
-            score = sum(
-                abs(distance - config.forward_distance_m)
-                for distance in distances
+        positions = _camera_forward_target_world_positions(config, camera_world)
+        camera_position = camera_world.ExtractTranslation()
+        distances = [
+            math.dist(
+                tuple(float(component) for component in camera_position),
+                position,
             )
-            record["valid_tabletop_intersection"] = True
-            record["target_ray_distances_m"] = distances
-            record["score"] = score
-            valid_candidates.append((score, angles_deg, positions))
+            for position in positions.values()
+        ]
+        score = sum(
+            abs(distance - config.forward_distance_m)
+            for distance in distances
+        )
+        record["valid_optical_plane_fixture"] = True
+        record["target_distances_m"] = distances
+        record["score"] = score
+        valid_candidates.append((score, angles_deg, positions))
         candidate_records.append(record)
     binding_metrics = {
         "calibration_roundtrip_position_error_m": calibration_roundtrip_error[0],
@@ -549,10 +506,11 @@ def _select_camera_observation_pose(
             + json.dumps(candidate_records, separators=(",", ":")),
             flush=True,
         )
-        raise CameraConfigError(
-            "none of the accepted ActionChunk poses points the camera at the tabletop"
-        )
-    _, selected_angles, _ = min(valid_candidates, key=lambda item: item[0])
+        raise CameraConfigError("no accepted ActionChunk camera pose is valid")
+    # ActionChunk requires the first step to be neutral. Prefer that deterministic
+    # observation pose because every candidate receives the same camera-relative
+    # calibration fixture and floating-point noise must not change the selection.
+    _, selected_angles, _ = valid_candidates[0]
     _write_arm_angles_for_camera_setup(
         scene,
         sim,
@@ -561,7 +519,7 @@ def _select_camera_observation_pose(
         controlled_joint_ids,
         selected_angles,
     )
-    selected_positions = _ray_tabletop_target_positions(
+    selected_positions = _camera_forward_target_world_positions(
         config,
         _matrix_from_rigid_transform(_camera_world_transform(camera)),
     )
@@ -796,7 +754,7 @@ def main() -> None:
     stage = sim_utils.get_current_stage()
     camera_prim = _camera_prim(stage, config.prim_path)
     camera_world_at_spawn = _world_matrix(camera_prim)
-    target_positions = _planar_target_world_positions(
+    target_positions = _camera_forward_target_world_positions(
         config,
         camera_world_at_spawn,
     )
@@ -933,7 +891,7 @@ def main() -> None:
             "sha256": preflight_motion_config_sha256,
             "selected_angles_deg": list(selected_observation_angles_deg),
             "candidate_measurements": camera_pose_candidates,
-            "purpose": "safe deterministic camera-to-tabletop orientation",
+            "purpose": "safe deterministic camera-forward calibration fixture",
         },
         "camera_pose_binding": {
             **binding.to_dict(),
@@ -977,7 +935,10 @@ def main() -> None:
         },
         "observation_interface": {
             "input": {
-                "scene": "static tabletop targets plus DOFBOT and renderer lighting",
+                "scene": (
+                    "world-fixed camera-forward calibration targets plus "
+                    "DOFBOT and renderer lighting"
+                ),
                 "camera_pose": (
                     "fixed link4-to-camera extrinsic calibrated from the "
                     "official USD and synchronized from live link4 state"

@@ -99,7 +99,6 @@ class DofbotCameraConfig:
     placement: str
     forward_distance_m: float
     lateral_spacing_m: float
-    tabletop_z_m: float
     targets: tuple[CameraTarget, ...]
 
     @property
@@ -125,7 +124,6 @@ class DofbotCameraConfig:
                 "placement": self.placement,
                 "forward_distance_m": self.forward_distance_m,
                 "lateral_spacing_m": self.lateral_spacing_m,
-                "tabletop_z_m": self.tabletop_z_m,
                 "targets": [target.to_dict() for target in self.targets],
             },
         }
@@ -339,14 +337,13 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
             "placement",
             "forward_distance_m",
             "lateral_spacing_m",
-            "tabletop_z_m",
             "targets",
         },
         "target_scene",
     )
-    if target_scene["placement"] != "camera_forward_on_tabletop":
+    if target_scene["placement"] != "camera_forward_optical_plane":
         raise CameraConfigError(
-            "target_scene.placement must be camera_forward_on_tabletop"
+            "target_scene.placement must be camera_forward_optical_plane"
         )
     forward_distance_m = _require_number(
         target_scene["forward_distance_m"], "target_scene.forward_distance_m"
@@ -354,15 +351,10 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
     lateral_spacing_m = _require_number(
         target_scene["lateral_spacing_m"], "target_scene.lateral_spacing_m"
     )
-    tabletop_z_m = _require_number(
-        target_scene["tabletop_z_m"], "target_scene.tabletop_z_m"
-    )
     if not 0.15 <= forward_distance_m <= 0.60:
         raise CameraConfigError("forward_distance_m must be in [0.15, 0.60]")
     if not 0.03 <= lateral_spacing_m <= 0.12:
         raise CameraConfigError("lateral_spacing_m must be in [0.03, 0.12]")
-    if not -0.01 <= tabletop_z_m <= 0.20:
-        raise CameraConfigError("tabletop_z_m must be in [-0.01, 0.20]")
     raw_targets = target_scene["targets"]
     if not isinstance(raw_targets, list) or len(raw_targets) != 3:
         raise CameraConfigError("target_scene.targets must contain exactly three targets")
@@ -388,7 +380,6 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
         placement=target_scene["placement"],
         forward_distance_m=forward_distance_m,
         lateral_spacing_m=lateral_spacing_m,
-        tabletop_z_m=tabletop_z_m,
         targets=targets,
     )
 

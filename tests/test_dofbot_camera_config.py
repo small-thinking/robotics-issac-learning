@@ -79,6 +79,10 @@ class DofbotCameraConfigTest(unittest.TestCase):
 
     def test_target_scene_has_three_diagnostic_shapes_and_colors(self) -> None:
         self.assertEqual(
+            self.config.placement,
+            "camera_forward_optical_plane",
+        )
+        self.assertEqual(
             [target.name for target in self.config.targets],
             ["red_cube", "green_cylinder", "blue_cuboid"],
         )
@@ -90,6 +94,20 @@ class DofbotCameraConfigTest(unittest.TestCase):
             [target.lateral_index for target in self.config.targets],
             [-1, 0, 1],
         )
+
+    def test_parser_rejects_tabletop_or_extra_target_scene_contract(self) -> None:
+        tabletop = copy.deepcopy(self.raw_config)
+        tabletop["target_scene"]["placement"] = "camera_forward_on_tabletop"
+        with self.assertRaisesRegex(
+            CameraConfigError,
+            "camera_forward_optical_plane",
+        ):
+            parse_camera_config(tabletop)
+
+        extra = copy.deepcopy(self.raw_config)
+        extra["target_scene"]["tabletop_z_m"] = 0.0
+        with self.assertRaisesRegex(CameraConfigError, "keys must match"):
+            parse_camera_config(extra)
 
     def test_parser_rejects_camera_scope_expansion(self) -> None:
         for data_types in (["rgb", "depth"], ["distance_to_camera"], []):

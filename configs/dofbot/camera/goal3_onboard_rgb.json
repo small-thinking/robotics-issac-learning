@@ -22,10 +22,9 @@
     "minimum_dynamic_rotation_deg": 2.0
   },
   "target_scene": {
-    "placement": "camera_forward_on_tabletop",
+    "placement": "camera_forward_optical_plane",
     "forward_distance_m": 0.32,
     "lateral_spacing_m": 0.08,
-    "tabletop_z_m": 0.0,
     "targets": [
       {
         "name": "red_cube",
