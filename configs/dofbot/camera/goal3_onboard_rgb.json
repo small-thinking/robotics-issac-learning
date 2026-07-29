@@ -12,6 +12,15 @@
     "warmup_frames": 10,
     "capture_frames": 5
   },
+  "pose_binding": {
+    "mode": "explicit_link4_world_pose_sync",
+    "parent_body": "link4",
+    "orientation_convention": "opengl",
+    "position_tolerance_m": 0.001,
+    "orientation_tolerance_deg": 0.5,
+    "minimum_dynamic_translation_m": 0.005,
+    "minimum_dynamic_rotation_deg": 2.0
+  },
   "target_scene": {
     "placement": "camera_forward_on_tabletop",
     "forward_distance_m": 0.32,

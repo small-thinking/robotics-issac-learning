@@ -46,6 +46,16 @@ class DofbotCameraConfigTest(unittest.TestCase):
             for target in self.config.targets
         ]
 
+    def _valid_binding_metrics(self) -> dict[str, float]:
+        return {
+            "calibration_roundtrip_position_error_m": 1e-9,
+            "calibration_roundtrip_orientation_error_deg": 1e-7,
+            "maximum_applied_position_error_m": 0.0002,
+            "maximum_applied_orientation_error_deg": 0.1,
+            "maximum_dynamic_translation_m": 0.02,
+            "maximum_dynamic_rotation_deg": 12.0,
+        }
+
     def test_baseline_contract_is_rgb_640x480_at_ten_hz(self) -> None:
         self.assertEqual(
             self.config.prim_path,
@@ -55,6 +65,15 @@ class DofbotCameraConfigTest(unittest.TestCase):
         self.assertEqual((self.config.width, self.config.height), (640, 480))
         self.assertEqual(self.config.update_period_s, 0.1)
         self.assertEqual(self.config.nominal_frequency_hz, 10.0)
+        self.assertEqual(
+            self.config.pose_binding.mode,
+            "explicit_link4_world_pose_sync",
+        )
+        self.assertEqual(self.config.pose_binding.parent_body, "link4")
+        self.assertEqual(
+            self.config.pose_binding.orientation_convention,
+            "opengl",
+        )
         self.assertEqual(len(self.config.targets), 3)
         self.assertEqual(len(self.source_sha256), 64)
 
@@ -109,6 +128,22 @@ class DofbotCameraConfigTest(unittest.TestCase):
         with self.assertRaisesRegex(CameraConfigError, "size_m"):
             parse_camera_config(too_large)
 
+    def test_parser_rejects_weakened_or_wrong_pose_binding(self) -> None:
+        for field, value in (
+            ("mode", "automatic_parenting"),
+            ("parent_body", "wrist"),
+            ("orientation_convention", "ros"),
+            ("position_tolerance_m", 0.1),
+            ("orientation_tolerance_deg", 20.0),
+            ("minimum_dynamic_translation_m", 0.0),
+            ("minimum_dynamic_rotation_deg", 0.0),
+        ):
+            broken = copy.deepcopy(self.raw_config)
+            broken["pose_binding"][field] = value
+            with self.subTest(field=field):
+                with self.assertRaises(CameraConfigError):
+                    parse_camera_config(broken)
+
     def test_synthetic_remote_observation_passes_all_machine_checks(self) -> None:
         result = evaluate_camera_observations(
             self.config,
@@ -118,6 +153,7 @@ class DofbotCameraConfigTest(unittest.TestCase):
             frame_samples=self._valid_samples(),
             target_projections=self._valid_projections(),
             saved_png_sha256="a" * 64,
+            binding_metrics=self._valid_binding_metrics(),
         )
         self.assertTrue(result["passed"])
         self.assertTrue(all(result["checks"].values()))
@@ -135,6 +171,7 @@ class DofbotCameraConfigTest(unittest.TestCase):
             frame_samples=constant,
             target_projections=self._valid_projections(),
             saved_png_sha256="b" * 64,
+            binding_metrics=self._valid_binding_metrics(),
         )
         self.assertFalse(result["checks"]["rgb_is_nonconstant"])
         self.assertFalse(result["passed"])
@@ -149,6 +186,7 @@ class DofbotCameraConfigTest(unittest.TestCase):
             frame_samples=wrong_shape,
             target_projections=self._valid_projections(),
             saved_png_sha256="c" * 64,
+            binding_metrics=self._valid_binding_metrics(),
         )
         self.assertFalse(result["checks"]["rgb_shape_is_1x480x640x3"])
 
@@ -166,6 +204,7 @@ class DofbotCameraConfigTest(unittest.TestCase):
             frame_samples=wrong_rate,
             target_projections=projections,
             saved_png_sha256="d" * 64,
+            binding_metrics=self._valid_binding_metrics(),
         )
         self.assertFalse(result["checks"]["simulation_time_cadence_is_10_hz"])
         self.assertFalse(result["checks"]["all_target_centers_project_inside_frame"])
@@ -180,9 +219,29 @@ class DofbotCameraConfigTest(unittest.TestCase):
             frame_samples=self._valid_samples(),
             target_projections=self._valid_projections(),
             saved_png_sha256=None,
+            binding_metrics=self._valid_binding_metrics(),
         )
         self.assertFalse(result["checks"]["sensor_initialized"])
         self.assertFalse(result["checks"]["png_saved_with_sha256"])
+
+    def test_pose_binding_is_a_machine_gate(self) -> None:
+        broken_binding = self._valid_binding_metrics()
+        broken_binding["maximum_applied_position_error_m"] = 0.02
+        broken_binding["maximum_dynamic_translation_m"] = 0.0
+        broken_binding["maximum_dynamic_rotation_deg"] = 0.0
+        result = evaluate_camera_observations(
+            self.config,
+            camera_prim_is_usdgeom_camera=True,
+            sensor_initialized=True,
+            physics_dt_s=1 / 60,
+            frame_samples=self._valid_samples(),
+            target_projections=self._valid_projections(),
+            saved_png_sha256="e" * 64,
+            binding_metrics=broken_binding,
+        )
+        self.assertFalse(result["checks"]["camera_world_pose_matches_binding"])
+        self.assertFalse(result["checks"]["camera_pose_changes_with_link4"])
+        self.assertFalse(result["passed"])
         self.assertFalse(result["passed"])
 
 

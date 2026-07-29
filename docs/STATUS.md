@@ -5,7 +5,8 @@
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
   the ActionChunk v1 pose-boundary API extension is also machine- and
   Viewer-accepted; Goal 3 onboard RGB capture reached the remote machine gate
-  and exposed a dynamic-camera binding blocker
+  and its dynamic-camera binding remediation is locally implemented, with
+  remote machine and Viewer revalidation still pending
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
   21:11 PDT after the Goal 3 diagnostic window
@@ -43,9 +44,11 @@
 - Machine gates: original prim is a `UsdGeom.Camera`, sensor initializes,
   five distinct frames advance at 10 Hz simulation time, every tensor is
   non-empty/non-constant `1x480x640x3 uint8`, all three target centers project
-  inside the image, and the PNG is saved with a SHA-256
-- Local validation: `make test` passed all 80 tests; targeted Ruff, Python
-  compilation, shell syntax, and `git diff --check` passed
+  inside the image, the fixed `link4`-to-camera extrinsic round-trips within
+  tolerance, the applied camera world pose matches that extrinsic, the camera
+  pose changes with `link4`, and the PNG is saved with a SHA-256
+- Local validation: `make test` passed all 94 tests; targeted Ruff, Python
+  compilation, and `git diff --check` passed
 - Remote static sensor facts on Isaac Sim `6.0.1`: the official prim is a
   `UsdGeom.Camera`; the sensor initializes; RGB is
   `torch.uint8[1,480,640,3]`; five frames advance at the exact configured
@@ -61,10 +64,19 @@
   project inside the image but rendered five all-zero frames because the view
   pointed into the robot body. This is not a valid camera calibration and was
   removed from the current branch.
-- Current acceptance: local pass / remote machine fail / user visual not run.
-  Goal 3 is not complete. The next implementation must explicitly synchronize
-  the sensor pose from live `link4` state while retaining the official optics,
-  then repeat both gates.
+- Local remediation: the runner now calibrates one fixed
+  `T_link4_camera` from the official neutral pose, computes
+  `T_world_camera = T_world_link4 * T_link4_camera`, and calls the Isaac
+  Camera world-pose API with the OpenGL convention before each rendered
+  capture and Viewer step. The same path records calibration, applied-pose,
+  and dynamic-motion errors in `camera_contract.json`. Isaac Lab 3.0's public
+  `(x,y,z,w)` quaternion boundary is explicitly converted to the internal
+  scalar-first transform representation; the adapter does not create a
+  replacement camera or change the official optics.
+- Current acceptance: remediation local pass / prior remote machine fail /
+  user visual not run. Goal 3 is not complete until a fresh machine artifact
+  passes the new pose-binding gates and the user confirms the changing
+  onboard view.
 - Compute lifecycle: stop requested after the failed machine gate; Brev stayed
   in asynchronous `STOPPING` before terminal `STOPPED` was verified at
   21:11 PDT. Instance and persistent disk were retained.

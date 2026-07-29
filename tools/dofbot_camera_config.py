@@ -14,6 +14,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+if __package__:
+    from .dofbot_camera_binding import (
+        EXPECTED_BINDING_MODE,
+        EXPECTED_CAMERA_CONVENTION,
+        EXPECTED_PARENT_BODY,
+    )
+else:
+    from dofbot_camera_binding import (
+        EXPECTED_BINDING_MODE,
+        EXPECTED_CAMERA_CONVENTION,
+        EXPECTED_PARENT_BODY,
+    )
+
 CAMERA_CONFIG_SCHEMA_VERSION = 1
 EXPECTED_CAMERA_PRIM_PATH = "/World/envs/env_0/Dofbot/link4/Camera"
 SUPPORTED_DATA_TYPES = ("rgb",)
@@ -50,6 +63,28 @@ class CameraTarget:
 
 
 @dataclass(frozen=True)
+class CameraPoseBindingConfig:
+    mode: str
+    parent_body: str
+    orientation_convention: str
+    position_tolerance_m: float
+    orientation_tolerance_deg: float
+    minimum_dynamic_translation_m: float
+    minimum_dynamic_rotation_deg: float
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "mode": self.mode,
+            "parent_body": self.parent_body,
+            "orientation_convention": self.orientation_convention,
+            "position_tolerance_m": self.position_tolerance_m,
+            "orientation_tolerance_deg": self.orientation_tolerance_deg,
+            "minimum_dynamic_translation_m": self.minimum_dynamic_translation_m,
+            "minimum_dynamic_rotation_deg": self.minimum_dynamic_rotation_deg,
+        }
+
+
+@dataclass(frozen=True)
 class DofbotCameraConfig:
     schema_version: int
     name: str
@@ -60,6 +95,7 @@ class DofbotCameraConfig:
     update_period_s: float
     warmup_frames: int
     capture_frames: int
+    pose_binding: CameraPoseBindingConfig
     placement: str
     forward_distance_m: float
     lateral_spacing_m: float
@@ -84,6 +120,7 @@ class DofbotCameraConfig:
                 "warmup_frames": self.warmup_frames,
                 "capture_frames": self.capture_frames,
             },
+            "pose_binding": self.pose_binding.to_dict(),
             "target_scene": {
                 "placement": self.placement,
                 "forward_distance_m": self.forward_distance_m,
@@ -163,7 +200,7 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
         raise CameraConfigError("camera config must be a JSON object")
     _require_exact_keys(
         value,
-        {"schema_version", "name", "camera", "target_scene"},
+        {"schema_version", "name", "camera", "pose_binding", "target_scene"},
         "camera config",
     )
     if value["schema_version"] != CAMERA_CONFIG_SCHEMA_VERSION:
@@ -223,6 +260,76 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
     ):
         raise CameraConfigError("camera.capture_frames must be an integer in [3, 30]")
 
+    pose_binding = value["pose_binding"]
+    if not isinstance(pose_binding, dict):
+        raise CameraConfigError("pose_binding must be an object")
+    _require_exact_keys(
+        pose_binding,
+        {
+            "mode",
+            "parent_body",
+            "orientation_convention",
+            "position_tolerance_m",
+            "orientation_tolerance_deg",
+            "minimum_dynamic_translation_m",
+            "minimum_dynamic_rotation_deg",
+        },
+        "pose_binding",
+    )
+    if pose_binding["mode"] != EXPECTED_BINDING_MODE:
+        raise CameraConfigError(
+            f"pose_binding.mode must be {EXPECTED_BINDING_MODE}"
+        )
+    if pose_binding["parent_body"] != EXPECTED_PARENT_BODY:
+        raise CameraConfigError(
+            f"pose_binding.parent_body must be {EXPECTED_PARENT_BODY}"
+        )
+    if pose_binding["orientation_convention"] != EXPECTED_CAMERA_CONVENTION:
+        raise CameraConfigError(
+            "pose_binding.orientation_convention must be opengl"
+        )
+    position_tolerance_m = _require_number(
+        pose_binding["position_tolerance_m"],
+        "pose_binding.position_tolerance_m",
+    )
+    orientation_tolerance_deg = _require_number(
+        pose_binding["orientation_tolerance_deg"],
+        "pose_binding.orientation_tolerance_deg",
+    )
+    minimum_dynamic_translation_m = _require_number(
+        pose_binding["minimum_dynamic_translation_m"],
+        "pose_binding.minimum_dynamic_translation_m",
+    )
+    minimum_dynamic_rotation_deg = _require_number(
+        pose_binding["minimum_dynamic_rotation_deg"],
+        "pose_binding.minimum_dynamic_rotation_deg",
+    )
+    if not 1e-5 <= position_tolerance_m <= 0.005:
+        raise CameraConfigError(
+            "pose_binding.position_tolerance_m must be in [1e-5, 0.005]"
+        )
+    if not 0.01 <= orientation_tolerance_deg <= 2.0:
+        raise CameraConfigError(
+            "pose_binding.orientation_tolerance_deg must be in [0.01, 2.0]"
+        )
+    if not 0.001 <= minimum_dynamic_translation_m <= 0.05:
+        raise CameraConfigError(
+            "pose_binding.minimum_dynamic_translation_m must be in [0.001, 0.05]"
+        )
+    if not 0.1 <= minimum_dynamic_rotation_deg <= 10.0:
+        raise CameraConfigError(
+            "pose_binding.minimum_dynamic_rotation_deg must be in [0.1, 10.0]"
+        )
+    parsed_pose_binding = CameraPoseBindingConfig(
+        mode=pose_binding["mode"],
+        parent_body=pose_binding["parent_body"],
+        orientation_convention=pose_binding["orientation_convention"],
+        position_tolerance_m=position_tolerance_m,
+        orientation_tolerance_deg=orientation_tolerance_deg,
+        minimum_dynamic_translation_m=minimum_dynamic_translation_m,
+        minimum_dynamic_rotation_deg=minimum_dynamic_rotation_deg,
+    )
+
     target_scene = value["target_scene"]
     if not isinstance(target_scene, dict):
         raise CameraConfigError("target_scene must be an object")
@@ -277,6 +384,7 @@ def parse_camera_config(value: Any) -> DofbotCameraConfig:
         update_period_s=update_period_s,
         warmup_frames=warmup_frames,
         capture_frames=capture_frames,
+        pose_binding=parsed_pose_binding,
         placement=target_scene["placement"],
         forward_distance_m=forward_distance_m,
         lateral_spacing_m=lateral_spacing_m,
@@ -303,6 +411,7 @@ def evaluate_camera_observations(
     frame_samples: list[dict[str, Any]],
     target_projections: list[dict[str, Any]],
     saved_png_sha256: str | None,
+    binding_metrics: dict[str, Any],
 ) -> dict[str, Any]:
     """Evaluate the remote RGB result without silently weakening Goal 3."""
 
@@ -353,6 +462,56 @@ def evaluate_camera_observations(
     png_saved = isinstance(saved_png_sha256, str) and bool(
         SHA256_PATTERN.fullmatch(saved_png_sha256)
     )
+    calibration_position_error_m = binding_metrics.get(
+        "calibration_roundtrip_position_error_m"
+    )
+    calibration_orientation_error_deg = binding_metrics.get(
+        "calibration_roundtrip_orientation_error_deg"
+    )
+    maximum_position_error_m = binding_metrics.get(
+        "maximum_applied_position_error_m"
+    )
+    maximum_orientation_error_deg = binding_metrics.get(
+        "maximum_applied_orientation_error_deg"
+    )
+    maximum_dynamic_translation_m = binding_metrics.get(
+        "maximum_dynamic_translation_m"
+    )
+    maximum_dynamic_rotation_deg = binding_metrics.get(
+        "maximum_dynamic_rotation_deg"
+    )
+    calibration_roundtrip_matches = (
+        isinstance(calibration_position_error_m, (int, float))
+        and not isinstance(calibration_position_error_m, bool)
+        and isinstance(calibration_orientation_error_deg, (int, float))
+        and not isinstance(calibration_orientation_error_deg, bool)
+        and float(calibration_position_error_m)
+        <= config.pose_binding.position_tolerance_m
+        and float(calibration_orientation_error_deg)
+        <= config.pose_binding.orientation_tolerance_deg
+    )
+    applied_pose_matches = (
+        isinstance(maximum_position_error_m, (int, float))
+        and not isinstance(maximum_position_error_m, bool)
+        and isinstance(maximum_orientation_error_deg, (int, float))
+        and not isinstance(maximum_orientation_error_deg, bool)
+        and float(maximum_position_error_m)
+        <= config.pose_binding.position_tolerance_m
+        and float(maximum_orientation_error_deg)
+        <= config.pose_binding.orientation_tolerance_deg
+    )
+    dynamic_pose_observed = (
+        isinstance(maximum_dynamic_translation_m, (int, float))
+        and not isinstance(maximum_dynamic_translation_m, bool)
+        and isinstance(maximum_dynamic_rotation_deg, (int, float))
+        and not isinstance(maximum_dynamic_rotation_deg, bool)
+        and (
+            float(maximum_dynamic_translation_m)
+            >= config.pose_binding.minimum_dynamic_translation_m
+            or float(maximum_dynamic_rotation_deg)
+            >= config.pose_binding.minimum_dynamic_rotation_deg
+        )
+    )
     checks = {
         "camera_prim_is_usdgeom_camera": camera_prim_is_usdgeom_camera,
         "sensor_initialized": sensor_initialized,
@@ -365,6 +524,9 @@ def evaluate_camera_observations(
         "simulation_time_cadence_is_10_hz": cadence_matches,
         "all_target_centers_project_inside_frame": targets_in_frame,
         "png_saved_with_sha256": png_saved,
+        "link4_camera_calibration_roundtrip": calibration_roundtrip_matches,
+        "camera_world_pose_matches_binding": applied_pose_matches,
+        "camera_pose_changes_with_link4": dynamic_pose_observed,
     }
     return {
         "checks": checks,
@@ -373,4 +535,5 @@ def evaluate_camera_observations(
         "nominal_frequency_hz": config.nominal_frequency_hz,
         "cadence_intervals_s": cadence_intervals_s,
         "cadence_tolerance_s": cadence_tolerance_s,
+        "pose_binding_tolerances": config.pose_binding.to_dict(),
     }

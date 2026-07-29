@@ -348,8 +348,8 @@ disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **local contract ready; remote machine failed on dynamic pose binding;
-Viewer not run**
+Status: **explicit link4-camera binding locally ready; remote machine
+revalidation and Viewer confirmation pending**
 
 The baseline reuses the exact camera prim discovered in Goal 1:
 `/World/envs/env_0/Dofbot/link4/Camera`. It binds `CameraCfg` with
@@ -420,12 +420,18 @@ started.
 A 180-degree optical-axis flip was tested and rejected: although its geometric
 projection placed all target centers inside the frame, the camera looked into
 the robot body and returned five all-zero RGB frames. The current direction is
-an explicit dynamic pose synchronizer: derive a fixed camera-to-`link4`
-extrinsic at neutral, drive the sensor from the live `link4` pose each frame,
-and retain the official prim's optics. That is an adapter behavior and must be
-named in the contract rather than represented as automatic prim following.
-Goal 3 remains open until a new machine artifact passes and the user confirms
-the changing onboard view.
+now implemented locally as an explicit dynamic pose synchronizer. It derives a
+fixed camera-to-`link4` extrinsic at neutral, computes
+`T_world_camera = T_world_link4 * T_link4_camera` from the live articulation,
+and drives the original sensor through Isaac's public world-pose API in the
+OpenGL convention before every capture and Viewer step. Isaac Lab 3.0's
+public `(x,y,z,w)` quaternion order is converted explicitly at the boundary
+to the scalar-first order used by the pure transform math. The contract names
+this as adapter behavior and records calibration, desired/actual pose error,
+and observed dynamic motion rather than claiming automatic prim following.
+Pure transform, strict config, machine-gate, and runner-wiring tests pass
+locally. Goal 3 remains open until a new machine artifact passes and the user
+confirms the changing onboard view.
 
 ## Later milestones
 

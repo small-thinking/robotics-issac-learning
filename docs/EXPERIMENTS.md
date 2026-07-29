@@ -711,3 +711,34 @@
   existing persistent disk were retained.
 - Conclusion: Goal 3 remains incomplete: local pass / remote machine fail /
   visual not run.
+
+## 2026-07-28 — explicit link4-camera binding passed local gates
+
+- Branch: `codex/dofbot-camera-contract`
+- Scope: local Goal 3 remediation only; no GPU, depth, segmentation, CV
+  model, policy, checkpoint, real hardware, or billable-resource transition
+- Root-cause response: retain the official
+  `/World/envs/env_0/Dofbot/link4/Camera` prim and its optics, calibrate a
+  fixed `T_link4_camera` at neutral, and explicitly compute
+  `T_world_camera = T_world_link4 * T_link4_camera` from the live PhysX body
+  state
+- Runtime behavior: static capture, accepted-pose selection, and the looping
+  secure Viewer all call the Isaac Camera world-pose API in the `opengl`
+  convention; Isaac Lab 3.0 `(x,y,z,w)` articulation/camera quaternions cross
+  an explicit boundary into the scalar-first transform math, and no
+  replacement camera prim is created
+- New fail-closed gates: calibration round-trip position/orientation error,
+  maximum applied world-pose error, and minimum observed camera
+  translation/rotation as `link4` moves
+- Durable evidence schema: `camera_contract.json` now names the explicit
+  adapter behavior, fixed extrinsic, neutral calibration poses, synchronization
+  timing, per-candidate desired/actual poses, and aggregate binding metrics
+- Local command: `make test`
+- Local result: all 94 tests passed, including pure rigid-transform
+  composition/inversion, quaternion sign equivalence, strict binding config,
+  machine-gate failure cases, and AST checks that both capture and Viewer
+  invoke the public pose API; targeted Ruff, Python compilation, and
+  `git diff --check` also passed
+- Conclusion: local remediation passes, but Goal 3 remains incomplete. A
+  fresh approved GPU window must produce a passing machine artifact before
+  the Viewer is opened for the user's changing-view confirmation.

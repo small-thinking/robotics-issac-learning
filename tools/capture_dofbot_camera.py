@@ -28,6 +28,11 @@ from dofbot_camera_config import (
     evaluate_camera_observations,
     load_camera_config,
 )
+from dofbot_camera_binding import (
+    CameraLinkBinding,
+    RigidTransform,
+    pose_error,
+)
 from dofbot_motion_config import load_motion_config
 
 parser = argparse.ArgumentParser(
@@ -138,12 +143,8 @@ def _world_matrix(prim: Usd.Prim) -> Gf.Matrix4d:
     )
 
 
-def _matrix_from_pose_wxyz(
-    position: torch.Tensor,
-    quaternion_wxyz: torch.Tensor,
-) -> Gf.Matrix4d:
-    position_values = position.detach().cpu().tolist()
-    quaternion_values = quaternion_wxyz.detach().cpu().tolist()
+def _matrix_from_rigid_transform(transform: RigidTransform) -> Gf.Matrix4d:
+    quaternion_values = transform.rotation_wxyz
     quaternion = Gf.Quatd(
         float(quaternion_values[0]),
         Gf.Vec3d(
@@ -154,32 +155,61 @@ def _matrix_from_pose_wxyz(
     )
     matrix = Gf.Matrix4d(1.0)
     matrix.SetRotate(Gf.Rotation(quaternion))
-    matrix.SetTranslateOnly(Gf.Vec3d(*map(float, position_values)))
+    matrix.SetTranslateOnly(Gf.Vec3d(*transform.translation_m))
     return matrix
 
 
-def _camera_world_from_sensor(camera: Any) -> Gf.Matrix4d:
+def _camera_world_transform(camera: Any) -> RigidTransform:
+    position = _as_torch(camera.data.pos_w)[0].detach().cpu().tolist()
     quaternion_xyzw = _as_torch(camera.data.quat_w_opengl)[0]
-    quaternion_wxyz = quaternion_xyzw[
-        torch.tensor([3, 0, 1, 2], device=quaternion_xyzw.device)
-    ]
-    return _matrix_from_pose_wxyz(
-        _as_torch(camera.data.pos_w)[0],
-        quaternion_wxyz,
+    quaternion_values = quaternion_xyzw.detach().cpu().tolist()
+    return RigidTransform.from_xyzw(
+        translation_m=tuple(map(float, position)),
+        rotation_xyzw=(
+            float(quaternion_values[0]),
+            float(quaternion_values[1]),
+            float(quaternion_values[2]),
+            float(quaternion_values[3]),
+        ),
     )
 
 
-def _camera_world_from_articulation(
-    scene: InteractiveScene,
-    camera_local_to_link4: Gf.Matrix4d,
-) -> Gf.Matrix4d:
+def _link4_world_transform(scene: InteractiveScene) -> RigidTransform:
     robot = scene["dofbot"]
     link4_index = robot.body_names.index("link4")
-    link4_world = _matrix_from_pose_wxyz(
-        robot.data.body_pos_w[0, link4_index],
-        robot.data.body_quat_w[0, link4_index],
+    position = robot.data.body_pos_w[0, link4_index].detach().cpu().tolist()
+    quaternion = (
+        robot.data.body_quat_w[0, link4_index].detach().cpu().tolist()
     )
-    return camera_local_to_link4 * link4_world
+    return RigidTransform.from_xyzw(
+        translation_m=tuple(map(float, position)),
+        rotation_xyzw=tuple(map(float, quaternion)),
+    )
+
+
+def _apply_camera_binding(
+    *,
+    scene: InteractiveScene,
+    camera: Any,
+    binding: CameraLinkBinding,
+) -> RigidTransform:
+    """Apply the frozen link4-camera extrinsic through Isaac's public API."""
+
+    camera_world = binding.camera_world(_link4_world_transform(scene))
+    camera.set_world_poses(
+        positions=torch.tensor(
+            [camera_world.translation_m],
+            device=scene["dofbot"].device,
+            dtype=torch.float32,
+        ),
+        orientations=torch.tensor(
+            [camera_world.rotation_xyzw],
+            device=scene["dofbot"].device,
+            dtype=torch.float32,
+        ),
+        convention="opengl",
+    )
+    return camera_world
 
 
 def _matrix_rows(matrix: Gf.Matrix4d) -> list[list[float]]:
@@ -187,6 +217,10 @@ def _matrix_rows(matrix: Gf.Matrix4d) -> list[list[float]]:
         [float(matrix[row][column]) for column in range(4)]
         for row in range(4)
     ]
+
+
+def _transform_record(transform: RigidTransform) -> dict[str, list[float]]:
+    return transform.to_dict()
 
 
 def _camera_optics(camera_prim: Usd.Prim) -> dict[str, Any]:
@@ -290,9 +324,11 @@ def _set_arm_angles(
 def _write_arm_angles_for_camera_setup(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
+    camera: Any,
+    binding: CameraLinkBinding,
     controlled_joint_ids: list[int],
     angles_deg: tuple[int, ...],
-) -> None:
+) -> tuple[RigidTransform, RigidTransform]:
     robot = scene["dofbot"]
     joint_positions = robot.data.default_joint_pos.clone()
     joint_velocities = torch.zeros_like(joint_positions)
@@ -306,6 +342,13 @@ def _write_arm_angles_for_camera_setup(
     )
     robot.write_joint_state_to_sim(joint_positions, joint_velocities)
     sim.forward()
+    scene.update(0.0)
+    expected_camera_world = _apply_camera_binding(
+        scene=scene,
+        camera=camera,
+        binding=binding,
+    )
+    sim.render()
     refresh_steps = (
         math.ceil(
             preflight_config.update_period_s / sim.get_physics_dt()
@@ -313,26 +356,39 @@ def _write_arm_angles_for_camera_setup(
         + 1
     )
     for _ in range(refresh_steps):
-        sim.step(render=True)
-        scene.update(sim.get_physics_dt())
+        expected_camera_world = _step_with_camera_binding(
+            scene=scene,
+            sim=sim,
+            camera=camera,
+            binding=binding,
+            write_scene_data=False,
+        )
+    return expected_camera_world, _camera_world_transform(camera)
 
 
-def _step_scene(
+def _step_with_camera_binding(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
-    steps: int,
-) -> None:
-    for _ in range(steps):
-        if not simulation_app.is_running():
-            raise CameraConfigError("simulation stopped during camera pose setup")
-        try:
-            scene.write_data_to_sim()
-            sim.step(render=True)
-        except SystemExit as error:
-            raise RuntimeError(
-                "Isaac requested process exit during camera pose setup"
-            ) from error
-        scene.update(sim.get_physics_dt())
+    camera: Any,
+    binding: CameraLinkBinding,
+    *,
+    write_scene_data: bool = True,
+) -> RigidTransform:
+    """Advance physics, bind from the new link pose, then render that pose."""
+
+    if not simulation_app.is_running():
+        raise CameraConfigError("simulation stopped during camera synchronization")
+    if write_scene_data:
+        scene.write_data_to_sim()
+    sim.step(render=False)
+    scene.update(sim.get_physics_dt())
+    camera_world = _apply_camera_binding(
+        scene=scene,
+        camera=camera,
+        binding=binding,
+    )
+    sim.render()
+    return camera_world
 
 
 def _ray_tabletop_target_positions(
@@ -383,11 +439,15 @@ def _select_camera_observation_pose(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
     camera: Any,
+    binding: CameraLinkBinding,
+    calibration_camera_world: RigidTransform,
+    calibration_roundtrip_error: tuple[float, float],
     controlled_joint_ids: list[int],
 ) -> tuple[
     tuple[int, ...],
     dict[str, tuple[float, float, float]],
     list[dict[str, Any]],
+    dict[str, float],
 ]:
     candidate_records: list[dict[str, Any]] = []
     valid_candidates: list[
@@ -403,17 +463,35 @@ def _select_camera_observation_pose(
         if angles_deg in seen:
             continue
         seen.add(angles_deg)
-        _write_arm_angles_for_camera_setup(
-            scene,
-            sim,
-            controlled_joint_ids,
-            angles_deg,
+        expected_camera_world, actual_camera_world = (
+            _write_arm_angles_for_camera_setup(
+                scene,
+                sim,
+                camera,
+                binding,
+                controlled_joint_ids,
+                angles_deg,
+            )
         )
-        camera_world = _camera_world_from_sensor(camera)
+        position_error_m, orientation_error_deg = pose_error(
+            expected_camera_world,
+            actual_camera_world,
+        )
+        dynamic_translation_m, dynamic_rotation_deg = pose_error(
+            calibration_camera_world,
+            actual_camera_world,
+        )
+        camera_world = _matrix_from_rigid_transform(actual_camera_world)
         camera_forward = camera_world.TransformDir(Gf.Vec3d(0.0, 0.0, -1.0))
         record: dict[str, Any] = {
             "step_name": step.name,
             "angles_deg": list(angles_deg),
+            "expected_camera_world": _transform_record(expected_camera_world),
+            "actual_camera_world": _transform_record(actual_camera_world),
+            "binding_position_error_m": position_error_m,
+            "binding_orientation_error_deg": orientation_error_deg,
+            "dynamic_translation_from_calibration_m": dynamic_translation_m,
+            "dynamic_rotation_from_calibration_deg": dynamic_rotation_deg,
             "camera_forward_world": [
                 float(component) for component in camera_forward
             ],
@@ -441,6 +519,27 @@ def _select_camera_observation_pose(
             record["score"] = score
             valid_candidates.append((score, angles_deg, positions))
         candidate_records.append(record)
+    binding_metrics = {
+        "calibration_roundtrip_position_error_m": calibration_roundtrip_error[0],
+        "calibration_roundtrip_orientation_error_deg": (
+            calibration_roundtrip_error[1]
+        ),
+        "maximum_applied_position_error_m": max(
+            record["binding_position_error_m"] for record in candidate_records
+        ),
+        "maximum_applied_orientation_error_deg": max(
+            record["binding_orientation_error_deg"]
+            for record in candidate_records
+        ),
+        "maximum_dynamic_translation_m": max(
+            record["dynamic_translation_from_calibration_m"]
+            for record in candidate_records
+        ),
+        "maximum_dynamic_rotation_deg": max(
+            record["dynamic_rotation_from_calibration_deg"]
+            for record in candidate_records
+        ),
+    }
     if not valid_candidates:
         print(
             "[CAMERA POSE] "
@@ -454,14 +553,21 @@ def _select_camera_observation_pose(
     _write_arm_angles_for_camera_setup(
         scene,
         sim,
+        camera,
+        binding,
         controlled_joint_ids,
         selected_angles,
     )
     selected_positions = _ray_tabletop_target_positions(
         config,
-        _camera_world_from_sensor(camera),
+        _matrix_from_rigid_transform(_camera_world_transform(camera)),
     )
-    return selected_angles, selected_positions, candidate_records
+    return (
+        selected_angles,
+        selected_positions,
+        candidate_records,
+        binding_metrics,
+    )
 
 
 def _move_targets(
@@ -637,6 +743,8 @@ def _run_viewer_motion(
     *,
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
+    camera: Any,
+    binding: CameraLinkBinding,
     controlled_joint_ids: list[int],
 ) -> None:
     while simulation_app.is_running():
@@ -653,13 +761,16 @@ def _run_viewer_motion(
                 if not simulation_app.is_running():
                     return
                 try:
-                    scene.write_data_to_sim()
-                    sim.step(render=True)
+                    _step_with_camera_binding(
+                        scene=scene,
+                        sim=sim,
+                        camera=camera,
+                        binding=binding,
+                    )
                 except SystemExit as error:
                     raise RuntimeError(
                         "Isaac requested process exit during camera Viewer motion"
                     ) from error
-                scene.update(sim.get_physics_dt())
 
 
 def main() -> None:
@@ -692,15 +803,31 @@ def main() -> None:
     scene.update(sim.get_physics_dt())
     camera = scene["camera"]
     controlled_joint_ids = _controlled_joint_ids(scene)
+    calibration_link4_world = _link4_world_transform(scene)
+    calibration_camera_world = _camera_world_transform(camera)
+    binding = CameraLinkBinding.calibrate(
+        camera_prim_path=config.prim_path,
+        parent_body=config.pose_binding.parent_body,
+        link_world=calibration_link4_world,
+        camera_world=calibration_camera_world,
+    )
+    calibration_roundtrip_error = binding.calibration_roundtrip_error(
+        link_world=calibration_link4_world,
+        camera_world=calibration_camera_world,
+    )
     (
         selected_observation_angles_deg,
         target_positions,
         camera_pose_candidates,
+        binding_metrics,
     ) = _select_camera_observation_pose(
         config=config,
         scene=scene,
         sim=sim,
         camera=camera,
+        binding=binding,
+        calibration_camera_world=calibration_camera_world,
+        calibration_roundtrip_error=calibration_roundtrip_error,
         controlled_joint_ids=controlled_joint_ids,
     )
     _move_targets(target_positions)
@@ -727,10 +854,13 @@ def main() -> None:
     for _ in range(maximum_steps):
         if not simulation_app.is_running():
             break
-        scene.write_data_to_sim()
-        sim.step(render=True)
+        _step_with_camera_binding(
+            scene,
+            sim,
+            camera,
+            binding,
+        )
         simulation_time_s += physics_dt_s
-        scene.update(physics_dt_s)
         camera_output = camera.data.output or {}
         rgb_buffer = camera_output.get("rgb")
         if rgb_buffer is None:
@@ -760,7 +890,8 @@ def main() -> None:
     if latest_rgb is None:
         raise CameraConfigError("camera produced no non-empty RGB tensor")
     saved_png_sha256 = _save_rgb_png(latest_rgb, args_cli.rgb_output)
-    camera_world = _camera_world_from_sensor(camera)
+    camera_world_transform = _camera_world_transform(camera)
+    camera_world = _matrix_from_rigid_transform(camera_world_transform)
     intrinsic_matrix = (
         _as_torch(camera.data.intrinsic_matrices)[0].detach().cpu().tolist()
     )
@@ -778,6 +909,7 @@ def main() -> None:
         frame_samples=frame_samples,
         target_projections=target_projections,
         saved_png_sha256=saved_png_sha256,
+        binding_metrics=binding_metrics,
     )
     contract = {
         "schema_version": 1,
@@ -800,11 +932,29 @@ def main() -> None:
             "candidate_measurements": camera_pose_candidates,
             "purpose": "safe deterministic camera-to-tabletop orientation",
         },
+        "camera_pose_binding": {
+            **binding.to_dict(),
+            "sync_timing": (
+                "after each physics/articulation update and before its render"
+            ),
+            "adapter_behavior_applied": True,
+            "adapter_camera_created": False,
+            "calibration": {
+                "link4_world": _transform_record(calibration_link4_world),
+                "camera_world": _transform_record(calibration_camera_world),
+                "roundtrip_position_error_m": calibration_roundtrip_error[0],
+                "roundtrip_orientation_error_deg": (
+                    calibration_roundtrip_error[1]
+                ),
+            },
+            "measurements": binding_metrics,
+        },
         "camera": {
             "prim_path": config.prim_path,
             "prim_type_name": camera_prim.GetTypeName(),
             "reused_authored_prim": True,
             "adapter_camera_created": False,
+            "explicit_pose_adapter_applied": True,
             "optics_authored_in_usd": _camera_optics(camera_prim),
             "world_transform_matrix": _matrix_rows(camera_world),
             "sensor_pose": {
@@ -825,7 +975,10 @@ def main() -> None:
         "observation_interface": {
             "input": {
                 "scene": "static tabletop targets plus DOFBOT and renderer lighting",
-                "camera_pose": "authored link4 child transform from the official USD",
+                "camera_pose": (
+                    "fixed link4-to-camera extrinsic calibrated from the "
+                    "official USD and synchronized from live link4 state"
+                ),
                 "intrinsics": "authored USD optics sampled into the Isaac camera",
                 "timing": "simulation-time update_period_s",
             },
@@ -880,6 +1033,7 @@ def main() -> None:
         "scope": {
             "rgb_captured": True,
             "accepted_arm_pose_used_for_camera_orientation": True,
+            "explicit_link4_camera_binding_applied": True,
             "depth_or_segmentation_captured": False,
             "computer_vision_loaded": False,
             "policy_or_checkpoint_loaded": False,
@@ -906,6 +1060,8 @@ def main() -> None:
         _run_viewer_motion(
             scene=scene,
             sim=sim,
+            camera=camera,
+            binding=binding,
             controlled_joint_ids=controlled_joint_ids,
         )
 
