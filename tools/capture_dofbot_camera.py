@@ -281,7 +281,9 @@ def _write_arm_angles_for_camera_setup(
     )
     robot.write_joint_state_to_sim(joint_positions, joint_velocities)
     sim.forward()
-    scene.update(0.0)
+    # Advance the sensor timestamp by one configured period so its FrameView
+    # refreshes from Fabric after the kinematic articulation write.
+    scene.update(preflight_config.update_period_s)
 
 
 def _step_scene(
