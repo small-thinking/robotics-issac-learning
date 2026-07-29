@@ -503,6 +503,7 @@ def _reset_to_neutral(
     yahboom_api: YahboomServoApiAdapter,
     backend: _IsaacJointPositionBackend,
     duration_ms: int,
+    hold_ms: int,
     render: bool,
 ) -> tuple[float, int] | None:
     api_calls = _issue_angles(
@@ -516,7 +517,7 @@ def _reset_to_neutral(
         backend=backend,
         physics_steps=max(
             1,
-            round((duration_ms / 1000.0) / sim.get_physics_dt()),
+            round(((duration_ms + hold_ms) / 1000.0) / sim.get_physics_dt()),
         ),
         render=render,
     ):
@@ -658,6 +659,7 @@ def main() -> None:
             yahboom_api=yahboom_api,
             backend=backend,
             duration_ms=config.scripted_baseline.steps[-1].duration_ms,
+            hold_ms=config.scripted_baseline.steps[-1].hold_ms,
             render=render,
         )
         if reset_result is None:
@@ -749,10 +751,7 @@ if __name__ == "__main__":
         failure = ReachingConfigError(str(error))
     except BaseException as error:
         failure = error
-    try:
-        simulation_app.close()
-    except SystemExit as error:
-        if failure is None:
-            failure = error
     if failure is not None:
         raise failure
+    else:
+        simulation_app.close()
