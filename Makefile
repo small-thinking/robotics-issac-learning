@@ -5,9 +5,11 @@ SHELL := /bin/bash
 	dofbot-api-dry-run dofbot-motion-config-dry-run \
 	dofbot-motion-config dofbot-motion-config-view \
 	dofbot-camera dofbot-camera-view \
+	dofbot-reach-dry-run dofbot-reach dofbot-reach-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
 	show-dofbot-camera show-dofbot-camera-view \
+	show-dofbot-reach show-dofbot-reach-view \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -80,6 +82,18 @@ dofbot-camera:
 dofbot-camera-view:
 	@./scripts/isaac/view_dofbot_camera.sh
 
+dofbot-reach-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/preview_dofbot_reaching.py \
+	 --reaching-config "$${REACHING:-configs/dofbot/reaching/goal4_fixed_tabletop.json}" \
+	 --output "$${DOFBOT_REACHING_PREVIEW_OUTPUT:-/tmp/dofbot-reaching-preview.json}"
+
+dofbot-reach:
+	@./scripts/isaac/run_dofbot_reaching.sh
+
+dofbot-reach-view:
+	@./scripts/isaac/view_dofbot_reaching.sh
+
 status:
 	@./scripts/brev/status.sh
 
@@ -137,6 +151,12 @@ show-dofbot-camera:
 
 show-dofbot-camera-view:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_camera.sh
+
+show-dofbot-reach:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_reaching.sh
+
+show-dofbot-reach-view:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_reaching.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

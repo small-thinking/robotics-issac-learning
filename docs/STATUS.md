@@ -2,18 +2,57 @@
 
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goals 1, 2, and 3 — complete;
-  the ActionChunk v1 pose-boundary API extension and the explicit onboard
-  camera binding are machine- and Viewer-accepted
+- Current experiment: Phase 3 / `02_dofbot`, Goal 4 fixed-tabletop reaching;
+  local software preparation passed, while remote Isaac machine and user
+  Viewer gates remain pending
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  22:22 PDT after Goal 3 acceptance
+  22:59 PDT after Goal 4 local preparation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
   compute; checked 2026-07-28 before restart
+
+## DOFBOT Goal 4 fixed-tabletop reaching gate
+
+- Branch: `codex/dofbot-goal4-reaching-prep`
+- Scope: safe reach/approach/retract only; no target contact, pushing, grasping,
+  lifting, placing, gripper command, camera controller input, learning, or real
+  hardware
+- Scene contract:
+  `configs/dofbot/reaching/goal4_fixed_tabletop.json`
+- Physical composition: collision-enabled static table with top at `z=0.12 m`;
+  collision-enabled static 5 cm red cube resting exactly on the table; table
+  remains outside a 10 cm robot-base keepout
+- End-effector contract: `Wrist_Twist`; approach waypoint
+  `(0.00, -0.18, 0.235) m`, nine centimeters above the cube center
+- Scripted comparison: five ActionChunk poses, 20 official pose-boundary
+  `Arm_serial_servo_write(id, angle, time)` calls, neutral start/end, and
+  60°-120° safe angles
+- State controller: 5 Hz damped-least-squares translation Jacobian, at most 30
+  steps, at most 4° per joint per step, same absolute-angle Yahboom API
+- Local fail-closed gates: physical table/cube geometry, static target,
+  keepout, end-effector body, controller cadence and safe envelope, Jacobian
+  shape/finite math, bounded API output, synthetic pass/failure evaluation,
+  reset, no hardware/Isaac use in dry-run, and remote-runner wiring
+- Local validation: all 110 repository tests pass, including 13 focused Goal 4
+  tests, Git LFS checks, and remote command previews; targeted Ruff, shell
+  syntax, the local dry-run, and both reach command previews also pass
+- Planned remote machine evidence:
+  `artifacts/dofbot/reaching_contract.json`
+- Remote machine gates: physical prims and static target present, live asset
+  compatibility, angle envelope, four-centimeter table clearance, at least
+  three-centimeter distance improvement for both the scripted and state-based
+  approaches, final state distance at most four centimeters, exact API call
+  count, and neutral reset within one degree
+- Viewer contract: 20-second neutral connection hold followed by a loop of the
+  scripted comparison and state-based approach
+- Current acceptance: **local preparation passed / remote machine pending /
+  visual pending**. Goal 4 is not complete.
+- Compute lifecycle: no GPU was started for this preparation; `brev ls --json`
+  verified the retained `g6.4xlarge` / L4 instance `STOPPED` at 22:59 PDT.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -372,8 +411,9 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the revised visible-motion
-ActionChunk profile, then obtain a fresh quote and explicit approval for one
-short headless-plus-Viewer revalidation. Do not mark the revised profile
-complete until its machine checks pass and the user confirms an obvious
-configured bend and neutral reset. Goal 3 camera capture remains out of scope.
+Keep the Brev instance stopped. Review and merge the Goal 4 local-preparation
+PR. In a later short paid window, obtain a fresh quote and explicit approval,
+run `make dofbot-reach`, inspect the immutable machine contract, and only then
+open `make dofbot-reach-view`. Do not mark Goal 4 complete until the machine
+gate passes and the user confirms the table, stationary cube, both approach
+paths, open gripper, and neutral reset.
