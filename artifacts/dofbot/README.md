@@ -100,3 +100,18 @@ high enough to need only roughly 30°-45° of visible bending, and that the
 position-only controller looks awkward. Four screenshots were reviewed but are
 intentionally not committed. These are task-calibration and motion-quality
 limitations, not failures of the safe, no-contact reaching gate.
+
+`pregrasp_scene_calibration.json` and `pregrasp_scene_calibration.svg` are the
+free local follow-up to that observation. They compare the immutable accepted
+Goal 4 scene with a horizontal tabletop lowered by 4 cm and shifted 6 cm
+farther from the base, plus a cube shifted 7 cm farther into the physical
+workspace front. The JSON records 20 passed provenance and geometry checks,
+including a conservative `0.02159 m` radial margin derived from the accepted
+Isaac neutral-wrist observation. The SVG is a text-native side/top view and
+does not use Git LFS.
+
+These artifacts do not claim candidate-scene Isaac machine, Viewer, IK,
+collision, posture, contact, or grasp acceptance. They also record that the
+accepted final Goal 4 observation was already at the lower joint boundary
+within measurement tolerance, so reuse of the old translation-only controller
+is not certified. They are local design evidence only.

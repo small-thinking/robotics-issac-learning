@@ -5,7 +5,7 @@ SHELL := /bin/bash
 	dofbot-api-dry-run dofbot-motion-config-dry-run \
 	dofbot-motion-config dofbot-motion-config-view \
 	dofbot-camera dofbot-camera-view \
-	dofbot-reach-dry-run dofbot-reach dofbot-reach-view \
+	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
 	show-dofbot-camera show-dofbot-camera-view \
@@ -87,6 +87,15 @@ dofbot-reach-dry-run:
 	 uv run --python 3.12 python tools/preview_dofbot_reaching.py \
 	 --reaching-config "$${REACHING:-configs/dofbot/reaching/goal4_fixed_tabletop.json}" \
 	 --output "$${DOFBOT_REACHING_PREVIEW_OUTPUT:-/tmp/dofbot-reaching-preview.json}"
+
+dofbot-pregrasp-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/calibrate_dofbot_pregrasp_scene.py \
+	 --baseline-config "$${BASELINE_REACHING:-configs/dofbot/reaching/goal4_fixed_tabletop.json}" \
+	 --candidate-config "$${REACHING:-configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json}" \
+	 --isaac-artifact "$${REACHING_ARTIFACT:-artifacts/dofbot/reaching_viewer_contract.json}" \
+	 --output-json "$${DOFBOT_PREGRASP_JSON:-/tmp/dofbot-pregrasp-scene-calibration.json}" \
+	 --output-svg "$${DOFBOT_PREGRASP_SVG:-/tmp/dofbot-pregrasp-scene-calibration.svg}"
 
 dofbot-reach:
 	@./scripts/isaac/run_dofbot_reaching.sh

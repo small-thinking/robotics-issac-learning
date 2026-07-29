@@ -560,6 +560,49 @@ prefer a natural elbow posture. Before contact or grasping, locally
 recalibrate table height and cube distance, define the finger grasp pose, and
 add pose-aware IK, preferred-posture, collision, and smoothness constraints.
 
+### Free local pre-grasp scene calibration
+
+The first follow-up keeps the accepted Goal 4 config and machine artifact
+immutable. The separate candidate
+`configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json` changes scene
+positions only:
+
+- table center `(0.00,+0.31,0.06) m`, giving a horizontal top at
+  `z=0.08 m` instead of `z=0.12 m`;
+- nearest table edge `y=0.16 m` instead of `y=0.10 m`;
+- static cube center `(0.00,+0.25,0.105) m` instead of
+  `(0.00,+0.18,0.145) m`;
+- `Wrist_Twist` approach waypoint `(0.00,+0.25,0.195) m`.
+
+Run the free gate with:
+
+```bash
+make dofbot-pregrasp-dry-run
+```
+
+The tool verifies the immutable Goal 4 config SHA and all 14 recorded Isaac
+machine checks, proves that the table is lower and farther, that the cube rests
+on the tabletop with `0.065 m` minimum edge inset, and that the candidate
+waypoint remains incremental and inside a conservative radial envelope. The
+candidate radius is `0.31706 m`; the recorded neutral `Wrist_Twist` radius is
+`0.33865 m`, leaving `0.02159 m`.
+
+That radial check is deliberately not a controller-reuse claim. The accepted
+Goal 4 final observation already put one recorded joint at `59.50°`, within
+the machine gate's 1° tolerance around the 60° lower safety boundary. The
+existing translation-only controller is therefore explicitly **not
+certified** for the lower/farther waypoint; pose-aware IK must establish a
+safe joint-space solution before remote execution.
+
+The machine-readable report is
+`artifacts/dofbot/pregrasp_scene_calibration.json`; the side/top comparison is
+`artifacts/dofbot/pregrasp_scene_calibration.svg`. All 20 local checks and all
+119 repository tests pass. This is only a necessary geometry gate: the report
+explicitly leaves candidate Isaac machine and Viewer acceptance pending and
+does not authorize contact or grasping. Pose-aware IK, finger grasp frame,
+collision clearance, preferred posture, and trajectory smoothness remain the
+next free local design work.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

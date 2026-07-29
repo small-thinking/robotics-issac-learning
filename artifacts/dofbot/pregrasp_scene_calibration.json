@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_pregrasp_scene_calibration_local",
+  "sources": {
+    "baseline_config": {
+      "path": "configs/dofbot/reaching/goal4_fixed_tabletop.json",
+      "sha256": "ddfd33d5e3ee28015056d66079fd3739722e9d7a8108252b3be2b6694b8dbee8"
+    },
+    "candidate_config": {
+      "path": "configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json",
+      "sha256": "ddfed9b2208c972cc97e5f32c21c8c519cac7e08aeb36e4571281178b4322119"
+    },
+    "goal4_isaac_artifact": {
+      "path": "artifacts/dofbot/reaching_viewer_contract.json",
+      "sha256": "87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893",
+      "git_commit": "eb7a2667b15d5c077b04029b669a3802dbbdf690",
+      "machine_check_count": 14
+    }
+  },
+  "baseline": {
+    "table_center_world_m": [
+      0.0,
+      0.25,
+      0.1
+    ],
+    "table_top_z_m": 0.12000000000000001,
+    "table_front_clearance_m": 0.1,
+    "target_cube_center_world_m": [
+      0.0,
+      0.18,
+      0.145
+    ],
+    "approach_target_world_m": [
+      0.0,
+      0.18,
+      0.235
+    ],
+    "validated_neutral_wrist_world_m": [
+      -0.0006052270764485002,
+      -0.005260939244180918,
+      0.3386068344116211
+    ],
+    "validated_neutral_wrist_origin_radius_m": 0.33864824241652874,
+    "validated_final_wrist_world_m": [
+      -0.0006047813221812248,
+      0.1697111427783966,
+      0.2525750398635864
+    ],
+    "validated_final_distance_m": 0.020374208440595964,
+    "validated_final_angles_deg": [
+      89.99962614380738,
+      61.69814299473732,
+      59.5019895822208,
+      82.5742951739903
+    ]
+  },
+  "candidate": {
+    "table_center_world_m": [
+      0.0,
+      0.31,
+      0.06
+    ],
+    "table_size_m": [
+      0.5,
+      0.3,
+      0.04
+    ],
+    "table_top_z_m": 0.08,
+    "table_front_clearance_m": 0.16,
+    "target_cube_center_world_m": [
+      0.0,
+      0.25,
+      0.105
+    ],
+    "target_cube_size_m": [
+      0.05,
+      0.05,
+      0.05
+    ],
+    "target_front_clearance_m": 0.225,
+    "approach_target_world_m": [
+      0.0,
+      0.25,
+      0.195
+    ],
+    "approach_origin_radius_m": 0.3170567772497538,
+    "approach_table_clearance_m": 0.115,
+    "cube_minimum_table_edge_inset_m": 0.065
+  },
+  "delta": {
+    "table_top_lowering_m": 0.04000000000000001,
+    "table_near_edge_forward_shift_m": 0.06,
+    "target_forward_shift_m": 0.07,
+    "approach_waypoint_shift_m": 0.08062257748298549,
+    "nominal_radial_margin_m": 0.02159146516677496
+  },
+  "controller_reuse_diagnostic": {
+    "baseline_final_observed_joint_envelope_margin_deg": -0.49801041777919863,
+    "existing_translation_only_controller_certified_for_candidate": false,
+    "reason": "The accepted Goal 4 final observation already reached the 60-degree lower safety boundary within its 1-degree measurement tolerance. Radial geometry cannot prove safe joint-space reach for the lower/farther candidate; pose-aware IK must be designed and tested before the next Isaac gate."
+  },
+  "acceptance": {
+    "checks": {
+      "baseline_artifact_machine_passed": true,
+      "baseline_artifact_matches_config_sha256": true,
+      "baseline_artifact_all_machine_checks_passed": true,
+      "frame_contract_unchanged": true,
+      "table_is_axis_aligned_and_horizontal": true,
+      "table_top_lowered_at_least_3cm": true,
+      "table_top_remains_in_conservative_height_band": true,
+      "table_near_edge_shifted_forward_at_least_5cm": true,
+      "table_remains_outside_base_keepout": true,
+      "target_shifted_forward_at_least_6cm": true,
+      "target_rests_exactly_on_table": true,
+      "target_has_at_least_3cm_table_edge_inset": true,
+      "approach_remains_incremental_from_validated_goal4": true,
+      "approach_fits_inside_neutral_wrist_radial_envelope_with_15mm_margin": true,
+      "wrist_table_clearance_contract_preserved": true,
+      "scripted_actions_unchanged": true,
+      "state_controller_unchanged": true,
+      "end_effector_anchor_unchanged": true,
+      "real_hardware_not_commanded": true,
+      "gpu_not_started": true
+    },
+    "local_geometry_passed": true,
+    "candidate_isaac_machine_passed": false,
+    "candidate_visual_passed": false,
+    "contact_or_grasp_authorized": false
+  },
+  "scope": {
+    "gpu_started": false,
+    "isaac_started": false,
+    "real_hardware_commanded": false,
+    "gripper_commanded": false,
+    "target_cube_moved": false,
+    "policy_or_checkpoint_loaded": false,
+    "proof_limit": "Necessary geometry checks only; candidate IK, collision-free trajectory, posture quality, and Viewer appearance remain remote."
+  }
+}
