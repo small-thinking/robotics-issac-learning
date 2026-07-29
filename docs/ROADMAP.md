@@ -104,9 +104,9 @@ The detailed first-stage contract lives in
 4. Expose the vendor-shaped single-servo API over one backend-neutral
    named-joint core. The documented `joint1`-through-`joint4` to servo-ID
    mapping, local dry-run bridge, and fail-closed JSON ActionChunk compiler are
-   implemented. The config sequence still requires Isaac machine and Viewer
-   validation; physical direction and zero-offset calibration remain a
-   separate fail-closed real-hardware gate.
+   implemented and passed Isaac machine and Viewer validation. Physical
+   direction and zero-offset calibration remain a separate fail-closed
+   real-hardware gate.
 5. Establish scripted and state-based reaching baselines before adding vision
    or choosing a learning algorithm.
 

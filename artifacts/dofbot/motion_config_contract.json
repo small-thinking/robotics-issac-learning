@@ -1,0 +1,1184 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_action_chunk_v1_simulation",
+  "generated_at_utc": "2026-07-29T02:20:43.919147+00:00",
+  "git_commit": "ce3f8eb438cc6969b61fccfde4f6b648da3a2253",
+  "asset_contract": {
+    "path": "/workspace/robotics-issac-learning/artifacts/dofbot/asset_contract.json",
+    "sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2"
+  },
+  "motion_config": {
+    "path": "/workspace/robotics-issac-learning/configs/dofbot/motions/safe_api_wave.json",
+    "sha256": "f53389a4742a7dfae854f675286eab1a10169bb9045458691b787329fb167cd7",
+    "value": {
+      "schema_version": 1,
+      "name": "safe_api_wave",
+      "control_hz": 10,
+      "steps": [
+        {
+          "name": "neutral_start",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ],
+          "duration_ms": 500,
+          "hold_ms": 300
+        },
+        {
+          "name": "pose_positive",
+          "angles_deg": [
+            110,
+            62,
+            118,
+            118
+          ],
+          "duration_ms": 700,
+          "hold_ms": 500
+        },
+        {
+          "name": "neutral_middle",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ],
+          "duration_ms": 700,
+          "hold_ms": 300
+        },
+        {
+          "name": "pose_negative",
+          "angles_deg": [
+            70,
+            118,
+            62,
+            62
+          ],
+          "duration_ms": 700,
+          "hold_ms": 500
+        },
+        {
+          "name": "neutral_end",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ],
+          "duration_ms": 700,
+          "hold_ms": 700
+        }
+      ]
+    }
+  },
+  "control": {
+    "application_api": "Arm_serial_servo_write(id, angle, time)",
+    "control_hz": 10,
+    "api_dispatch_mode": "once_per_servo_per_pose",
+    "sample_duration_ms": 100,
+    "sample_count": 56,
+    "official_api_call_count": 20,
+    "policy_free": true
+  },
+  "measurement": {
+    "cycle_index": 1,
+    "physics_dt_s": 0.016666666666666666,
+    "physics_steps_per_sample": 6,
+    "samples": [
+      {
+        "sequence_index": 0,
+        "elapsed_ms": 100,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "move_command",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00771218070228,
+          98.6502843196594,
+          78.43050734322912,
+          66.25724133175476
+        ]
+      },
+      {
+        "sequence_index": 1,
+        "elapsed_ms": 200,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.01331974099796,
+          96.26994802598433,
+          81.43695683283552,
+          72.57908855014743
+        ]
+      },
+      {
+        "sequence_index": 2,
+        "elapsed_ms": 300,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00872509392089,
+          93.35358104756759,
+          85.13153379405553,
+          80.39150246526398
+        ]
+      },
+      {
+        "sequence_index": 3,
+        "elapsed_ms": 400,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.0046803133407,
+          90.92792004544714,
+          88.35691165729345,
+          87.05902897264558
+        ]
+      },
+      {
+        "sequence_index": 4,
+        "elapsed_ms": 500,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          89.99981527675172,
+          90.13750455461769,
+          90.48571972475877,
+          90.29817204161904
+        ]
+      },
+      {
+        "sequence_index": 5,
+        "elapsed_ms": 600,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00314576380923,
+          90.32768029978291,
+          90.88547714322297,
+          90.41190797815212
+        ]
+      },
+      {
+        "sequence_index": 6,
+        "elapsed_ms": 700,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00206939244697,
+          90.00170490467964,
+          90.10000807672446,
+          90.1095035671252
+        ]
+      },
+      {
+        "sequence_index": 7,
+        "elapsed_ms": 800,
+        "step_index": 0,
+        "step_name": "neutral_start",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          89.99952188076543,
+          89.80427822127,
+          89.62065342793161,
+          89.92547073001487
+        ]
+      },
+      {
+        "sequence_index": 8,
+        "elapsed_ms": 900,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_command",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          91.02743750247981,
+          88.35856787144547,
+          91.21368886373983,
+          91.50803832062076
+        ]
+      },
+      {
+        "sequence_index": 9,
+        "elapsed_ms": 1000,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          93.84417432574257,
+          84.42645421980876,
+          95.3931455431724,
+          95.62579373913408
+        ]
+      },
+      {
+        "sequence_index": 10,
+        "elapsed_ms": 1100,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          97.7321019895346,
+          78.98910411921486,
+          101.14553342347807,
+          101.29388427847711
+        ]
+      },
+      {
+        "sequence_index": 11,
+        "elapsed_ms": 1200,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          101.99278253152501,
+          73.0503067160812,
+          107.47586885946178,
+          107.51190664507006
+        ]
+      },
+      {
+        "sequence_index": 12,
+        "elapsed_ms": 1300,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          105.92657875757507,
+          67.57571714347193,
+          113.31283924112796,
+          113.24828370818759
+        ]
+      },
+      {
+        "sequence_index": 13,
+        "elapsed_ms": 1400,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          108.83232052296421,
+          63.52113755968665,
+          117.5835123498741,
+          117.46731717171384
+        ]
+      },
+      {
+        "sequence_index": 14,
+        "elapsed_ms": 1500,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          110.00791560743389,
+          61.876308479237096,
+          119.3187782575765,
+          119.17771094555363
+        ]
+      },
+      {
+        "sequence_index": 15,
+        "elapsed_ms": 1600,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "hold",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          109.99928737096486,
+          61.8863983761885,
+          119.26703957461365,
+          119.0975450152652
+        ]
+      },
+      {
+        "sequence_index": 16,
+        "elapsed_ms": 1700,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "hold",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          109.99908246528977,
+          61.86647129928499,
+          119.20944058934293,
+          119.07042916426025
+        ]
+      },
+      {
+        "sequence_index": 17,
+        "elapsed_ms": 1800,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "hold",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          109.99908588038436,
+          61.88262811176665,
+          119.25211902637176,
+          119.08841988253405
+        ]
+      },
+      {
+        "sequence_index": 18,
+        "elapsed_ms": 1900,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "hold",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          109.99913027661395,
+          61.89202645206459,
+          119.27704580174772,
+          119.0990237512205
+        ]
+      },
+      {
+        "sequence_index": 19,
+        "elapsed_ms": 2000,
+        "step_index": 1,
+        "step_name": "pose_positive",
+        "phase": "hold",
+        "target_angles_deg": [
+          110,
+          62,
+          118,
+          118
+        ],
+        "observed_angles_deg": [
+          109.99911661623563,
+          61.87933254549212,
+          119.24332515781536,
+          119.08469401434182
+        ]
+      },
+      {
+        "sequence_index": 20,
+        "elapsed_ms": 2100,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_command",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          108.96041559820593,
+          63.32528530033112,
+          119.20038375850349,
+          118.73089021533515
+        ]
+      },
+      {
+        "sequence_index": 21,
+        "elapsed_ms": 2200,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          106.1494478301926,
+          67.53402737632547,
+          115.71296600792314,
+          114.88961231668749
+        ]
+      },
+      {
+        "sequence_index": 22,
+        "elapsed_ms": 2300,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          102.26557345678614,
+          72.9156956403713,
+          109.588588096172,
+          108.9588719754535
+        ]
+      },
+      {
+        "sequence_index": 23,
+        "elapsed_ms": 2400,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          98.0050380563156,
+          78.8806210784012,
+          102.90907716811796,
+          102.41061764645325
+        ]
+      },
+      {
+        "sequence_index": 24,
+        "elapsed_ms": 2500,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          94.0752545664029,
+          84.34070076789243,
+          96.62842196683599,
+          96.34786468960172
+        ]
+      },
+      {
+        "sequence_index": 25,
+        "elapsed_ms": 2600,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          91.16365473986173,
+          88.34602465592157,
+          91.90414340214801,
+          91.84353294378356
+        ]
+      },
+      {
+        "sequence_index": 26,
+        "elapsed_ms": 2700,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          89.98022130962322,
+          89.97935438919683,
+          89.99498719226676,
+          90.02462244509171
+        ]
+      },
+      {
+        "sequence_index": 27,
+        "elapsed_ms": 2800,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00021106278277,
+          90.02072078290468,
+          90.13850672479583,
+          90.12250275113706
+        ]
+      },
+      {
+        "sequence_index": 28,
+        "elapsed_ms": 2900,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00162033450214,
+          90.0765150207543,
+          90.27592672914211,
+          90.17661208337107
+        ]
+      },
+      {
+        "sequence_index": 29,
+        "elapsed_ms": 3000,
+        "step_index": 2,
+        "step_name": "neutral_middle",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00146487474423,
+          90.04681410990116,
+          90.20510721904175,
+          90.14944605982419
+        ]
+      },
+      {
+        "sequence_index": 30,
+        "elapsed_ms": 3100,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_command",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          88.97670361986962,
+          91.49708397785253,
+          88.78954330984146,
+          88.76799171513255
+        ]
+      },
+      {
+        "sequence_index": 31,
+        "elapsed_ms": 3200,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          86.16206035630918,
+          95.55838105268651,
+          84.90083647087553,
+          84.7436546081665
+        ]
+      },
+      {
+        "sequence_index": 32,
+        "elapsed_ms": 3300,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          82.2717596286674,
+          101.00812965417128,
+          79.14729727680789,
+          79.04454049583963
+        ]
+      },
+      {
+        "sequence_index": 33,
+        "elapsed_ms": 3400,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          78.00686827505368,
+          106.90030418603044,
+          72.66848889619374,
+          72.7292195231989
+        ]
+      },
+      {
+        "sequence_index": 34,
+        "elapsed_ms": 3500,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          74.06815175148026,
+          112.39963611890808,
+          66.85467456336119,
+          66.9600404765924
+        ]
+      },
+      {
+        "sequence_index": 35,
+        "elapsed_ms": 3600,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          71.16033360858344,
+          116.51380398055984,
+          62.70856361450857,
+          62.76394278829903
+        ]
+      },
+      {
+        "sequence_index": 36,
+        "elapsed_ms": 3700,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.9836149579953,
+          118.1574002118642,
+          60.95871183783362,
+          61.03430837156732
+        ]
+      },
+      {
+        "sequence_index": 37,
+        "elapsed_ms": 3800,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "hold",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.99535605317855,
+          118.11955925631504,
+          60.92378566551275,
+          61.07111284590993
+        ]
+      },
+      {
+        "sequence_index": 38,
+        "elapsed_ms": 3900,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "hold",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.99572317584644,
+          118.14874806973309,
+          61.00473023736657,
+          61.10951216942374
+        ]
+      },
+      {
+        "sequence_index": 39,
+        "elapsed_ms": 4000,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "hold",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.99576586452875,
+          118.15214267375059,
+          61.01388269085439,
+          61.11377762256041
+        ]
+      },
+      {
+        "sequence_index": 40,
+        "elapsed_ms": 4100,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "hold",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.99571976075185,
+          118.13174260624706,
+          60.96003347943801,
+          61.08969779064154
+        ]
+      },
+      {
+        "sequence_index": 41,
+        "elapsed_ms": 4200,
+        "step_index": 3,
+        "step_name": "pose_negative",
+        "phase": "hold",
+        "target_angles_deg": [
+          70,
+          118,
+          62,
+          62
+        ],
+        "observed_angles_deg": [
+          69.99570268527893,
+          118.13385313470059,
+          60.9655932534224,
+          61.09213958326981
+        ]
+      },
+      {
+        "sequence_index": 42,
+        "elapsed_ms": 4300,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_command",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          71.02877562743252,
+          116.73765660041785,
+          61.2954265035369,
+          61.641939075604576
+        ]
+      },
+      {
+        "sequence_index": 43,
+        "elapsed_ms": 4400,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          73.84616035817109,
+          112.55616014902267,
+          64.89221778084396,
+          65.54602568631238
+        ]
+      },
+      {
+        "sequence_index": 44,
+        "elapsed_ms": 4500,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          77.73483806211135,
+          107.20238979264175,
+          71.05731386533213,
+          71.49803523662179
+        ]
+      },
+      {
+        "sequence_index": 45,
+        "elapsed_ms": 4600,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          81.99853669394126,
+          101.27153333819189,
+          77.74455485997933,
+          78.02501864899934
+        ]
+      },
+      {
+        "sequence_index": 46,
+        "elapsed_ms": 4700,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          85.93044608023311,
+          95.76994189335943,
+          83.87012165153288,
+          84.00914929831484
+        ]
+      },
+      {
+        "sequence_index": 47,
+        "elapsed_ms": 4800,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          88.84001445910475,
+          91.69977869937424,
+          88.39907708308259,
+          88.41885176139024
+        ]
+      },
+      {
+        "sequence_index": 48,
+        "elapsed_ms": 4900,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "move_observe",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.02235641811028,
+          90.03915551016529,
+          90.2333522123743,
+          90.20477027193617
+        ]
+      },
+      {
+        "sequence_index": 49,
+        "elapsed_ms": 5000,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.0024255163175,
+          90.03655802057344,
+          90.1827989274182,
+          90.14249829001483
+        ]
+      },
+      {
+        "sequence_index": 50,
+        "elapsed_ms": 5100,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00123789987498,
+          90.0107968715563,
+          90.1180882878187,
+          90.11620251527754
+        ]
+      },
+      {
+        "sequence_index": 51,
+        "elapsed_ms": 5200,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00125047448502,
+          90.01893079476199,
+          90.13730285059377,
+          90.12355129189636
+        ]
+      },
+      {
+        "sequence_index": 52,
+        "elapsed_ms": 5300,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00140471496829,
+          90.04029197626994,
+          90.188803624194,
+          90.14327683819872
+        ]
+      },
+      {
+        "sequence_index": 53,
+        "elapsed_ms": 5400,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00140207694112,
+          90.03922400215502,
+          90.18645708068813,
+          90.14234838603885
+        ]
+      },
+      {
+        "sequence_index": 54,
+        "elapsed_ms": 5500,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00128729983096,
+          90.02331554775797,
+          90.1481519791003,
+          90.12766920227479
+        ]
+      },
+      {
+        "sequence_index": 55,
+        "elapsed_ms": 5600,
+        "step_index": 4,
+        "step_name": "neutral_end",
+        "phase": "hold",
+        "target_angles_deg": [
+          90,
+          90,
+          90,
+          90
+        ],
+        "observed_angles_deg": [
+          90.00126275310909,
+          90.02046688196147,
+          90.14112837017878,
+          90.12499891847443
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "machine": {
+      "checks": {
+        "sample_contract_matches": true,
+        "all_observations_finite": true,
+        "observations_within_safe_envelope": true,
+        "step_targets_reached": true,
+        "non_neutral_motion_observed": true,
+        "returned_to_neutral": true
+      },
+      "maximum_checkpoint_error_deg": 1.243325157815363,
+      "maximum_observed_excursion_deg": 29.318778257576497,
+      "maximum_final_neutral_error_deg": 0.14112837017877666,
+      "machine_passed": true,
+      "config_name": "safe_api_wave"
+    },
+    "visual": {
+      "status": "pending_user_confirmation",
+      "configured_step_order_visible": null,
+      "returned_to_neutral_visible": null
+    },
+    "config_execution_complete": false
+  },
+  "scope": {
+    "real_hardware_commanded": false,
+    "camera_tensor_captured": false,
+    "policy_or_checkpoint_loaded": false
+  }
+}

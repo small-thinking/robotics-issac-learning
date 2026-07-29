@@ -3,17 +3,16 @@
 - Updated: 2026-07-28 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
-  ActionChunk v1 profiles have passed Isaac machine gates but failed two visual
-  gates (first amplitude, then smoothness/decisiveness); a pose-boundary API
-  dispatch revision is locally validated and awaits Isaac/Viewer revalidation
+  the ActionChunk v1 pose-boundary API extension is also machine- and
+  Viewer-accepted; Goal 3 onboard RGB capture is next
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  08:40 PDT after the second ActionChunk validation window
+  19:33 PDT after the final ActionChunk validation window
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
-- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.58784/hour`
+- Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
   compute; checked 2026-07-28 before restart
 
 ## DOFBOT Goal 1 machine result
@@ -114,9 +113,9 @@
 - Runtime scope: local pure Python only; no GPU started and no real hardware
   command sent
 
-## DOFBOT ActionChunk v1 configured-motion status
+## DOFBOT ActionChunk v1 configured-motion result
 
-- Current validation branch: `codex/dofbot-visible-envelope-fix`
+- Validation source: `main@ce3f8eb438cc6969b61fccfde4f6b648da3a2253`
 - Input contract:
   `configs/dofbot/motions/safe_api_wave.json`
 - Command schema: complete absolute angles for servo IDs `1` through `4`,
@@ -140,27 +139,38 @@
   rejected the slow stair-step motion, residual shaking, and insufficiently
   decisive bend. At least cycles 1 through 13 each reported
   `machine_passed=True`; this is still not a visual pass.
-- Current local profile: every pose contains all four servos, stays within
+- Accepted profile: every pose contains all four servos, stays within
   `[60°, 120°]`, changes no servo by more than `30°`, starts and ends at
   `[90°, 90°, 90°, 90°]`, and completes in 5.6 seconds. The base targets
   `±20°`; the other joints target `±28°`, leaving two configured degrees inside
   the envelope.
-- Current dispatch model: five poses produce only 20 official calls (one per
+- Dispatch model: five poses produce only 20 official calls (one per
   servo per pose), while 56 independent 10 Hz observations remain available.
   The Isaac-only backend models `duration_ms` with a physics-rate smoothstep;
   the application layer no longer replays 100-millisecond waypoint calls.
 - Local acceptance: 71 total Python tests, remote-command previews, targeted
   Ruff, shell syntax, and `git diff --check` passed
-- Machine evidence:
-  `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`,
+- Final machine evidence: `artifacts/dofbot/motion_config_contract.json`;
   SHA-256
-  `4fe7d73b7ee778aacfe5cf20cec3b653bd6f45b387533706b84407e0b2ad3d8b`
+  `8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5`
+- Final machine result: all six checks true; 56 observations, 20 official API
+  calls, maximum checkpoint error `1.243°`, maximum observed excursion
+  `29.319°`, and final neutral error `0.141°`
+- Viewer result: `Simulation App Startup Complete`; at least 15 complete
+  cycles reported `machine_passed=True`, and cycle 16 started before stop
+- User visual result: passed at 2026-07-28 19:25 PDT. The user confirmed two
+  obvious, substantially larger main motions with much smoother transitions.
+  Small motion between the main poses remains noted as neutral-return behavior
+  plus possible actuator settling; future task-specific motion may use a larger
+  validated workspace.
 - Scope: no camera capture, policy, checkpoint, `Arm_Lib` import, or
   real-hardware command
-- Current result: both remotely tested configs are machine-pass/visual-fail.
-  The pose-boundary dispatch revision is software-pass only; Isaac execution
-  and user Viewer confirmation require a fresh approved paid window after this
-  change merges.
+- Current result: complete. The final pose-boundary revision passed both the
+  machine and user Viewer gates; earlier failed profiles remain immutable
+  historical evidence.
+- Final compute lifecycle: paid window started at 19:18:06 PDT; stop requested
+  at 19:25:41 PDT after evidence retrieval; terminal `STOPPED` verified at
+  19:33 PDT. No instance or disk was deleted.
 - 2026-07-28 compute lifecycle: existing instance started at 08:20:57 PDT;
   stop requested immediately after the failed visual gate; terminal `STOPPED`
   verified at 08:40 PDT. No instance or disk was deleted.

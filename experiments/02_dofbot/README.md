@@ -283,9 +283,8 @@ recorded, and the calibration must be explicitly marked verified.
 
 #### ActionChunk v1 — configured scripted motion
 
-Status: **two machine gates passed but both Viewer motion-quality gates failed;
-pose-boundary API dispatch passed local compile and awaits Isaac/Viewer
-revalidation**
+Status: **complete; pose-boundary API dispatch passed machine and Viewer
+acceptance**
 
 `configs/dofbot/motions/safe_api_wave.json` is the first versioned motion input.
 It contains five complete absolute poses for servo IDs 1 through 4. The first
@@ -295,7 +294,7 @@ The root cause was architectural: the compiler replayed four vendor-shaped API
 calls at every 10 Hz observation sample instead of issuing one timed command
 per pose.
 
-The current local revision separates those boundaries. Five poses compile to
+The accepted revision separates those boundaries. Five poses compile to
 20 calls shaped as `Arm_serial_servo_write(id, angle, time)`, exactly one per
 servo per pose. The Isaac backend models the specified movement duration at
 physics rate with smoothstep interpolation; 10 Hz samples are observations,
@@ -337,13 +336,19 @@ The user saw the repeated sequence but rejected the amplitude as too subtle, so
 the first visual gate failed. The immutable result is preserved as
 `artifacts/dofbot/motion_config_small_amplitude_2026-07-27.json`; the revised
 `±14°` profile then passed all six machine checks on 2026-07-28, but the user
-rejected its slow, shaking motion. The current pose-boundary dispatch revision
-has only passed local fail-closed tests and still requires a fresh machine and
-Viewer run. The hardware backend remains disabled.
+rejected its slow, shaking motion. The pose-boundary dispatch revision then
+passed all six machine checks on `main@ce3f8eb`: 56 observations, 20 official
+API calls, `29.319°` maximum observed excursion, `1.243°` maximum checkpoint
+error, and `0.141°` final neutral error. The user confirmed two clearly larger,
+much smoother main motions in the Viewer. Small between-pose motion remains
+documented as the deliberate neutral return plus possible actuator settling.
+The immutable result is
+`artifacts/dofbot/motion_config_contract.json`; the hardware backend remains
+disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **planned; out of scope for Goal 2**
+Status: **next**
 
 First use the camera prim discovered in Goal 1. If the asset camera cannot
 produce an Isaac Lab tensor, attach an Isaac Lab `CameraCfg` to the same

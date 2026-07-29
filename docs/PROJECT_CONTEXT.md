@@ -50,6 +50,8 @@ lightweight VLA post-training, and optional real hardware.
   variants largely retained success, while a wide training boundary produced
   one catastrophic seed.
 - Brev `isaac-launchable-f150a5`: stopped; persistent disk retained.
+- DOFBOT Goals 1 and 2 plus the vendor-shaped ActionChunk extension: machine-
+  and Viewer-accepted.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -60,13 +62,11 @@ settings across them.
 The CartPole stage is complete. The canonical next-stage plan is
 `experiments/02_dofbot/README.md`.
 
-1. Goal 1: load and inspect NVIDIA's official DOFBOT USD, save the asset
-   contract, and confirm the stationary model in the secure Viewer.
-2. Goal 2: command small, hard-coded joint movements and verify axis, sign,
-   limit margin, and reset.
-3. Goal 2 extension: compile a versioned JSON ActionChunk to the shared
-   Yahboom API, then verify the configured sequence by machine and Viewer.
-4. Goal 3: read and save one deterministic onboard RGB observation.
+1. Goal 1: complete — official USD asset and stationary Viewer contract.
+2. Goal 2: complete — hard-coded joint motion, limits, sign, and reset.
+3. Goal 2 extension: complete — versioned ActionChunk through the shared
+   Yahboom API, with machine and Viewer acceptance.
+4. Goal 3: next — read and save one deterministic onboard RGB observation.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, or real
 hardware commands during these three infrastructure goals. The older

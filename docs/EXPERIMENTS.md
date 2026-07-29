@@ -572,3 +572,62 @@
 - Scope: no GPU, real hardware, camera tensor, policy, or checkpoint used
 - Conclusion: software gate passed only. A fresh approved paid window must
   prove both Isaac machine acceptance and visibly smooth, decisive motion.
+
+## 2026-07-28 — pose-boundary ActionChunk passed machine and Viewer gates
+
+- Approved target: reused only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4 at the checked `$1.59/hour` compute quote plus the
+  existing disk; no instance creation, resize, reset, or deletion
+- Paid-window start: 19:18:06 PDT
+- Remote source: `main@ce3f8eb438cc6969b61fccfde4f6b648da3a2253`
+- Headless command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Headless result: all six checks true. The 5.6-second config produced 56
+  observations and only 20 official
+  `Arm_serial_servo_write(id, angle, time)` calls using
+  `once_per_servo_per_pose` dispatch.
+- Machine metrics: maximum checkpoint error `1.243°`, maximum observed
+  excursion `29.319°`, and final neutral error `0.141°`
+- Per-joint observed ranges:
+  - servo 1: `[69.984°, 110.008°]`
+  - servo 2: `[61.866°, 118.157°]`
+  - servo 3: `[60.924°, 119.319°]`
+  - servo 4: `[61.034°, 119.178°]`
+- Machine artifact: `artifacts/dofbot/motion_config_contract.json`
+- Machine artifact SHA-256:
+  `8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-motion-config-view \
+    MOTION=configs/dofbot/motions/safe_api_wave.json
+  ```
+
+- Viewer machine result: `Simulation App Startup Complete`; cycles 1 through
+  15 each reported `machine_passed=True`, and cycle 16 began before stop
+- User visual result: passed. The user saw two clearly larger main motions and
+  judged them much smoother than the prior stair-step profile. The user also
+  noted small motion between the main poses and asked for a somewhat larger
+  range in future real tasks.
+- Interpretation: the configured sequence deliberately returns to
+  `neutral_middle` between its two main poses. Any smaller residual movement
+  around a target is simulator actuator settling, not replayed 10 Hz
+  application commands. Larger future ranges must be task-, collision-, and
+  camera-validated rather than globally enabled here.
+- Scope: no camera tensor, policy, checkpoint, physical `Arm_Lib`, or real
+  hardware command was used
+- Evidence retrieval: headless contract, Viewer contract, and Viewer log were
+  copied from the container before stop; generated machine evidence was not
+  reconstructed or edited
+- Stop request: 19:25:41 PDT; a second idempotent stop request was issued while
+  Brev remained `STOPPING`; terminal `STOPPED` verified at 19:33 PDT. Instance
+  and persistent disk retained.
+- Conclusion: ActionChunk v1 pose-boundary execution is complete. Machine and
+  user visual gates passed; Goal 3 onboard RGB capture is next.

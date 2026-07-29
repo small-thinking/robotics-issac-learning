@@ -39,8 +39,16 @@ motion as too subtle. The artifact's machine-time visual status remains
 `pending_user_confirmation`; the later visual failure is recorded in the
 experiment and status documents rather than rewriting generated evidence.
 
-The revised visible-motion ActionChunk runner will write
-`motion_config_contract.json` only during a separately approved Isaac machine
-run. Do not synthesize that artifact from the local compiler preview.
+The accepted pose-boundary ActionChunk runner wrote
+`motion_config_contract.json` during the approved 2026-07-28 Isaac machine
+run. It was downloaded byte-identically after all six machine checks passed.
+Its SHA-256 is
+`8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5`.
+The artifact records 56 observations, 20 official calls, `29.319°` maximum
+observed excursion, `1.243°` maximum checkpoint error, and `0.141°` final
+neutral error. Its machine-time visual status remains
+`pending_user_confirmation`; the later user pass and settling observation are
+recorded in the experiment and status documents rather than rewriting
+generated evidence.
 `motion_config_viewer_contract.json` and `motion_config_viewer.log` remain
 ignored machine-specific evidence.
