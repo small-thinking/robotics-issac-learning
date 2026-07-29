@@ -55,6 +55,9 @@ lightweight VLA post-training, and optional real hardware.
 - Goal 4 fixed-tabletop reaching: corrected physical-front v2 passed local,
   remote Isaac machine, and user Viewer gates for safe no-contact reaching.
   Scene depth/height and motion quality remain explicit pre-grasp limitations.
+- The lower/farther scene and terminal-finger pose-aware pre-grasp controller
+  passed free local gates. Candidate Isaac machine and Viewer acceptance remain
+  pending; no contact or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -75,24 +78,34 @@ The CartPole stage is complete. The canonical next-stage plan is
    tabletop, static cube, corrected physical-front frame, safe scripted
    approach, and Jacobian state-controller approach passed local, remote
    machine, and visual gates through the same Yahboom API.
+6. Goal 5 local preparation: complete — define the terminal-finger midpoint
+   grasp frame, lower/farther target pose, four-joint pose-aware IK, preferred
+   posture, velocity/acceleration limits, collision proxies, and Isaac contact
+   reporter gate. Remote machine and Viewer validation remain pending.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
 OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
-The first free pre-grasp calibration now has a local candidate: table top
+The first pre-grasp calibration has a local candidate: table top
 `z=0.08 m`, nearest table edge `y=0.16 m`, cube center
 `(0.00,+0.25,0.105) m`, and `Wrist_Twist` approach waypoint
 `(0.00,+0.25,0.195) m`. It passed provenance-bounded geometry checks against
 the accepted Goal 4 Isaac artifact, but has not passed candidate-scene Isaac
 or Viewer gates.
 
-Before any contact or grasping work, define a fingertip grasp pose instead of
-using `Wrist_Twist` alone, and add orientation, preferred-posture, collision,
-and trajectory-smoothness constraints. No GPU should be started for that local
-design, tests, documentation, or chart rendering. Any later remote run
-requires a new cost quote, explicit approval, and prompt shutdown after
-validation.
+The pose-aware candidate now controls the midpoint of official terminal-finger
+bodies `Finger_Left_03` and `Finger_Right_03`, not `Wrist_Twist` alone. It
+targets world-down approach while monitoring the fixed closing axis, biases a
+preferred elbow posture, limits joint step/velocity/acceleration, and fails
+closed on body-center collision proxies or Isaac contact reports. Only
+`joint1`-`joint4` cross the Yahboom API; wrist twist and gripper remain
+uncommanded.
+
+The exact next step is review and merge, followed by a separately approved
+Isaac headless machine gate and then a human Viewer gate. A fresh cost quote,
+explicit approval, and prompt shutdown remain mandatory. Contact and grasping
+are still out of scope.
 
 ## Sources of truth
 

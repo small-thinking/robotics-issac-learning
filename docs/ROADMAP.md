@@ -117,6 +117,13 @@ The detailed first-stage contract lives in
    passed local, remote machine, and user Viewer gates for safe no-contact
    reaching. Scene calibration and posture-aware pose control are required
    before contact or grasping.
+6. Establish a no-contact terminal-finger pre-grasp pose before any grasp
+   attempt. The lower/farther horizontal scene, midpoint grasp frame,
+   world-down approach target, four-joint pose-aware damped-least-squares
+   solver, preferred posture, motion limits, collision proxies, and contact
+   reporter passed local preparation. Remote Isaac machine and user Viewer
+   gates remain pending; wrist twist, gripper closing, target motion, contact,
+   and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

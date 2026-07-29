@@ -6,10 +6,12 @@ SHELL := /bin/bash
 	dofbot-motion-config dofbot-motion-config-view \
 	dofbot-camera dofbot-camera-view \
 	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
+	dofbot-pregrasp-pose-dry-run dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
 	show-dofbot-camera show-dofbot-camera-view \
 	show-dofbot-reach show-dofbot-reach-view \
+	show-dofbot-pregrasp show-dofbot-pregrasp-view \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -97,6 +99,20 @@ dofbot-pregrasp-dry-run:
 	 --output-json "$${DOFBOT_PREGRASP_JSON:-/tmp/dofbot-pregrasp-scene-calibration.json}" \
 	 --output-svg "$${DOFBOT_PREGRASP_SVG:-/tmp/dofbot-pregrasp-scene-calibration.svg}"
 
+dofbot-pregrasp-pose-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/preview_dofbot_pregrasp_pose.py \
+	 --pose-config "$${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json}" \
+	 --scene-config "$${REACHING:-configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json}" \
+	 --asset-contract "$${DOFBOT_ASSET_CONTRACT:-artifacts/dofbot/asset_contract.json}" \
+	 --output "$${DOFBOT_PREGRASP_POSE_OUTPUT:-/tmp/dofbot-pregrasp-pose-contract.json}"
+
+dofbot-pregrasp:
+	@./scripts/isaac/run_dofbot_pregrasp.sh
+
+dofbot-pregrasp-view:
+	@./scripts/isaac/view_dofbot_pregrasp.sh
+
 dofbot-reach:
 	@./scripts/isaac/run_dofbot_reaching.sh
 
@@ -166,6 +182,12 @@ show-dofbot-reach:
 
 show-dofbot-reach-view:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_reaching.sh
+
+show-dofbot-pregrasp:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_pregrasp.sh
+
+show-dofbot-pregrasp-view:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_pregrasp.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

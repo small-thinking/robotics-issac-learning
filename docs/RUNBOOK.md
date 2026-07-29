@@ -1,4 +1,4 @@
-# CartPole Runbook
+# Project Runbook
 
 ## Phase 0 acceptance flow
 
@@ -103,3 +103,47 @@ Every experiment must use one of these labels:
 - `resumed_local`: local checkpoint plus explicit resume provenance.
 
 Do not use the generic word “trained” without one of these provenance labels.
+
+## DOFBOT pose-aware pre-grasp flow
+
+Before spending:
+
+1. Merge the reviewed pose-aware pre-grasp branch.
+2. Verify the retained Brev instance is `STOPPED`.
+3. Run the local contract and remote command previews:
+
+   ```bash
+   make dofbot-pregrasp-pose-dry-run
+   make show-dofbot-pregrasp
+   make show-dofbot-pregrasp-view
+   ```
+
+4. Obtain a fresh live quote and explicit approval for the existing instance.
+   Do not create, resize, or delete an instance or disk.
+
+After approval, synchronize the approved commit and run the machine gate first:
+
+```bash
+export BREV_INSTANCE_NAME=isaac-launchable-f150a5
+make sync
+make dofbot-pregrasp
+```
+
+Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`. Do not
+open the Viewer unless every machine check passes. The experiment remains
+open-gripper and no-contact: servo 5, wrist twist, gripper closing, target
+motion, camera controller input, policy, checkpoint, and real hardware are out
+of scope.
+
+If the machine gate passes:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp-view
+```
+
+Tell the user what to look for: the arm should move smoothly toward the
+lower/farther cube from above, stop at the pre-grasp offset, preserve a natural
+posture, leave the gripper open, avoid visible contact, keep the cube
+stationary, then return to neutral and repeat. Retrieve the Viewer artifact
+after visual feedback, stop the instance immediately, and poll
+`brev ls --json` until it reports terminal `STOPPED`.

@@ -115,3 +115,18 @@ collision, posture, contact, or grasp acceptance. They also record that the
 accepted final Goal 4 observation was already at the lower joint boundary
 within measurement tolerance, so reuse of the old translation-only controller
 is not certified. They are local design evidence only.
+
+`pregrasp_pose_contract.json` is the next free local preparation artifact. It
+binds the accepted Goal 1 asset SHA and the lower/farther scene SHA, records the
+terminal-finger midpoint grasp frame, desired world-down approach and fixed
+closing axes, a synthetic `6x4` pose-Jacobian command, posture and smoothness
+limits, and deliberate collision/fixed-axis failure probes. All 21 local
+checks pass.
+
+This artifact does not come from Isaac and explicitly records
+`candidate_isaac_machine_passed=false`,
+`candidate_visual_passed=false`, and
+`contact_or_grasp_authorized=false`. The future remote runner must write a
+separate `pregrasp_machine_contract.json` or
+`pregrasp_viewer_contract.json`; those machine-specific files remain ignored
+until reviewed and intentionally promoted.

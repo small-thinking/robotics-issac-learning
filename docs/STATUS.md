@@ -3,8 +3,9 @@
 - Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
-  no-contact reaching passed all gates; the lower/farther pre-grasp scene
-  candidate passed its free local geometry gate
+  no-contact reaching passed all gates; the lower/farther scene and
+  terminal-finger pose-aware pre-grasp controller passed their free local
+  preparation gates
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
   08:44 PDT after corrected Goal 4 validation
@@ -147,6 +148,59 @@
   must prove pose-aware IK, collision clearance, posture quality, and the
   user-visible lower/farther scene before this candidate replaces the
   accepted Goal 4 baseline.
+
+## DOFBOT pose-aware terminal-finger pre-grasp gate
+
+- Branch: `codex/dofbot-pose-aware-pregrasp`
+- Scope: local controller and remote-runner preparation only; no Brev/GPU
+  start, Isaac execution, real hardware, wrist-twist or gripper command, cube
+  contact/motion, camera controller input, policy, checkpoint, PPO, or VLA
+- Pose config:
+  `configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json`
+- Grasp frame: origin is the midpoint of official bodies
+  `Finger_Left_03` and `Finger_Right_03`; closing is left-to-right terminal
+  finger; approach is `Wrist_Twist` to the terminal-finger midpoint,
+  orthogonalized against closing
+- Target: terminal-finger midpoint at `(0.00,+0.25,0.195) m`, approach axis
+  world `-Z`, closing axis world `+X`, position tolerance `0.025 m`,
+  approach tolerance `12°`, and closing tolerance `20°`
+- API boundary: only `joint1`-`joint4` are optimized and emitted through
+  four `Arm_serial_servo_write(id, angle, time)` calls per control step.
+  Wrist twist and the gripper remain uncommanded. Closing-axis alignment is a
+  monitor-only gate because the current four-servo API does not control it.
+- Controller: 5 Hz weighted damped-least-squares over the averaged two
+  terminal-finger `6x4` link Jacobian, with translation plus approach-axis
+  error and a preferred `[90,78,78,90]°` posture
+- Motion safety: `[60,120]°` envelope with an 8° command margin,
+  integer-degree commands, at most 4° per step, 20°/s velocity, and 60°/s²
+  acceleration
+- Collision safety: local signed point-to-box body-center proxies reject table
+  or target encroachment; the remote scene enables Isaac contact reporting
+  for every DOFBOT rigid body and rejects critical-body force above `0.5 N`.
+  The target remains static and contact remains unauthorized.
+- Local command:
+
+  ```bash
+  make dofbot-pregrasp-pose-dry-run
+  ```
+
+- Local evidence: `artifacts/dofbot/pregrasp_pose_contract.json`; all 21
+  preparation checks pass, including deliberate terminal-finger collision,
+  excessive contact-force, and reversed fixed-closing-axis rejection
+- Local validation: all 139 repository tests pass, including 27 focused
+  pose/runner tests; targeted Ruff, shell syntax, dry-run generation, Git LFS
+  checks, and both remote command previews pass
+- Candidate acceptance: **local preparation passed / Isaac machine pending /
+  Viewer pending**. The local report explicitly records
+  `candidate_isaac_machine_passed=false`,
+  `candidate_visual_passed=false`, and
+  `contact_or_grasp_authorized=false`.
+- Next gate: after this branch is reviewed and merged, obtain a fresh live
+  quote and explicit approval, then run `make dofbot-pregrasp` and
+  `make dofbot-pregrasp-view`. The headless run must prove pose, smoothness,
+  contact, collision, exact API-call, improvement, and neutral-reset gates;
+  the Viewer must separately show a smooth top-down, open-gripper, no-contact
+  approach in the lower/farther scene.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -505,10 +559,10 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and review the lower/farther pre-grasp scene
-candidate. The next free local design step is to define the grasp frame at the
-fingers rather than `Wrist_Twist`, then add orientation, preferred-posture,
-collision, and velocity/acceleration-smoothness constraints. Only after those
-contracts pass local tests should a fresh quote and explicit approval be
-requested for a new Isaac machine and Viewer gate. Goal 4 does not authorize
-contact or grasping; those require a separate explicit contract and gate.
+Keep the Brev instance stopped while
+`codex/dofbot-pose-aware-pregrasp` is reviewed. After merge, obtain a fresh
+quote and explicit approval before starting the retained instance. Run the
+headless pose-aware candidate first; open the Viewer only if every machine gate
+passes, and stop the GPU immediately after evidence retrieval and human review.
+This remains an open-gripper, no-contact pre-grasp gate. Contact, closing,
+grasping, lifting, and placing require separate explicit contracts.

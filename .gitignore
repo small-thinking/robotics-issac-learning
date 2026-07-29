@@ -76,6 +76,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/reaching_viewer_contract.json
 !artifacts/dofbot/pregrasp_scene_calibration.json
 !artifacts/dofbot/pregrasp_scene_calibration.svg
+!artifacts/dofbot/pregrasp_pose_contract.json
 
 # macOS and editors
 .DS_Store
