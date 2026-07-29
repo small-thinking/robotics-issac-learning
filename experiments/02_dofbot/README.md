@@ -348,18 +348,68 @@ disabled.
 
 ### Goal 3 — Read the onboard camera
 
-Status: **next**
+Status: **local contract ready; remote machine and Viewer validation pending**
 
-First use the camera prim discovered in Goal 1. If the asset camera cannot
-produce an Isaac Lab tensor, attach an Isaac Lab `CameraCfg` to the same
-physical camera link and document that adaptation.
+The baseline reuses the exact camera prim discovered in Goal 1:
+`/World/envs/env_0/Dofbot/link4/Camera`. It binds `CameraCfg` with
+`spawn=None`, so it does not silently replace the camera or overwrite the
+official USD optics. Only if this binding fails in the installed runtime may a
+separate adapter camera be considered, and that would require an explicit
+contract change.
 
-Place a simple colored target in front of the robot, switch the Viewer to the
-onboard perspective, and save one RGB frame plus shape/dtype/prim metadata.
-Depth, segmentation, feature extraction, and CV training are out of scope.
+The strict input is
+`configs/dofbot/camera/goal3_onboard_rgb.json`:
 
-Acceptance requires a non-empty, non-constant RGB tensor whose saved image
-matches the secure Viewer perspective.
+- one authored onboard camera;
+- RGB only at `640x480`;
+- a `0.1 s` update period, or nominal 10 Hz in simulation time;
+- three static tabletop diagnostics: a red cube, green cylinder, and blue
+  cuboid.
+
+The three shapes and colors make orientation, mirroring, cropping, field of
+view, and basic color failures visible without introducing a CV pipeline. They
+are placed deterministically in the camera's planar forward direction before
+simulation starts. Their actual world centers and projected pixel centers are
+recorded in the result. This initial sparse scene is a calibration fixture,
+not domain randomization or a finished photorealistic task environment.
+
+The sensor's conceptual inputs are scene radiance, the link-mounted camera
+pose, authored USD optics, and simulation timing. Its Goal 3 output is
+`rgb: torch.uint8[1, 480, 640, 3]` in `NHWC` RGB order. The 10 Hz setting is
+our reproducible simulator observation contract, not an unverified claim about
+the physical Yahboom camera. Hardware resolution/FPS, exposure, rolling
+shutter, transport latency, lens distortion, and color response remain unknown
+until the physical camera is identified and measured.
+
+The machine run is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera
+```
+
+It must read and preserve the camera's authored focal length, apertures,
+aperture offsets, clipping range, focus distance, f-stop, local-to-world
+transform, ROS/OpenGL frame poses, effective intrinsic matrix, five distinct
+frame summaries, simulation-time cadence, and raw/PNG hashes. The immutable
+outputs are `artifacts/dofbot/camera_contract.json` and
+`artifacts/dofbot/camera_rgb.png`.
+
+The secure visual run is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-camera-view
+```
+
+It binds the Viewer to the same onboard camera prim and keeps the static view
+alive. Acceptance requires all machine checks to pass and the user to confirm
+that the Viewer shows the same red cube, green cylinder, and blue cuboid as the
+saved RGB PNG. Depth, segmentation, feature extraction, CV training, arm
+motion, policies, checkpoints, and real hardware are out of scope.
+
+Local preparation passed all 80 repository tests plus targeted Ruff, Python
+compilation, shell syntax, remote-command preview, Git LFS, and diff checks.
+This does not prove Isaac rendering or visual correctness, so Goal 3 remains
+open.
 
 ## Later milestones
 

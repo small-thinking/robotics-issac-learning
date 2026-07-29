@@ -4,7 +4,8 @@
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`, Goals 1 and 2 — complete;
   the ActionChunk v1 pose-boundary API extension is also machine- and
-  Viewer-accepted; Goal 3 onboard RGB capture is next
+  Viewer-accepted; Goal 3 onboard RGB capture is locally prepared and awaits
+  paid Isaac machine and Viewer validation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
   19:33 PDT after the final ActionChunk validation window
@@ -14,6 +15,41 @@
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class is `$1.59/hour`
   compute; checked 2026-07-28 before restart
+
+## DOFBOT Goal 3 local camera gate
+
+- Branch: `codex/dofbot-camera-contract`
+- Official camera prim retained:
+  `/World/envs/env_0/Dofbot/link4/Camera`; the baseline sets
+  `CameraCfg.spawn=None` rather than creating a replacement sensor prim
+- Input contract:
+  `configs/dofbot/camera/goal3_onboard_rgb.json`
+- Baseline output: RGB only, `640x480`, `torch.uint8`, `NHWC`, one camera
+  instance; no depth, segmentation, CV model, policy, or checkpoint
+- Timing contract: `update_period_s=0.1`, nominally 10 Hz in simulation time.
+  This is an explicit simulator observation rate, not a claim about the
+  unresolved physical camera model, exposure, transport latency, or measured
+  hardware FPS.
+- Deterministic static scene: red cube, green cylinder, and blue cuboid on the
+  tabletop, placed at a fixed forward distance and lateral spacing using the
+  authored camera frame
+- Planned remote inspection: authored focal length, horizontal and vertical
+  aperture, aperture offsets, clipping range, focus distance, f-stop, derived
+  field of view, world transform, ROS/OpenGL pose, and the effective intrinsic
+  matrix
+- Planned machine artifacts:
+  `artifacts/dofbot/camera_contract.json` and
+  `artifacts/dofbot/camera_rgb.png`; the PNG is covered by Git LFS
+- Machine gates: original prim is a `UsdGeom.Camera`, sensor initializes,
+  five distinct frames advance at 10 Hz simulation time, every tensor is
+  non-empty/non-constant `1x480x640x3 uint8`, all three target centers project
+  inside the image, and the PNG is saved with a SHA-256
+- Local validation: `make test` passed all 80 tests; targeted Ruff, Python
+  compilation, shell syntax, and `git diff --check` passed
+- Current acceptance: local pass / remote machine pending / user visual
+  pending. Goal 3 is not complete.
+- Compute lifecycle: no GPU was started for this local preparation; the last
+  verified Brev state remains `STOPPED`
 
 ## DOFBOT Goal 1 machine result
 

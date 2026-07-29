@@ -631,3 +631,38 @@
   and persistent disk retained.
 - Conclusion: ActionChunk v1 pose-boundary execution is complete. Machine and
   user visual gates passed; Goal 3 onboard RGB capture is next.
+
+## 2026-07-28 — onboard RGB camera contract passed local gates
+
+- Branch: `codex/dofbot-camera-contract`
+- Scope: Goal 3 RGB preparation only; no GPU, arm motion, depth, segmentation,
+  CV model, policy, checkpoint, or real hardware
+- Source camera:
+  `/World/envs/env_0/Dofbot/link4/Camera`; the sensor config uses `spawn=None`
+  to retain the camera authored by NVIDIA's Yahboom DOFBOT USD
+- Input config:
+  `configs/dofbot/camera/goal3_onboard_rgb.json`
+- Observation contract: one `torch.uint8` RGB tensor in
+  `[1, 480, 640, 3]` `NHWC` layout, sampled every `0.1 s` of simulation time
+  for a nominal 10 Hz simulator rate
+- Timing boundary: the 10 Hz baseline is not a claim about the unresolved
+  physical camera FPS, exposure, lens distortion, or transport latency
+- Static calibration fixture: red cube, green cylinder, and blue cuboid on
+  the tabletop, deterministically placed from the authored camera frame before
+  simulation starts
+- Remote machine gates: original `UsdGeom.Camera`, initialized sensor, five
+  advancing frames, exact shape/dtype, non-constant RGB, 10 Hz simulation-time
+  cadence, all target centers geometrically inside the image, and a hashed PNG
+- Planned machine evidence:
+  `artifacts/dofbot/camera_contract.json` plus the Git-LFS-tracked
+  `artifacts/dofbot/camera_rgb.png`
+- Viewer contract: switch the secure viewport to the same onboard camera prim
+  and keep the scene alive until the user compares it with the saved PNG
+- Local command: `make test`
+- Local result: all 80 tests passed, including strict camera config,
+  synthetic failure cases, Git LFS rules, and remote command previews;
+  targeted Ruff, Python compilation, shell syntax, and `git diff --check`
+  also passed
+- Conclusion: local software gate passed only. Goal 3 remains remote machine
+  pending and visual pending; a fresh price check and explicit paid-window
+  approval are required before starting the existing Brev instance.

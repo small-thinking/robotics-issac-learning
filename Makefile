@@ -4,8 +4,10 @@ SHELL := /bin/bash
 	dofbot-inspect dofbot-view dofbot-motion dofbot-motion-view \
 	dofbot-api-dry-run dofbot-motion-config-dry-run \
 	dofbot-motion-config dofbot-motion-config-view \
+	dofbot-camera dofbot-camera-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
+	show-dofbot-camera show-dofbot-camera-view \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -72,6 +74,12 @@ dofbot-motion-config:
 dofbot-motion-config-view:
 	@./scripts/isaac/view_dofbot_motion_config.sh
 
+dofbot-camera:
+	@./scripts/isaac/capture_dofbot_camera.sh
+
+dofbot-camera-view:
+	@./scripts/isaac/view_dofbot_camera.sh
+
 status:
 	@./scripts/brev/status.sh
 
@@ -123,6 +131,12 @@ show-dofbot-motion-config:
 
 show-dofbot-motion-config-view:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_motion_config.sh
+
+show-dofbot-camera:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/capture_dofbot_camera.sh
+
+show-dofbot-camera-view:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_camera.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
