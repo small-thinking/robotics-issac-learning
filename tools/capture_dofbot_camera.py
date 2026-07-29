@@ -251,8 +251,13 @@ def _step_scene(
     for _ in range(steps):
         if not simulation_app.is_running():
             raise CameraConfigError("simulation stopped during camera pose setup")
-        scene.write_data_to_sim()
-        sim.step(render=True)
+        try:
+            scene.write_data_to_sim()
+            sim.step(render=True)
+        except SystemExit as error:
+            raise RuntimeError(
+                "Isaac requested process exit during camera pose setup"
+            ) from error
         scene.update(sim.get_physics_dt())
 
 
@@ -564,8 +569,13 @@ def _run_viewer_motion(
             for _ in range(step_count):
                 if not simulation_app.is_running():
                     return
-                scene.write_data_to_sim()
-                sim.step(render=True)
+                try:
+                    scene.write_data_to_sim()
+                    sim.step(render=True)
+                except SystemExit as error:
+                    raise RuntimeError(
+                        "Isaac requested process exit during camera Viewer motion"
+                    ) from error
                 scene.update(sim.get_physics_dt())
 
 
