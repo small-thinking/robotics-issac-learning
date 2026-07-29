@@ -80,12 +80,19 @@ Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
 OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
-Before any contact or grasping work, recalibrate table height and target
-distance, define a fingertip grasp pose instead of using `Wrist_Twist` alone,
-and add orientation, preferred-posture, collision, and trajectory-smoothness
-constraints. No GPU should be started for that local design, tests,
-documentation, or chart rendering. Any later remote run requires a new cost
-quote, explicit approval, and prompt shutdown after validation.
+The first free pre-grasp calibration now has a local candidate: table top
+`z=0.08 m`, nearest table edge `y=0.16 m`, cube center
+`(0.00,+0.25,0.105) m`, and `Wrist_Twist` approach waypoint
+`(0.00,+0.25,0.195) m`. It passed provenance-bounded geometry checks against
+the accepted Goal 4 Isaac artifact, but has not passed candidate-scene Isaac
+or Viewer gates.
+
+Before any contact or grasping work, define a fingertip grasp pose instead of
+using `Wrist_Twist` alone, and add orientation, preferred-posture, collision,
+and trajectory-smoothness constraints. No GPU should be started for that local
+design, tests, documentation, or chart rendering. Any later remote run
+requires a new cost quote, explicit approval, and prompt shutdown after
+validation.
 
 ## Sources of truth
 

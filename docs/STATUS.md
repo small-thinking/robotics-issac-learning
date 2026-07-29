@@ -3,7 +3,8 @@
 - Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
-  no-contact reaching passed local, remote machine, and user Viewer gates
+  no-contact reaching passed all gates; the lower/farther pre-grasp scene
+  candidate passed its free local geometry gate
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
   08:44 PDT after corrected Goal 4 validation
@@ -95,6 +96,57 @@
   `STOPPING` during asynchronous cleanup and terminal `STOPPED` at 08:44 PDT.
   The instance and persistent disk were retained; neither was deleted or
   resized.
+
+## DOFBOT pre-grasp scene calibration gate
+
+- Branch: `codex/dofbot-pregrasp-scene-calibration`
+- Scope: local scene geometry only; no Brev/GPU start, Isaac execution, new
+  joint motion, real hardware, gripper command, cube contact/motion, camera
+  controller input, policy, checkpoint, PPO, or VLA
+- Immutable baseline: Goal 4's accepted config plus
+  `artifacts/dofbot/reaching_viewer_contract.json`, SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`;
+  all 14 recorded machine checks passed, and its validated neutral
+  `Wrist_Twist` origin radius is `0.33865 m`
+- Candidate config:
+  `configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json`
+- Candidate geometry: the axis-aligned tabletop stays horizontal, its center
+  moves from `(0.00, +0.25, 0.10) m` to `(0.00, +0.31, 0.06) m`, its top
+  drops from `z=0.12 m` to `z=0.08 m`, and its nearest edge moves from
+  `y=0.10 m` to `y=0.16 m`
+- Candidate target: the static 5 cm cube moves from
+  `(0.00, +0.18, 0.145) m` to `(0.00, +0.25, 0.105) m`, still rests exactly
+  on the table, and leaves at least `0.065 m` to every tabletop edge
+- Candidate waypoint: `(0.00, +0.25, 0.195) m`; its origin radius is
+  `0.31706 m`, leaving a `0.02159 m` necessary radial margin inside the
+  validated neutral-wrist radius. This is a geometry plausibility check, not
+  an IK, collision, posture, dynamics, or visual proof.
+- Controller-reuse warning: the accepted Goal 4 final observation already had
+  one recorded joint at `59.50°`, reaching the 60° lower safety boundary
+  within the machine gate's 1° measurement tolerance. Therefore the existing
+  translation-only controller is explicitly **not certified** for this
+  lower/farther candidate; the radial margin must not be read as joint-space
+  reach evidence.
+- Local command:
+
+  ```bash
+  make dofbot-pregrasp-dry-run
+  ```
+
+- Evidence:
+  `artifacts/dofbot/pregrasp_scene_calibration.json` and the side/top
+  `artifacts/dofbot/pregrasp_scene_calibration.svg`
+- Local acceptance: **passed 20/20 geometry and provenance checks**. All 119
+  repository tests passed, including seven focused calibration tests; the
+  candidate changes scene positions only and leaves the accepted scripted
+  actions, state controller, frame, API boundary, and `Wrist_Twist` anchor
+  unchanged for comparison, not as a claim that the old controller is
+  sufficient.
+- Candidate acceptance: **local geometry passed / Isaac machine pending /
+  Viewer pending**. Contact and grasp remain unauthorized. A later paid gate
+  must prove pose-aware IK, collision clearance, posture quality, and the
+  user-visible lower/farther scene before this candidate replaces the
+  accepted Goal 4 baseline.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -453,10 +505,10 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and review/merge PR #21 after its corrected v2
-evidence update. Before another paid run, do the free local design work for the
-next task contract: choose a less trivial table height and cube distance,
-define the grasp frame at the fingers rather than `Wrist_Twist`, and add
-orientation, preferred-posture, collision, and smoothness constraints. Goal 4
-does not authorize contact or grasping; those require a new explicit machine
-and Viewer gate.
+Keep the Brev instance stopped and review the lower/farther pre-grasp scene
+candidate. The next free local design step is to define the grasp frame at the
+fingers rather than `Wrist_Twist`, then add orientation, preferred-posture,
+collision, and velocity/acceleration-smoothness constraints. Only after those
+contracts pass local tests should a fresh quote and explicit approval be
+requested for a new Isaac machine and Viewer gate. Goal 4 does not authorize
+contact or grasping; those require a separate explicit contract and gate.

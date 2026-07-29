@@ -971,3 +971,46 @@
   Before any contact or grasping experiment, recalibrate table height and
   target distance, define the finger grasp pose, and add pose-aware IK,
   preferred-posture, collision, and trajectory-smoothness constraints.
+
+## 2026-07-29 — Lower/farther pre-grasp scene passed local geometry gate
+
+- Branch: `codex/dofbot-pregrasp-scene-calibration`
+- Scope: free local scene calibration only; no Brev/GPU start, Isaac
+  execution, new arm motion, real hardware, gripper command, cube
+  contact/motion, camera control input, policy, checkpoint, PPO, or VLA
+- Evidence anchor:
+  `artifacts/dofbot/reaching_viewer_contract.json`, SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`,
+  commit `eb7a266`, with all 14 Goal 4 machine checks true
+- Candidate config:
+  `configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json`
+- Scene change: horizontal table top `z=0.12 → 0.08 m`; nearest table edge
+  `y=0.10 → 0.16 m`; cube center
+  `(0.00,+0.18,0.145) → (0.00,+0.25,0.105) m`; approach waypoint
+  `(0.00,+0.18,0.235) → (0.00,+0.25,0.195) m`
+- Evidence-bounded reach sanity: candidate waypoint origin radius
+  `0.31706 m` versus the recorded neutral-wrist radius `0.33865 m`, leaving
+  `0.02159 m`. This is a necessary radial geometry condition, not sufficient
+  IK or collision evidence.
+- Controller-reuse diagnostic: the accepted Goal 4 final observation already
+  recorded one joint at `59.50°`, inside the machine gate's 1° tolerance
+  around the 60° lower boundary. The old translation-only controller is
+  explicitly **not certified** for the candidate; safe joint-space reach
+  remains a pose-aware IK task.
+- Command:
+
+  ```bash
+  make dofbot-pregrasp-dry-run
+  ```
+
+- Local result: **passed 20/20 checks**. The gate verifies the baseline config
+  SHA, all prior machine checks, unchanged frame/controller/actions/API
+  boundary, lower/farther geometry, tabletop support and edge inset, base
+  keepout, approach clearance, incremental displacement, and radial margin.
+  All 119 repository tests passed, including seven focused calibration tests.
+- Outputs: `artifacts/dofbot/pregrasp_scene_calibration.json` and
+  `artifacts/dofbot/pregrasp_scene_calibration.svg`
+- Acceptance: **local geometry passed / candidate Isaac machine pending /
+  candidate Viewer pending**. Contact and grasp remain unauthorized. The next
+  free task is finger-frame and pose-aware controller design with orientation,
+  preferred posture, collision clearance, and trajectory smoothness.
