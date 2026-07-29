@@ -444,8 +444,8 @@ physical-mount/joint-calibration task.
 
 ### Goal 4 — Fixed-tabletop reaching baseline
 
-Status: **corrected front-side v2 passed local preparation; fresh remote
-machine and Viewer gates pending**
+Status: **corrected front-side v2 passed local, remote machine, and user Viewer
+gates for safe no-contact reaching**
 
 Goal 4 replaces the floating camera-calibration fixture with the first
 physically composed task scene:
@@ -510,8 +510,7 @@ degree of neutral.
 The Viewer waits 20 seconds at neutral and then repeats the scripted comparison
 and state-based approach. Visual acceptance requires the user to see the table
 and cube, both approaches, an open gripper, a stationary cube, and the final
-neutral reset. Until the remote machine artifact passes and the user confirms
-the Viewer, Goal 4 remains incomplete.
+neutral reset.
 
 The historical rear-side remote run at commit `d12b987` passed all eleven
 machine checks.
@@ -537,10 +536,29 @@ rear-side workspace or relabeled frame before Isaac can launch. All 112 local
 tests, including 15 focused Goal 4 tests, the pure dry-run, Ruff, shell syntax,
 and both remote command previews pass. No GPU or real hardware was started.
 
-This local result does not reuse the rear-side v1 machine pass. The corrected
-state controller must pass a fresh 14-check machine gate before the Viewer is
-reopened. Visual acceptance must confirm the table/cube are opposite the
-Jetson/electronics rear. Goal 4 remains incomplete.
+This local result did not reuse the rear-side v1 machine pass. The corrected
+state controller therefore received a fresh remote machine and Viewer run at
+commit `eb7a266` on 2026-07-29. Both headless and downloaded cycle-27 Viewer
+artifacts passed all fourteen checks. In the headless run, scripted distance
+improved from `0.18821 m` to `0.07579 m`, state-controller distance improved
+from `0.21226 m` to `0.02037 m`, minimum wrist/table clearance was
+`0.13258 m`, 52/52 official API calls matched, and neutral reset error was
+`0.2295 deg`. The Viewer artifact has SHA-256
+`87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`.
+
+The user confirmed that the table/cube and Jetson/electronics are on opposite
+sides and that the arm bends toward the corrected work side. The gripper
+remained open and the cube remained static. Goal 4 therefore passes for safe,
+policy-free, no-contact reaching.
+
+This result is not grasp readiness. The user observed that the table and cube
+are close and high enough to require only roughly 30°-45° of visible bending,
+and that the movement looks awkward. That behavior is consistent with a 5 Hz
+translation-only damped-least-squares controller targeting `Wrist_Twist`: it
+does not constrain gripper orientation, define a fingertip grasp frame, or
+prefer a natural elbow posture. Before contact or grasping, locally
+recalibrate table height and cube distance, define the finger grasp pose, and
+add pose-aware IK, preferred-posture, collision, and smoothness constraints.
 
 ## Later milestones
 

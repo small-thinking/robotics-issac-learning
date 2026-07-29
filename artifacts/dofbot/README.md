@@ -79,3 +79,24 @@ motion itself was visible and safe. The three user screenshots were reviewed
 but are intentionally not committed. `reaching_viewer.log` remains ignored
 local evidence; it reached `Simulation App Startup Complete`, `app ready`, and
 32 complete `machine_passed=True` cycles before evidence retrieval.
+
+Goal 4's corrected physical-front run at commit `eb7a266` replaced the tracked
+Viewer artifact on 2026-07-29. The byte-identical downloaded
+`reaching_viewer_contract.json` is from cycle 27 and has SHA-256
+`87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`.
+All fourteen machine checks passed. The v2 frame declares world `+Y` as
+workspace front and world `-Y` as Jetson/electronics rear; the state controller
+reduced the `Wrist_Twist` waypoint distance from `0.21226 m` to `0.02037 m`;
+the static cube remained fixed; minimum wrist/table clearance was
+`0.13258 m`; all 52 official API calls were accounted for; and maximum neutral
+reset error was `0.2028 deg`.
+
+The artifact remains immutable with its machine-time visual status
+`pending_user_confirmation`. The later human review is recorded in the
+experiment and status documents: the user confirmed the table/cube and
+Jetson/electronics were on opposite sides and the arm approached in the
+correct direction. The user also observed that the current scene is close and
+high enough to need only roughly 30°-45° of visible bending, and that the
+position-only controller looks awkward. Four screenshots were reviewed but are
+intentionally not committed. These are task-calibration and motion-quality
+limitations, not failures of the safe, no-contact reaching gate.

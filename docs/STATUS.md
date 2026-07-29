@@ -1,23 +1,23 @@
 # Status
 
-- Updated: 2026-07-28 America/Los_Angeles
+- Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
-- Current experiment: Phase 3 / `02_dofbot`, Goal 4 fixed-tabletop reaching;
-  corrected front-side v2 passed local software preparation; fresh remote
-  machine and user Viewer gates are pending
+- Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
+  no-contact reaching passed local, remote machine, and user Viewer gates
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-28
-  23:47 PDT after Goal 4 remote validation
+- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
+  08:44 PDT after corrected Goal 4 validation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class was
-  `$1.58784/hour` compute; checked 2026-07-28 before restart
+  `$1.58784/hour` compute; checked 2026-07-29 before restart
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
-- Branch: `codex/dofbot-goal4-jacobian-compat`; PR #21 remains Draft
+- Branch: `codex/dofbot-goal4-jacobian-compat`; corrected remote commit
+  `eb7a266`; PR #21
 - Historical rear-side remote commit: `d12b987`
 - Scope: safe reach/approach/retract only; no target contact, pushing, grasping,
   lifting, placing, gripper command, camera controller input, learning, or real
@@ -50,40 +50,51 @@
   focused Goal 4 tests, Git LFS checks, and remote command previews; targeted
   Ruff, shell syntax, the local dry-run, and both reach command previews also
   pass
-- Remote Viewer machine evidence:
-  `artifacts/dofbot/reaching_viewer_contract.json`
-- Historical v1 remote machine gates: physical prims and static target present,
+- Corrected v2 remote Viewer evidence:
+  `artifacts/dofbot/reaching_viewer_contract.json`, cycle 27, SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`
+- Machine gates: physical prims and static target present,
   live asset compatibility, angle envelope, four-centimeter table clearance,
   at least three-centimeter distance improvement for both the scripted and
   state-based approaches, final state distance at most four centimeters, exact
-  API call count, and neutral reset within one degree
+  API call count, neutral reset within one degree, the fixed front/rear frame,
+  and table/cube placement on the physical work side
 - Viewer contract: 20-second neutral connection hold followed by a loop of the
   scripted comparison and state-based approach
-- Historical v1 remote machine result: **passed**. All eleven checks passed; the scripted
-  waypoint distance improved by `0.13493 m`, the state controller improved
-  from `0.20660 m` to `0.02035 m`, the minimum wrist/table clearance was
-  `0.12693 m`, 48/48 official API calls were accounted for, and neutral reset
-  error was `0.6012 deg`
-- Historical v1 Viewer result: **failed physical composition**. The user saw a safe,
-  strategy-correct downward approach with an open gripper and stationary cube,
-  but the table and cube were on the same visible side of the base as the
-  Jetson/electronics carrier. The runner had treated world `-Y` camera-forward
-  as robot-front even though Goal 3 explicitly did not define a physical
-  tabletop frame.
-- Current acceptance: **corrected v2 local preparation passed / corrected v2
-  remote machine pending / corrected v2 Viewer pending**. The earlier v1
-  remote pass does not validate the corrected geometry. Goal 4 is not
-  complete.
-- Next paid gate: obtain a fresh quote and explicit approval, run the corrected
-  v2 machine check, inspect its 14 checks, then open the looping Viewer only if
-  the machine artifact passes. Human acceptance must confirm that the table
-  and cube are opposite the Jetson/electronics rear, both safe approach paths
-  are visible, the gripper stays open, the cube stays fixed, and the arm
-  returns to neutral.
-- Compute lifecycle: stop was requested at approximately 23:33 PDT after the
-  active Viewer check. Brev reported `STOPPING` with shell access unavailable,
-  and terminal `STOPPED` was verified at 23:47 PDT. No instance or disk was
-  deleted.
+- Corrected v2 remote machine result: **passed**. All fourteen checks passed;
+  the headless scripted distance improved from `0.18821 m` to `0.07579 m`,
+  the state controller improved from `0.21226 m` to `0.02037 m`, minimum
+  wrist/table clearance was `0.13258 m`, 52/52 official API calls were
+  accounted for, and neutral reset error was `0.2295 deg`
+- Corrected v2 Viewer machine result: **passed**. The downloaded cycle-27
+  artifact again passed 14/14 checks; its state-controller final distance was
+  `0.02037 m`, minimum clearance was `0.13258 m`, and neutral reset error was
+  `0.2028 deg`
+- Corrected v2 Viewer result: **passed for safe no-contact reaching**. The user
+  confirmed that the table/cube and Jetson/electronics are on opposite sides
+  and that the arm approaches in the correct direction. The open gripper and
+  static cube were visible, and four screenshots were reviewed but not
+  committed.
+- Motion-quality limitation: the user correctly observed only roughly
+  30°-45° of required visible bending and an awkward motion. The target/table
+  are close and high, the controlled point is `Wrist_Twist` rather than the
+  fingertip grasp frame, and the 5 Hz translation-only damped-least-squares
+  controller does not constrain gripper orientation or prefer a natural elbow
+  posture. These are expected baseline limitations, not evidence of grasp
+  readiness.
+- Current acceptance: **local passed / corrected remote machine passed /
+  corrected user Viewer passed**. Goal 4 is complete for safe, policy-free,
+  no-contact reaching only.
+- Next free local gate: recalibrate table height and target reach distance,
+  define a fingertip/grasp pose frame, and design pose-aware IK with preferred
+  posture and smoother velocity/acceleration before any contact, pushing,
+  grasping, or placing experiment.
+- Compute lifecycle: the existing instance was started after the unchanged
+  `$1.58784/hour` quote was verified. Stop was requested at approximately
+  08:35 PDT after artifact retrieval and human review; Brev reported
+  `STOPPING` during asynchronous cleanup and terminal `STOPPED` at 08:44 PDT.
+  The instance and persistent disk were retained; neither was deleted or
+  resized.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -442,11 +453,10 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and review PR #21's corrected front-side v2
-preparation. In a later short paid window, obtain a fresh quote and explicit
-approval, run `make dofbot-reach`, inspect the new immutable 14-check machine
-contract, and only then open `make dofbot-reach-view`. Do not mark Goal 4
-complete until that corrected machine gate passes and the user confirms the
-table and stationary cube are physically in front of the arm and opposite the
-Jetson/electronics rear, both approach paths are visible, the gripper remains
-open, and the arm resets to neutral.
+Keep the Brev instance stopped and review/merge PR #21 after its corrected v2
+evidence update. Before another paid run, do the free local design work for the
+next task contract: choose a less trivial table height and cube distance,
+define the grasp frame at the fingers rather than `Wrist_Twist`, and add
+orientation, preferred-posture, collision, and smoothness constraints. Goal 4
+does not authorize contact or grasping; those require a new explicit machine
+and Viewer gate.

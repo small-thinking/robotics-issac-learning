@@ -915,3 +915,59 @@
   machine pending / corrected v2 Viewer pending**. The historical v1 remote
   artifact remains immutable evidence but cannot satisfy the corrected gate.
   Goal 4 is not complete.
+
+## 2026-07-29 — Goal 4 corrected physical-front reaching passed remote and Viewer gates
+
+- Branch: `codex/dofbot-goal4-jacobian-compat`; commit: `eb7a266`; PR #21
+- Approved infrastructure: reused only `isaac-launchable-f150a5`
+  (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the unchanged live quote of
+  `$1.58784/hour`; no instance creation, resize, deletion, disk deletion,
+  physical-hardware command, gripper command, camera controller input, policy,
+  checkpoint, PPO, or VLA
+- Corrected frame and scene: world `+Y` workspace front, world `-Y`
+  Jetson/electronics rear, table center `(0.00, +0.25, 0.10) m`, static cube
+  center `(0.00, +0.18, 0.145) m`, and `Wrist_Twist` approach waypoint
+  `(0.00, +0.18, 0.235) m`
+- Machine command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach
+  ```
+
+- Headless result: **passed 14/14 checks**. Scripted distance improved from
+  `0.18821 m` to `0.07579 m`; state-controller distance improved from
+  `0.21226 m` to `0.02037 m`; minimum wrist/table clearance was `0.13258 m`;
+  52/52 Yahboom-shaped calls matched; and neutral reset error was
+  `0.2295 deg`
+- Viewer command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-reach-view
+  ```
+
+- Viewer runtime: `Simulation App Startup Complete`, `app ready`, and repeated
+  `machine_passed=True` cycles. The byte-identical downloaded cycle-27
+  artifact again passed 14/14 checks and has SHA-256
+  `87faa5f892553c093dc190e331967990676672e4b383587e21a298cd8446d893`.
+- Human result: **passed the corrected physical-front, safe no-contact reaching
+  gate**. The user confirmed that the table/cube and Jetson/electronics are on
+  opposite sides and that the arm bends toward the correct work side. The open
+  gripper and static cube remained visible. Four user screenshots were
+  reviewed but intentionally not committed.
+- Limitation: the user observed only roughly 30°-45° of needed visible bending
+  and an awkward motion. The table/cube are close and high, the controlled
+  point is `Wrist_Twist` rather than a fingertip grasp frame, and the 5 Hz
+  translation-only damped-least-squares controller has no orientation target,
+  preferred elbow posture, collision-aware task geometry, or acceleration
+  smoothing. This is acceptable for Goal 4 approach validation but is not
+  grasp readiness.
+- Local regression after evidence update: `make test` passed all 112 tests;
+  the tracked artifact's commit, cycle, 14 checks, and machine pass were
+  verified with `jq`; `git diff --check` passed
+- Resource lifecycle: stop was requested at approximately 08:35 PDT; terminal
+  `STOPPED` was verified with `brev ls --json` at 08:44 PDT. The instance and
+  persistent disk were retained; neither was deleted or resized.
+- Conclusion: Goal 4 is **complete for safe, policy-free, no-contact reaching**.
+  Before any contact or grasping experiment, recalibrate table height and
+  target distance, define the finger grasp pose, and add pose-aware IK,
+  preferred-posture, collision, and trajectory-smoothness constraints.
