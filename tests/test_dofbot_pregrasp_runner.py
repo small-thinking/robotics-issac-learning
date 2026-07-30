@@ -45,11 +45,10 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
 
     def test_contact_reporter_is_enabled_and_machine_gated(self) -> None:
         self.assertIn("activate_contact_sensors=True", self.scene_cfg)
-        self.assertIn("ContactSensorCfg(", self.scene_cfg)
-        self.assertNotIn('prim_path="{ENV_REGEX_NS}/Dofbot/.*"', self.scene_cfg)
+        self.assertNotIn("ContactSensorCfg", self.scene_cfg)
         for expected_text in (
-            '"{ENV_REGEX_NS}/Dofbot"',
-            '"{ENV_REGEX_NS}/Dofbot/link5"',
+            '"/World/envs/env_*/Dofbot/(link2|link3|link4)"',
+            '"/World/envs/env_*/Dofbot/link5/"',
             '"link2", "link3", "link4"',
             '"Wrist_Twist"',
             '"Finger_Left_02"',
@@ -57,8 +56,9 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         ):
             self.assertIn(expected_text, self.scene_cfg)
         self.assertNotIn("Finger_Left_02/Finger_Left_02", self.scene_cfg)
-        self.assertIn("CONTACT_SENSOR_KEYS_BY_BODY", self.runner)
-        self.assertIn("net_forces_w", self.runner)
+        self.assertIn("create_rigid_contact_view", self.runner)
+        self.assertIn("get_net_contact_forces", self.runner)
+        self.assertIn("critical contact view count mismatch", self.runner)
         self.assertIn(
             "contact_reporter_force_remains_below_threshold",
             self.runner,

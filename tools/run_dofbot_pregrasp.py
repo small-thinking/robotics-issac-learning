@@ -119,6 +119,7 @@ from pxr import UsdPhysics
 
 import isaaclab.sim as sim_utils
 from isaaclab.scene import InteractiveScene
+from isaaclab_physx.physics import PhysxManager as SimulationManager
 
 from dofbot_control_api import (
     CONTROLLED_JOINT_NAMES,
@@ -132,7 +133,8 @@ from dofbot_motion_plan import (
     validate_recorded_asset_contract,
 )
 from dofbot_pregrasp_scene_cfg import (
-    CONTACT_SENSOR_KEYS_BY_BODY,
+    CONTACT_BODY_GLOBS,
+    CONTACT_BODY_NAMES,
     DofbotPregraspSceneCfg,
 )
 
@@ -370,38 +372,36 @@ def _terminal_midpoint_jacobian(
     ]
 
 
-def _maximum_critical_contact_force_n(
-    *,
-    scene: InteractiveScene,
-    critical_body_names: tuple[str, ...],
-) -> tuple[float, list[str]]:
-    missing = sorted(
-        set(critical_body_names) - set(CONTACT_SENSOR_KEYS_BY_BODY)
-    )
-    if missing:
-        raise PregraspPoseError(
-            f"contact reporter mapping is missing critical bodies: {missing}"
+class _CriticalContactReporter:
+    """Read net forces from explicit PhysX views for nested DOFBOT bodies."""
+
+    def __init__(self, physics_dt: float) -> None:
+        physics_view = SimulationManager.get_physics_sim_view()
+        self._views = tuple(
+            physics_view.create_rigid_contact_view(body_glob)
+            for body_glob in CONTACT_BODY_GLOBS
         )
-    maximum = 0.0
-    observed_names: list[str] = []
-    for expected_name in critical_body_names:
-        sensor = scene[CONTACT_SENSOR_KEYS_BY_BODY[expected_name]]
-        sensor_names = list(sensor.body_names)
-        if expected_name not in sensor_names:
+        expected_counts = (3, 7)
+        counts = tuple(view.count for view in self._views)
+        if counts != expected_counts:
             raise PregraspPoseError(
-                "contact reporter body mismatch: "
-                f"expected {expected_name!r} in {sensor_names}"
+                "critical contact view count mismatch: "
+                f"expected {expected_counts}, got {counts}"
             )
-        body_index = sensor_names.index(expected_name)
-        force = float(
-            torch.linalg.vector_norm(
-                sensor.data.net_forces_w[0, body_index],
-                dim=-1,
-            ).item()
-        )
-        maximum = max(maximum, force)
-        observed_names.append(expected_name)
-    return maximum, observed_names
+        self._physics_dt = physics_dt
+
+    def maximum_force_n(self) -> float:
+        maximum = 0.0
+        for view in self._views:
+            forces = view.get_net_contact_forces(dt=self._physics_dt)
+            force = float(
+                torch.linalg.vector_norm(
+                    forces.reshape(-1, 3),
+                    dim=-1,
+                ).max().item()
+            )
+            maximum = max(maximum, force)
+        return maximum
 
 
 def _issue_angles(
@@ -428,6 +428,7 @@ def _observation(
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
+    contact_reporter: _CriticalContactReporter,
     velocities_deg_s: tuple[float, float, float, float],
     accelerations_deg_s2: tuple[float, float, float, float],
     step_index: int,
@@ -443,10 +444,11 @@ def _observation(
         ],
         config=pose.grasp_frame,
     )
-    contact_force, contact_body_names = _maximum_critical_contact_force_n(
-        scene=scene,
-        critical_body_names=pose.collision.critical_body_names,
-    )
+    if tuple(pose.collision.critical_body_names) != CONTACT_BODY_NAMES:
+        raise PregraspPoseError(
+            "pose contract critical bodies do not match the PhysX contact views"
+        )
+    contact_force = contact_reporter.maximum_force_n()
     angles = _observed_angles_deg(arm)
     evaluation = evaluate_pregrasp_observation(
         config=pose,
@@ -469,7 +471,7 @@ def _observation(
         "command_velocities_deg_s": list(velocities_deg_s),
         "command_accelerations_deg_s2": list(accelerations_deg_s2),
         "maximum_critical_contact_force_n": contact_force,
-        "contact_sensor_body_names": contact_body_names,
+        "contact_sensor_body_names": list(CONTACT_BODY_NAMES),
         "body_positions_world_m": {
             name: list(position) for name, position in positions.items()
         },
@@ -507,6 +509,7 @@ def _run_pose_controller(
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
+    contact_reporter: _CriticalContactReporter,
     controlled_joint_ids: list[int],
     render: bool,
 ) -> tuple[list[dict[str, Any]], int] | None:
@@ -528,6 +531,7 @@ def _run_pose_controller(
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             velocities_deg_s=zero,
             accelerations_deg_s2=zero,
             step_index=0,
@@ -610,6 +614,7 @@ def _run_pose_controller(
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             velocities_deg_s=command.velocities_deg_s,
             accelerations_deg_s2=accelerations,  # type: ignore[arg-type]
             step_index=step_index,
@@ -705,6 +710,7 @@ def main() -> None:
     )
     sim.reset()
     scene.update(sim.get_physics_dt())
+    contact_reporter = _CriticalContactReporter(sim.get_physics_dt())
     assert_compatible_asset_contracts(
         recorded_contract,
         _live_asset_contract(scene),
@@ -759,6 +765,7 @@ def main() -> None:
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             controlled_joint_ids=controlled_joint_ids,
             render=render,
         )
