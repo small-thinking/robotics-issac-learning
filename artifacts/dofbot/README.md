@@ -141,11 +141,18 @@ remote, Viewer, contact, and grasp authorization false.
 
 `pregrasp_taskspace_candidate.json` is the next GPU-free design artifact. It
 binds the accepted asset and ActionChunk machine contracts plus the calibrated
-reachability evidence, searches the complete physical and candidate angle
-grids, and records why the requested low table is incompatible with a
-meaningful safe front/up approach. It selects the sole strict candidate
-`[90,66,66,66]°`, derives the checked-in angled scene and pose, and records
-residual-aware joint and clearance margins. All 30 local checks pass.
+reachability evidence and the first angled machine failure, searches the
+complete physical and candidate angle grids, and records why the requested low
+table is incompatible with a meaningful safe front/up approach. It selects the
+sole strict candidate `[90,66,66,66]°`, derives the checked-in angled scene
+and pose, requires the direct validated-joint-candidate control mode, and
+records residual-aware joint and clearance margins. All 33 local checks pass.
+
+`pregrasp_angled_machine_failure_2026-07-29.json` is the concise promoted
+summary of the first joint-first angled headless attempt. It records the two
+failed Cartesian gates, all sixteen passing safety/API/reset gates, the
+controller's final command/observation, the full retrieved artifact SHA and
+size, and that Viewer/contact/grasp were not authorized.
 
 This artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,

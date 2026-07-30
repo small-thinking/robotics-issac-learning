@@ -384,9 +384,7 @@ def build_preview(
             "closing_axis_control": pose.target_pose.closing_axis_control,
         },
         "solver_probe": {
-            "algorithm": (
-                "weighted_damped_least_squares_position_plus_approach_axis"
-            ),
+            "algorithm": pose.solver.control_mode,
             "pose_jacobian_shape": [6, 4],
             "preferred_angles_deg": list(pose.solver.preferred_angles_deg),
             "command": command.to_dict(),

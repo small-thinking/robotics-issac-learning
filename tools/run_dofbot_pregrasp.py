@@ -935,10 +935,7 @@ def main() -> None:
                 "application_api": (
                     "Arm_serial_servo_write(id, angle, time)"
                 ),
-                "algorithm": (
-                    "weighted_damped_least_squares_"
-                    "terminal_midpoint_position_plus_approach_axis"
-                ),
+                "algorithm": pose.solver.control_mode,
                 "jacobian": (
                     "mean_terminal_finger_body_link_jacobian_6x4"
                 ),

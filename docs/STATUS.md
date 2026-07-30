@@ -4,11 +4,12 @@
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
-  pre-grasp is rejected, and a revised angled terminal-finger candidate now
-  passes its local task-space design gate
+  pre-grasp is rejected; the first angled terminal-finger machine attempt
+  failed narrowly, and a direct validated-joint-candidate controller now
+  passes its local correction gate
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --json` at 2026-07-29
-  20:31 PDT during the local task-space design work
+  approximately 21:17 PDT after the angled pre-grasp diagnostic
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -285,6 +286,62 @@
 - Infrastructure: `brev ls --json` re-verified
   `isaac-launchable-f150a5` (`92xbacz46`) as `STOPPED` at 20:31 PDT. No
   instance, disk, or hardware was created, resized, started, or deleted.
+
+## DOFBOT angled pre-grasp machine failure and local controller correction
+
+- Remote baseline: merged `main@7b4591f`, existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  quoted at `$1.58784/hour`; no instance/disk creation, resize, or deletion
+- Headless command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Machine result: **failed closed**. Position error improved from
+  `0.25660 m` to `0.03382 m`, but remained outside the unchanged `0.025 m`
+  gate; approach error was `13.568°`, outside the unchanged `12°` gate.
+  Closing error was `0.321°`.
+- Safety result: all sixteen non-pose safety/API/reset checks passed, including
+  physical table/static cube presence, joint envelope, command margin,
+  velocity, acceleration, collision proxies, static/no-contact target,
+  exact `248/248` official API calls, and neutral reset within `0.0613°`.
+  Maximum reported contact force was `0 N`.
+- Root cause: the scene target was derived from the safe joint candidate
+  `[90,66,66,66]°`, but Cartesian DLS converged to API command
+  `[90,65,67,76]°` and observed
+  `[89.989,65.073,68.603,77.889]°`, trading away from the selected joint
+  branch. Increasing the offline candidate boundary margin from 2° to 3°
+  leaves zero candidates, so silently tightening the old search is not a
+  viable correction.
+- Evidence:
+  `artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json`;
+  it summarizes the retrieved 327,197-byte machine artifact with SHA-256
+  `396e19b56805f7771aeee284e9722b49be3bf2006c999d42d32baaafc0ecd555`.
+- Viewer: **not started**, because the headless gate failed. There is no
+  visual acceptance claim.
+- Local correction branch:
+  `codex/dofbot-isaac-tracking-calibration`. The angled pose now declares
+  `control_mode=validated_joint_candidate` and smoothly tracks its selected
+  joint pose through the same four official Yahboom API calls. The historical
+  world-down fixture retains `control_mode=cartesian_pose_ik`.
+- Unchanged gates: target position/orientation, scene geometry, command
+  margins, per-step delta, velocity, acceleration, collision/contact,
+  exact API count, and neutral reset are not loosened. Actual terminal-finger
+  Cartesian position and axes remain the machine pass/fail authority.
+- Local result: task-space evidence passes `33/33`; pose dry-run passes
+  `21/21`; Git LFS checks, remote command previews, all `155` repository
+  tests, targeted Ruff, and `git diff --check` pass.
+- Acceptance: **local correction passed / corrected Isaac machine pending /
+  Viewer blocked pending machine pass**. Contact and grasp remain
+  unauthorized.
+- Compute lifecycle: the instance started at approximately 20:02 PDT. A clock
+  audit at 21:12 PDT found that the intended 30-minute paid cap had been
+  exceeded; stop was requested immediately, repeated idempotently when the
+  control plane remained `STOPPING`, and terminal `STOPPED` was verified at
+  approximately 21:17 PDT. This roughly 75-minute window exceeded the intended
+  cap and is recorded as an operational failure. The instance and disk were
+  retained.
 
 ## DOFBOT Goal 3 camera gate
 

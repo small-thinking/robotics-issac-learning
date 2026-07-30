@@ -756,6 +756,50 @@ grasp success. A later paid run must still prove live Isaac kinematics,
 self-collision/contact gates, command tracking, reset, and user-visible motion
 before Goal 5 can complete.
 
+### Angled candidate machine result and direct joint-candidate correction
+
+The first headless run of the joint-first scene used merged
+`main@7b4591f` and failed closed. It improved terminal-finger position error
+from `0.25660 m` to `0.03382 m`, but did not meet the unchanged `0.025 m`
+position gate; its `13.568°` approach error also missed the unchanged `12°`
+gate. Closing error was `0.321°`.
+
+All sixteen remaining safety/API/reset checks passed: physical table and static
+cube, observed joint envelope, API margin, velocity, acceleration, collision
+proxies, no contact, static target, controller improvement, exact `248/248`
+official API calls, and neutral reset within `0.0613°`. Maximum contact force
+was `0 N`. The Viewer was not opened.
+
+The failure is specific: the scene was derived from candidate
+`[90,66,66,66]°`, but Cartesian DLS settled at API command
+`[90,65,67,76]°` and observed
+`[89.989,65.073,68.603,77.889]°`. The controller traded away from the
+selected joint branch. Raising the offline candidate boundary reserve from 2°
+to 3° leaves zero candidates, so tightening that margin is not a valid fix.
+
+The local correction makes the control mode explicit. The angled config uses
+`validated_joint_candidate`, which smoothly tracks the selected pose through
+the same bounded, integer-degree, four-call Yahboom API. The historical
+world-down config retains `cartesian_pose_ik`. Cartesian position/axis gates,
+the scene, collision/contact checks, command/velocity/acceleration limits,
+exact API count, and neutral reset remain unchanged.
+
+Evidence:
+`artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json` summarizes
+the retrieved 327,197-byte artifact with SHA-256
+`396e19b56805f7771aeee284e9722b49be3bf2006c999d42d32baaafc0ecd555`.
+The regenerated task-space artifact SHA-binds that failure and passes 33/33
+checks; the generalized dry-run passes 21/21; all 155 repository tests,
+targeted Ruff, Git LFS checks, remote command previews, and
+`git diff --check` pass.
+
+Acceptance is **local correction passed / corrected Isaac machine pending /
+Viewer blocked pending machine pass**. Contact and grasp remain unauthorized.
+The paid window ran approximately 20:02-21:17 PDT, exceeding its intended
+30-minute cap. Stop was requested as soon as a 21:12 clock audit detected the
+overrun, and `brev ls --json` later verified explicit `STOPPED`; no resource
+was deleted or resized.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

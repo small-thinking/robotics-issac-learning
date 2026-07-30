@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from tools.design_dofbot_pregrasp_taskspace import build_report
+from tools.dofbot_pregrasp_pose import load_pregrasp_pose_config
 from tools.dofbot_pregrasp_reachability import (
     fit_planar_model,
     load_reachability_config,
@@ -37,6 +38,10 @@ REJECTED_REACHABILITY_ARTIFACT_PATH = (
 )
 MOTION_CONFIG_CONTRACT_PATH = (
     PROJECT_DIR / "artifacts/dofbot/motion_config_contract.json"
+)
+ANGLED_MACHINE_FAILURE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json"
 )
 ASSET_CONTRACT_PATH = (
     PROJECT_DIR / "artifacts/dofbot/asset_contract.json"
@@ -73,6 +78,7 @@ class DofbotPregraspTaskspaceTest(unittest.TestCase):
                 REJECTED_REACHABILITY_ARTIFACT_PATH
             ),
             motion_config_contract_path=MOTION_CONFIG_CONTRACT_PATH,
+            angled_machine_failure_path=ANGLED_MACHINE_FAILURE_PATH,
             asset_contract_path=ASSET_CONTRACT_PATH,
             candidate_scene_config_path=SCENE_CONFIG_PATH,
             candidate_pose_config_path=POSE_CONFIG_PATH,
@@ -113,6 +119,13 @@ class DofbotPregraspTaskspaceTest(unittest.TestCase):
                 ),
                 "model residual reserve",
             ),
+            (
+                lambda value: value["source_contracts"].__setitem__(
+                    "angled_machine_failure_sha256",
+                    "bad",
+                ),
+                "lowercase SHA-256",
+            ),
         ):
             tampered = copy.deepcopy(self.raw)
             mutation(tampered)
@@ -152,6 +165,7 @@ class DofbotPregraspTaskspaceTest(unittest.TestCase):
 
     def test_candidate_configs_and_local_preview_match_search(self) -> None:
         scene, _ = load_reaching_config(SCENE_CONFIG_PATH)
+        pose, _ = load_pregrasp_pose_config(POSE_CONFIG_PATH)
         selected = self.searches["candidate_search"][
             "ranked_candidates"
         ][0]
@@ -162,6 +176,10 @@ class DofbotPregraspTaskspaceTest(unittest.TestCase):
         self.assertEqual(
             scene.approach_target_world_m,
             tuple(selected["target_pose"]["origin_world_m"]),
+        )
+        self.assertEqual(
+            pose.solver.control_mode,
+            "validated_joint_candidate",
         )
         preview = build_preview(
             pose_config_path=POSE_CONFIG_PATH,
@@ -205,6 +223,11 @@ class DofbotPregraspTaskspaceTest(unittest.TestCase):
         self.assertFalse(self.report["scope"]["isaac_started"])
         self.assertFalse(
             self.report["scope"]["real_hardware_command_sent"]
+        )
+        self.assertTrue(
+            acceptance["checks"][
+                "angled_machine_failure_is_safe_and_viewer_was_not_started"
+            ]
         )
 
 

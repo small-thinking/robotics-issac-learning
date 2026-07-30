@@ -1,22 +1,24 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-07-30T03:30:35.431345+00:00",
+  "generated_at_utc": "2026-07-30T04:27:11.021558+00:00",
   "experiment": "goal5_taskspace_search",
   "sources": {
     "taskspace_config": "configs/dofbot/pregrasp/goal5_taskspace_search.json",
-    "taskspace_config_sha256": "b85809de5a970afa98e3989e9875b9aa1ffc283f40e79546cf38f5b7f2ba1695",
+    "taskspace_config_sha256": "cd9eecb2fe102bac0024f092322611f89e9eefadf069f24879cfcae56f97b5ca",
     "reachability_config": "configs/dofbot/pregrasp/goal5_planar_reachability.json",
     "reachability_config_sha256": "afc2c700dbdda912bea896d296f25ef1b98af8e1c48036bcb9f194a3023d5d21",
     "rejected_reachability_artifact": "artifacts/dofbot/pregrasp_reachability.json",
     "rejected_reachability_artifact_sha256": "03b00d4d0cb46247e1c90d945397eb6d791eb088aa600f2336dff0750a056e74",
     "motion_config_contract": "artifacts/dofbot/motion_config_contract.json",
     "motion_config_contract_sha256": "8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5",
+    "angled_machine_failure": "artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json",
+    "angled_machine_failure_sha256": "1a15da31a8ee81ddabab145f6408fda8c8e7192a7c14a1318c5b7bec84c2b572",
     "asset_contract": "artifacts/dofbot/asset_contract.json",
     "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
     "candidate_scene_config": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
     "candidate_scene_config_sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949",
     "candidate_pose_config": "configs/dofbot/pregrasp/goal5_angled_pregrasp.json",
-    "candidate_pose_config_sha256": "5d9b9fd2f56f282fb1e44aed6a517fd76a574f4c3bb8debfa804e9b9360c0264"
+    "candidate_pose_config_sha256": "156cd35e5ee5f8484fe44b8dc82ba4c4336cca47a7ca99fe3d550e79e5f9f08a"
   },
   "scope": {
     "runtime": "local_pure_python",
@@ -260,6 +262,8 @@
       "motion_config_contract_sha256_matches": true,
       "reachability_config_sha256_matches": true,
       "rejected_reachability_artifact_sha256_matches": true,
+      "angled_machine_failure_sha256_matches": true,
+      "angled_machine_failure_is_safe_and_viewer_was_not_started": true,
       "asset_machine_contract_passed": true,
       "world_down_rejection_contract_passed": true,
       "motion_machine_contract_passed": true,
@@ -277,6 +281,7 @@
       "pose_approach_axis_matches_selected_axis": true,
       "pose_closing_axis_matches_selected_axis": true,
       "preferred_angles_match_selected_candidate": true,
+      "validated_joint_candidate_control_mode_selected": true,
       "scene_cube_matches_selected_candidate": true,
       "scene_table_matches_selected_candidate": true,
       "solver_margin_matches_search_envelope": true,
@@ -293,5 +298,5 @@
     "viewer_authorized": false,
     "contact_or_grasp_authorized": false
   },
-  "conclusion": "The requested <=0.12 m tabletop is outside the calibrated safe joint envelope for a meaningful front-side pre-grasp. The selected candidate raises the tabletop and uses an angled upper-side approach with residual-aware joint and clearance margins. It is ready for a future Isaac machine gate, but is not yet Isaac, collision, visual, contact, or grasp proof."
+  "conclusion": "The requested <=0.12 m tabletop is outside the calibrated safe joint envelope for a meaningful front-side pre-grasp. The selected candidate raises the tabletop and uses an angled upper-side approach with residual-aware joint and clearance margins. The first Isaac attempt proved the Cartesian IK path can trade away from that joint candidate, so the revised controller tracks the selected candidate directly while all Cartesian and safety gates remain active. It is ready for a future Isaac machine gate, but is not yet Isaac, collision, visual, contact, or grasp proof."
 }

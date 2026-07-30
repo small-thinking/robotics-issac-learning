@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "status": "machine_failed",
+  "source_artifact_sha256": "396e19b56805f7771aeee284e9722b49be3bf2006c999d42d32baaafc0ecd555",
+  "source_artifact_size_bytes": 327197,
+  "generated_at_utc": "2026-07-30T04:04:20.685345+00:00",
+  "git_commit": "7b4591fd65f866fc0989411fb29cb7fda4edaf56",
+  "scene": {
+    "table_center_world_m": [
+      -0.0007122220316280922,
+      0.35588951022682785,
+      0.24160404404644129
+    ],
+    "table_size_m": [
+      0.5,
+      0.3,
+      0.04
+    ],
+    "target_center_world_m": [
+      -0.0007122220316280922,
+      0.29588951022682786,
+      0.2866040440464413
+    ],
+    "target_size_m": [
+      0.05,
+      0.05,
+      0.05
+    ]
+  },
+  "target_pose": {
+    "origin_world_m": [
+      -0.0007122220316280922,
+      0.22051942039962125,
+      0.2827833512992581
+    ],
+    "approach_axis_world_unit": [
+      0.0,
+      0.9421261228400827,
+      0.33525865933979027
+    ]
+  },
+  "machine": {
+    "passed": false,
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "approach_axis_matches_target_within_tolerance"
+    ],
+    "initial_position_error_m": 0.2565964458227851,
+    "final_position_error_m": 0.03381865135200534,
+    "position_improvement_m": 0.22277779447077978,
+    "final_approach_error_deg": 13.568148209866541,
+    "final_closing_error_deg": 0.320955418817292,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 248,
+    "expected_official_api_call_count": 248,
+    "maximum_neutral_reset_error_deg": 0.061245599256210426
+  },
+  "final_observation": {
+    "angles_deg": [
+      89.98901117611564,
+      65.07310851082258,
+      68.6027829342505,
+      77.88861891750054
+    ],
+    "grasp_origin_world_m": [
+      -0.0006761848926544189,
+      0.20519602298736572,
+      0.31293120980262756
+    ],
+    "approach_axis_world_unit": [
+      -0.005601667386519268,
+      0.837203019544357,
+      0.5468635345205436
+    ],
+    "final_api_command_angles_deg": [
+      90.0,
+      65.0,
+      67.0,
+      76.0
+    ]
+  },
+  "passed_safety_checks": [
+    "fixed_closing_axis_is_acceptable_without_wrist_command",
+    "joint_angles_remain_within_safe_limits",
+    "joint_velocity_limit_respected",
+    "joint_acceleration_limit_respected",
+    "critical_body_centers_clear_table_proxy",
+    "nonfinger_body_centers_clear_target_proxy",
+    "terminal_finger_centers_remain_precontact",
+    "contact_reporter_force_remains_below_threshold",
+    "target_remains_static",
+    "contact_remains_unauthorized",
+    "physical_table_prim_present",
+    "static_target_cube_prim_present",
+    "pose_controller_improved_position",
+    "official_api_call_count_matches",
+    "api_commands_preserve_limit_margin",
+    "returned_to_neutral"
+  ],
+  "conclusion": "The joint-first scene is safe, but the Cartesian DLS controller converged to an API command [90,65,67,76] instead of the selected [90,66,66,66] joint candidate. The next local revision must track the selected joint candidate directly while preserving every Cartesian, collision, contact, API, and reset acceptance gate.",
+  "viewer_started": false,
+  "visual_status": "not_run_machine_gate_failed",
+  "contact_or_grasp_authorized": false
+}

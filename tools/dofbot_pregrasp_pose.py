@@ -26,6 +26,12 @@ EXPECTED_CLOSING_CONTROL = "monitor_only_wrist_twist_uncontrolled"
 EXPECTED_WRIST_BODY = "Wrist_Twist"
 EXPECTED_LEFT_TIP_BODY = "Finger_Left_03"
 EXPECTED_RIGHT_TIP_BODY = "Finger_Right_03"
+POSE_IK_CONTROL_MODE = "cartesian_pose_ik"
+VALIDATED_JOINT_CANDIDATE_CONTROL_MODE = "validated_joint_candidate"
+CONTROL_MODES = {
+    POSE_IK_CONTROL_MODE,
+    VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
+}
 _NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
@@ -65,6 +71,7 @@ class TargetPoseConfig:
 
 @dataclass(frozen=True)
 class PoseSolverConfig:
+    control_mode: str
     controlled_joint_names: tuple[str, str, str, str]
     control_hz: int
     maximum_steps: int
@@ -371,6 +378,7 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
     solver_raw = _strict_object(
         raw["solver"],
         {
+            "control_mode",
             "controlled_joint_names",
             "control_hz",
             "maximum_steps",
@@ -390,6 +398,12 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
         },
         "solver",
     )
+    control_mode = solver_raw["control_mode"]
+    if control_mode not in CONTROL_MODES:
+        raise PregraspPoseError(
+            "solver.control_mode must be cartesian_pose_ik or "
+            "validated_joint_candidate"
+        )
     joint_names = solver_raw["controlled_joint_names"]
     if not isinstance(joint_names, list) or tuple(joint_names) != CONTROLLED_JOINT_NAMES:
         raise PregraspPoseError("solver.controlled_joint_names must be joint1-joint4")
@@ -452,6 +466,7 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
     if any(angle < command_min or angle > command_max for angle in preferred):
         raise PregraspPoseError("preferred angles must stay inside command margins")
     solver = PoseSolverConfig(
+        control_mode=control_mode,
         controlled_joint_names=CONTROLLED_JOINT_NAMES,
         control_hz=control_hz,
         maximum_steps=maximum_steps,
@@ -842,14 +857,24 @@ def next_pose_command(
         frame.approach_axis_world_unit,
         target.approach_axis_world_unit,
     )
-    raw_delta_rad = weighted_pose_delta(
-        pose_jacobian=pose_jacobian,
-        position_error_m=position_error,
-        approach_error_rad=approach_error,
-        current_angles_deg=current,
-        solver=solver,
-    )
-    raw_delta_deg = tuple(math.degrees(value) for value in raw_delta_rad)
+    if solver.control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        raw_delta_deg = tuple(
+            preferred - angle
+            for preferred, angle in zip(
+                solver.preferred_angles_deg,
+                current,
+                strict=True,
+            )
+        )
+    else:
+        raw_delta_rad = weighted_pose_delta(
+            pose_jacobian=pose_jacobian,
+            position_error_m=position_error,
+            approach_error_rad=approach_error,
+            current_angles_deg=current,
+            solver=solver,
+        )
+        raw_delta_deg = tuple(math.degrees(value) for value in raw_delta_rad)
     maximum = max(abs(value) for value in raw_delta_deg)
     if maximum > solver.maximum_joint_delta_deg:
         factor = solver.maximum_joint_delta_deg / maximum

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tools.dofbot_pregrasp_pose import (
     EXPECTED_CLOSING_CONTROL,
+    VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
     PoseCommand,
     PregraspPoseError,
     derive_grasp_frame,
@@ -26,6 +27,9 @@ from tools.preview_dofbot_pregrasp_pose import build_preview
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 POSE_CONFIG_PATH = (
     PROJECT_DIR / "configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json"
+)
+ANGLED_POSE_CONFIG_PATH = (
+    PROJECT_DIR / "configs/dofbot/pregrasp/goal5_angled_pregrasp.json"
 )
 SCENE_CONFIG_PATH = (
     PROJECT_DIR
@@ -245,6 +249,28 @@ class DofbotPregraspPoseTest(unittest.TestCase):
                 for value in quantized.velocities_deg_s
             )
         )
+
+    def test_angled_candidate_tracks_selected_joint_pose_without_ik_tradeoff(
+        self,
+    ) -> None:
+        angled, _ = load_pregrasp_pose_config(ANGLED_POSE_CONFIG_PATH)
+        self.assertEqual(
+            angled.solver.control_mode,
+            VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
+        )
+        command = next_pose_command(
+            frame=self._frame(origin=(0.0, 0.20, 0.31)),
+            pose_jacobian=((0.0, 0.0, 0.0, 0.0),) * 6,
+            current_angles_deg=(90.0, 65.0, 68.0, 76.0),
+            previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
+            solver=angled.solver,
+            target=angled.target_pose,
+        )
+        self.assertEqual(command.raw_delta_deg, (0.0, 0.4, -0.8, -4.0))
+        self.assertEqual(command.angles_deg[0], 90.0)
+        self.assertGreater(command.angles_deg[1], 65.0)
+        self.assertLess(command.angles_deg[2], 68.0)
+        self.assertLess(command.angles_deg[3], 76.0)
 
     def test_quantizer_brakes_before_api_command_limit(self) -> None:
         desired = PoseCommand(
