@@ -208,6 +208,21 @@ and binds every ignored multi-megabyte JSON/log payload by size and SHA-256.
 It distinguishes machine facts from the inference that the raw TGS velocity
 buffer is incompatible with nearly stationary position samples.
 
+`actuator_velocity_reanalysis_2026-07-30.json` is a GPU-free replay of those
+exact ignored case payloads. It verifies their promoted SHA-256 and byte-size
+bindings, derives velocity from a 100 ms observed-position window, preserves
+the historical raw velocity, and records their mismatch. It establishes that
+the gravity-on poses are physically settled by position difference while the
+approximately five-degree tracking error remains real. The gravity-off case is
+marked right-censored rather than extrapolating beyond the recorded samples.
+
+`solver_drive_diagnostic_plan.json` is the next GPU-free preparation artifact.
+It locks four gravity-on, effort-100 cases that change exactly one control at a
+time: external-force application each TGS iteration, two velocity iterations,
+and then damping 100 to 50. It keeps GPU, Viewer, pre-grasp, contact, grasp,
+hardware, policy, and checkpoint authorization false. Future machine-generated
+case JSON and `solver_drive_diagnostic_contract.json` remain pending.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

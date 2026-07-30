@@ -232,3 +232,25 @@ The remaining gravity-on position error is unresolved. The next experiment
 must isolate solver/drive behavior after the telemetry contract is repaired;
 it must not move the task scene, loosen the one-degree gate, jump directly to
 pre-grasp, or assume that additional effort alone will help.
+
+## 2026-07-30 — Use position difference for settling and a staged TGS/drive ladder
+
+Physical settling is determined from a `100 ms` finite difference of observed
+joint position, not from raw TGS `joint_vel` alone. Raw velocity is still
+required and compared joint-by-joint; disagreement above `1°/s` during the
+settling hold fails closed as a runtime compatibility problem. This keeps the
+physical and telemetry claims separate without discarding either signal.
+
+The next remote experiment changes one control at a time while gravity,
+effort 100, stiffness 10000, and eight position iterations remain fixed:
+enable external-force application on every TGS position iteration, then add
+two velocity iterations, then reduce implicit damping from 100 to 50. Isaac
+Lab 3.0 exposes the first setting through
+`PhysxCfg.enable_external_forces_every_iteration`; its documentation describes
+the option as improving velocity accuracy under TGS. Implicit actuator
+stiffness and damping are physics P and D gains, so damping is treated as a
+drive change rather than an arbitrary motion-profile adjustment.
+
+The ladder does not authorize pre-grasp. A tracking improvement must still
+pass the independent one-degree position gate; a telemetry-only improvement
+is recorded separately and cannot substitute for tracking.

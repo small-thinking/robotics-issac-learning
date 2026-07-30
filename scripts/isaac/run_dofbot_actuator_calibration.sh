@@ -3,9 +3,33 @@ set -euo pipefail
 
 project_dir="${REMOTE_PROJECT_DIR:-/workspace/robotics-issac-learning}"
 asset_contract="${DOFBOT_ASSET_CONTRACT:-$project_dir/artifacts/dofbot/asset_contract.json}"
-calibration_config="${DOFBOT_ACTUATOR_CALIBRATION_CONFIG:-${ACTUATOR_CALIBRATION:-configs/dofbot/calibration/goal5_actuator_diagnostic.json}}"
-output_dir="${DOFBOT_ACTUATOR_CALIBRATION_DIR:-$project_dir/artifacts/dofbot/actuator_calibration_cases}"
-summary_output="${DOFBOT_ACTUATOR_CALIBRATION_CONTRACT:-$project_dir/artifacts/dofbot/actuator_calibration_contract.json}"
+matrix_profile="${DOFBOT_ACTUATOR_MATRIX_PROFILE:-actuator}"
+if [[ "$matrix_profile" == "actuator" ]]; then
+  default_config="configs/dofbot/calibration/goal5_actuator_diagnostic.json"
+  default_output_dir="$project_dir/artifacts/dofbot/actuator_calibration_cases"
+  default_summary="$project_dir/artifacts/dofbot/actuator_calibration_contract.json"
+  case_names=(
+    gravity_on_effort_100
+    gravity_off_effort_100
+    gravity_on_effort_250
+  )
+elif [[ "$matrix_profile" == "solver_drive" ]]; then
+  default_config="configs/dofbot/calibration/goal5_solver_drive_diagnostic.json"
+  default_output_dir="$project_dir/artifacts/dofbot/solver_drive_diagnostic_cases"
+  default_summary="$project_dir/artifacts/dofbot/solver_drive_diagnostic_contract.json"
+  case_names=(
+    baseline_tgs
+    external_forces_each_iteration
+    velocity_iterations_2
+    reduced_damping_50
+  )
+else
+  printf 'DOFBOT_ACTUATOR_MATRIX_PROFILE must be actuator or solver_drive\n' >&2
+  exit 2
+fi
+calibration_config="${DOFBOT_ACTUATOR_CALIBRATION_CONFIG:-${ACTUATOR_CALIBRATION:-$default_config}}"
+output_dir="${DOFBOT_ACTUATOR_CALIBRATION_DIR:-$default_output_dir}"
+summary_output="${DOFBOT_ACTUATOR_CALIBRATION_CONTRACT:-$default_summary}"
 case_timeout_seconds="${DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS:-300}"
 
 if ! [[ "$case_timeout_seconds" =~ ^[0-9]+$ ]] \
@@ -24,6 +48,11 @@ printf -v quoted_calibration_config '%q' "$calibration_config"
 printf -v quoted_output_dir '%q' "$output_dir"
 printf -v quoted_summary_output '%q' "$summary_output"
 printf -v quoted_case_timeout_seconds '%q' "$case_timeout_seconds"
+quoted_case_names=""
+for case_name in "${case_names[@]}"; do
+  printf -v quoted_case_name '%q' "$case_name"
+  quoted_case_names+="$quoted_case_name "
+done
 
 remote_command="
 set -uo pipefail
@@ -31,14 +60,15 @@ mkdir -p $quoted_output_dir
 git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
 run_stamp=\"\$(date -u '+%Y%m%dT%H%M%SZ')\"
 archive_dir=$quoted_output_dir/archive-\"\$run_stamp\"
-for stale_path in \
-  $quoted_output_dir/gravity_on_effort_100.json \
-  $quoted_output_dir/gravity_off_effort_100.json \
-  $quoted_output_dir/gravity_on_effort_250.json \
-  $quoted_output_dir/gravity_on_effort_100.log \
-  $quoted_output_dir/gravity_off_effort_100.log \
-  $quoted_output_dir/gravity_on_effort_250.log \
-  $quoted_summary_output; do
+case_names=($quoted_case_names)
+stale_paths=($quoted_summary_output)
+for case_name in \"\${case_names[@]}\"; do
+  stale_paths+=( \
+    $quoted_output_dir/\"\${case_name}.json\" \
+    $quoted_output_dir/\"\${case_name}.log\" \
+  )
+done
+for stale_path in \"\${stale_paths[@]}\"; do
   if [[ -e \"\$stale_path\" ]]; then
     mkdir -p \"\$archive_dir\"
     mv \"\$stale_path\" \"\$archive_dir/\"
@@ -74,9 +104,9 @@ run_case() {
     grep -E '^\[ACTUATOR CALIBRATION\]' \"\$case_log\" || true
   fi
 }
-run_case gravity_on_effort_100
-run_case gravity_off_effort_100
-run_case gravity_on_effort_250
+for case_name in \"\${case_names[@]}\"; do
+  run_case \"\$case_name\"
+done
 if ! timeout 60 \
   ./isaaclab.sh -p $quoted_project_dir/tools/summarize_dofbot_actuator_calibration.py \
   --config $quoted_calibration_config \

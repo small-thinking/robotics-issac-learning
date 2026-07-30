@@ -137,11 +137,11 @@ The detailed first-stage contract lives in
    selected target/position/velocity sequence and miss by `4.976°`, even
    though the applied-torque clamp changes from 100 to 250. This establishes
    load dependence and falsifies effort 250 alone as a fix. Nearly stationary
-   final position samples disagree with raw TGS `joint_vel`, so the next
-   GPU-free gate is finite-difference velocity instrumentation and a focused
-   solver/drive design. The separate `<=1°` tracking gate remains. Pre-grasp,
-   Viewer, wrist twist, gripper closing, target motion, contact, and grasp
-   success remain unauthorized.
+   final position samples disagree with raw TGS `joint_vel`. The GPU-free
+   finite-difference velocity contract and focused four-stage solver/drive
+   design now pass; the remote matrix remains pending. The separate `<=1°`
+   tracking gate remains. Pre-grasp, Viewer, wrist twist, gripper closing,
+   target motion, contact, and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

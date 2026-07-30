@@ -1,0 +1,436 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_actuator_velocity_offline_reanalysis",
+  "generated_at_utc": "2026-07-30T16:42:14.210745+00:00",
+  "analysis_config": {
+    "path": "configs/dofbot/calibration/goal5_solver_drive_diagnostic.json",
+    "sha256": "5ae01f684857f78fb3eb973cf32655617a18eb3ec8d3847e20631140a0bb018d",
+    "position_velocity_window_ms": 100,
+    "settle_velocity_threshold_deg_s": 0.1,
+    "settle_hold_ms": 500,
+    "maximum_velocity_signal_mismatch_deg_s": 1.0
+  },
+  "source_remote_result": {
+    "path": "artifacts/dofbot/actuator_calibration_result_2026-07-30.json",
+    "sha256": "1c1e4a2085efc1a4114b0756c40084cb33c0035125da2bccbedec9126a50f58a"
+  },
+  "cases": {
+    "gravity_off_effort_100": {
+      "source": {
+        "path": "artifacts/dofbot/actuator_calibration_cases/gravity_off_effort_100.json",
+        "bytes": 2156208,
+        "sha256": "30e0d17d755fa519cecdf8b20ea07e73342842e133629a60163ce2c2efff15a7"
+      },
+      "all_poses_settled_by_position_derived_velocity": false,
+      "all_raw_position_velocity_signals_consistent": true,
+      "all_terminal_position_derived_velocities_below_threshold": true,
+      "maximum_tracking_error_deg": 0.0031647229619551354,
+      "maximum_position_derived_velocity_deg_s": 0.025303798774984988,
+      "maximum_raw_joint_velocity_deg_s": 0.04567277128362777,
+      "maximum_raw_position_velocity_mismatch_deg_s": 0.08575263149311448,
+      "pose_results": [
+        {
+          "name": "neutral_start",
+          "position_derived_settled": false,
+          "settle_elapsed_s": 3.6666666666666585,
+          "terminal_observed_angles_deg": [
+            89.9999908179656,
+            89.99865921164613,
+            89.99683527703804,
+            89.9987814076866
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            -7.44754878212464e-05,
+            -0.010719154183789253,
+            -0.025303798774984988,
+            -0.009745137796102234
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            7.228029437565677e-06,
+            0.005849477975485724,
+            0.013803954886124587,
+            0.005311000685633863
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.025303798774984988,
+          "maximum_terminal_raw_joint_velocity_deg_s": 0.013803954886124587,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 0.07175851978829509,
+          "raw_position_velocity_consistent": true,
+          "maximum_tracking_error_deg": 0.0031647229619551354,
+          "record_ended_before_position_hold": true
+        },
+        {
+          "name": "mid_load",
+          "position_derived_settled": false,
+          "settle_elapsed_s": 4.149999999999991,
+          "terminal_observed_angles_deg": [
+            90.00000099663795,
+            78.00115311426566,
+            78.00278467570365,
+            78.00111810954617
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            1.540984797543393e-05,
+            0.00628377403643301,
+            0.01516301995749819,
+            0.006087406097776715
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -9.91237769184296e-06,
+            -0.01012437389871203,
+            -0.024516768925142388,
+            -0.009862517185837368
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.01516301995749819,
+          "maximum_terminal_raw_joint_velocity_deg_s": 0.024516768925142388,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 0.0747972798714418,
+          "raw_position_velocity_consistent": true,
+          "maximum_tracking_error_deg": 0.0027846757036513736,
+          "record_ended_before_position_hold": true
+        },
+        {
+          "name": "pregrasp_candidate",
+          "position_derived_settled": false,
+          "settle_elapsed_s": 3.866666666666658,
+          "terminal_observed_angles_deg": [
+            89.99999990679446,
+            65.9996953887211,
+            65.9992155679319,
+            65.99965782268066
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            1.5389389318443191e-06,
+            0.007820566599718887,
+            0.020097831632739444,
+            0.008725566664793436
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -1.5341590436210673e-05,
+            0.017659060562777898,
+            0.04567277128362777,
+            0.019863615841685254
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.020097831632739444,
+          "maximum_terminal_raw_joint_velocity_deg_s": 0.04567277128362777,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 0.08575263149311448,
+          "raw_position_velocity_consistent": true,
+          "maximum_tracking_error_deg": 0.000784432068101637,
+          "record_ended_before_position_hold": true
+        },
+        {
+          "name": "neutral_return",
+          "position_derived_settled": false,
+          "settle_elapsed_s": 4.966666666666654,
+          "terminal_observed_angles_deg": [
+            89.99999068633115,
+            89.9986769091065,
+            89.99687694686158,
+            89.99879741302429
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            -3.6690015718932174e-05,
+            -0.00456370622416104,
+            -0.010776003293955266,
+            -0.004151529070526309
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            0.00011282115350606488,
+            0.013997112002192419,
+            0.03303945262456318,
+            0.012729804252487606
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.010776003293955266,
+          "maximum_terminal_raw_joint_velocity_deg_s": 0.03303945262456318,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 0.08338156950912323,
+          "raw_position_velocity_consistent": true,
+          "maximum_tracking_error_deg": 0.0031230531384238702,
+          "record_ended_before_position_hold": true
+        }
+      ]
+    },
+    "gravity_on_effort_100": {
+      "source": {
+        "path": "artifacts/dofbot/actuator_calibration_cases/gravity_on_effort_100.json",
+        "bytes": 3540927,
+        "sha256": "83a73fd5e612c7903e190762b85a0696f55b97bdeea32819e494c70c8b12219e"
+      },
+      "all_poses_settled_by_position_derived_velocity": true,
+      "all_raw_position_velocity_signals_consistent": false,
+      "all_terminal_position_derived_velocities_below_threshold": true,
+      "maximum_tracking_error_deg": 4.974116666773895,
+      "maximum_position_derived_velocity_deg_s": 0.04197151244973455,
+      "maximum_raw_joint_velocity_deg_s": 16.3631405436602,
+      "maximum_raw_position_velocity_mismatch_deg_s": 16.444165370236767,
+      "pose_results": [
+        {
+          "name": "neutral_start",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 3.8333333333333246,
+          "terminal_observed_angles_deg": [
+            90.00133676252764,
+            90.03058424641189,
+            90.1655505519896,
+            90.13435003441757
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            4.744321770999721e-05,
+            0.007037029176046897,
+            0.017193533812047752,
+            0.006557115005421134
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.01783782275501513,
+            1.0979838583742263,
+            -0.5174870413101946,
+            -3.562521656920162
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.017193533812047752,
+          "maximum_terminal_raw_joint_velocity_deg_s": 3.562521656920162,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 3.582133051017981,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 0.16555055198959678,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "mid_load",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 4.266666666666657,
+          "terminal_observed_angles_deg": [
+            89.9991173017491,
+            76.6033241647713,
+            74.47796480922831,
+            76.61358823154653
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            2.061479875692392e-06,
+            -0.000512264187761959,
+            -0.0009391510108969248,
+            -0.00024759435731880417
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.010828376137349256,
+            0.08318658144887779,
+            13.449916306035314,
+            -1.7195157049197543
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.0009391510108969248,
+          "maximum_terminal_raw_joint_velocity_deg_s": 13.449916306035314,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 13.535764099939648,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 3.522035190771689,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "pregrasp_candidate",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 3.8833333333333244,
+          "terminal_observed_angles_deg": [
+            89.99971823064787,
+            64.06431859871566,
+            61.025883333226105,
+            63.922277984736084
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            4.301176517174114e-06,
+            0.01586311434721216,
+            0.04197151244973455,
+            0.01956849197213735
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.009915072623354773,
+            5.043010836410501,
+            16.3631405436602,
+            -4.170633462407084
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.04197151244973455,
+          "maximum_terminal_raw_joint_velocity_deg_s": 16.3631405436602,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 16.444165370236767,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 4.974116666773895,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "neutral_return",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 5.583333333333319,
+          "terminal_observed_angles_deg": [
+            90.00133754907912,
+            90.03058306913807,
+            90.16555068539172,
+            90.1343496742318
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            3.355167848440045e-05,
+            0.004135466099057809,
+            0.010229275499114046,
+            0.003886270915955961
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.017921492572347788,
+            1.0944146576460716,
+            -0.5262465454773244,
+            -3.5658351524412644
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.010229275499114046,
+          "maximum_terminal_raw_joint_velocity_deg_s": 3.5658351524412644,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 3.5841820544080027,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 0.16555068539172169,
+          "record_ended_before_position_hold": false
+        }
+      ]
+    },
+    "gravity_on_effort_250": {
+      "source": {
+        "path": "artifacts/dofbot/actuator_calibration_cases/gravity_on_effort_250.json",
+        "bytes": 3551622,
+        "sha256": "1a378e018b7e72311801bdf7936770bc4c11e135338cf6aaaf95aa35b189ff28"
+      },
+      "all_poses_settled_by_position_derived_velocity": true,
+      "all_raw_position_velocity_signals_consistent": false,
+      "all_terminal_position_derived_velocities_below_threshold": true,
+      "maximum_tracking_error_deg": 4.974116666773895,
+      "maximum_position_derived_velocity_deg_s": 0.04197151244973455,
+      "maximum_raw_joint_velocity_deg_s": 16.3631405436602,
+      "maximum_raw_position_velocity_mismatch_deg_s": 16.444165370236767,
+      "pose_results": [
+        {
+          "name": "neutral_start",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 3.8333333333333246,
+          "terminal_observed_angles_deg": [
+            90.00133676252764,
+            90.03058424641189,
+            90.1655505519896,
+            90.13435003441757
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            4.744321770999721e-05,
+            0.007037029176046897,
+            0.017193533812047752,
+            0.006557115005421134
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.01783782275501513,
+            1.0979838583742263,
+            -0.5174870413101946,
+            -3.562521656920162
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.017193533812047752,
+          "maximum_terminal_raw_joint_velocity_deg_s": 3.562521656920162,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 3.582133051017981,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 0.16555055198959678,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "mid_load",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 4.266666666666657,
+          "terminal_observed_angles_deg": [
+            89.9991173017491,
+            76.6033241647713,
+            74.47796480922831,
+            76.61358823154653
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            2.061479875692392e-06,
+            -0.000512264187761959,
+            -0.0009391510108969248,
+            -0.00024759435731880417
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.010828376137349256,
+            0.08318658144887779,
+            13.449916306035314,
+            -1.7195157049197543
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.0009391510108969248,
+          "maximum_terminal_raw_joint_velocity_deg_s": 13.449916306035314,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 13.535764099939648,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 3.522035190771689,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "pregrasp_candidate",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 3.8833333333333244,
+          "terminal_observed_angles_deg": [
+            89.99971823064787,
+            64.06431859871566,
+            61.025883333226105,
+            63.922277984736084
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            4.301176517174114e-06,
+            0.01586311434721216,
+            0.04197151244973455,
+            0.01956849197213735
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.009915072623354773,
+            5.043010836410501,
+            16.3631405436602,
+            -4.170633462407084
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.04197151244973455,
+          "maximum_terminal_raw_joint_velocity_deg_s": 16.3631405436602,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 16.444165370236767,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 4.974116666773895,
+          "record_ended_before_position_hold": false
+        },
+        {
+          "name": "neutral_return",
+          "position_derived_settled": true,
+          "settle_elapsed_s": 5.583333333333319,
+          "terminal_observed_angles_deg": [
+            90.00133754907912,
+            90.03058306913807,
+            90.16555068539172,
+            90.1343496742318
+          ],
+          "terminal_position_derived_velocities_deg_s": [
+            3.355167848440045e-05,
+            0.004135466099057809,
+            0.010229275499114046,
+            0.003886270915955961
+          ],
+          "terminal_raw_joint_velocities_deg_s": [
+            -0.017921492572347788,
+            1.0944146576460716,
+            -0.5262465454773244,
+            -3.5658351524412644
+          ],
+          "maximum_terminal_position_derived_velocity_deg_s": 0.010229275499114046,
+          "maximum_terminal_raw_joint_velocity_deg_s": 3.5658351524412644,
+          "maximum_stable_raw_position_velocity_mismatch_deg_s": 3.5841820544080027,
+          "raw_position_velocity_consistent": false,
+          "maximum_tracking_error_deg": 0.16555068539172169,
+          "record_ended_before_position_hold": false
+        }
+      ]
+    }
+  },
+  "checks": {
+    "gravity_off_effort_100_sha256_matches": true,
+    "gravity_off_effort_100_size_matches": true,
+    "gravity_on_effort_100_sha256_matches": true,
+    "gravity_on_effort_100_size_matches": true,
+    "gravity_on_effort_250_sha256_matches": true,
+    "gravity_on_effort_250_size_matches": true,
+    "source_matrix_was_complete": true,
+    "gravity_on_cases_settle_by_position_difference": true,
+    "gravity_off_record_is_right_censored_but_terminal_velocity_is_stable": true,
+    "gravity_off_velocity_signals_are_consistent": true,
+    "gravity_on_velocity_mismatch_is_reproduced": true,
+    "gravity_on_tracking_error_remains_real": true
+  },
+  "reanalysis_passed": true,
+  "conclusion": "All gravity-on poses settle by position difference; the older gravity-off records end on the original raw-velocity gate before a full derived hold but finish below the derived threshold. Gravity-on raw joint_vel remains incompatible with settled position, and the approximately five-degree error remains real.",
+  "gpu_started": false,
+  "isaac_started": false,
+  "viewer_started": false,
+  "pregrasp_authorized": false,
+  "contact_or_grasp_authorized": false
+}

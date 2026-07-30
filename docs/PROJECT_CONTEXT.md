@@ -67,9 +67,12 @@ lightweight VLA post-training, and optional real hardware.
   within `0.0032°`, while both gravity-on effort-100 and effort-250 follow the
   same trajectory and miss by `4.976°`. Raising only the effort limit is
   therefore not a fix. Raw TGS `joint_vel` also disagrees materially with
-  nearly stationary position samples, so velocity instrumentation must be
-  corrected before a focused solver/drive experiment. No pre-grasp, Viewer,
-  contact, or grasp is authorized.
+  nearly stationary position samples. The local follow-up now measures
+  settling from a `100 ms` position difference, reproduces a
+  `16.444°/s` gravity-on raw/derived mismatch while preserving the real
+  `4.974°` tracking error, and prepares a four-case single-factor TGS/drive
+  comparison. That comparison is not yet an Isaac machine result. No
+  pre-grasp, Viewer, contact, or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -96,9 +99,9 @@ The CartPole stage is complete. The canonical next-stage plan is
    all-branch search. A revised angled pre-grasp candidate reaches its exact API
    endpoint, but the gravity-on articulation fails the one-degree tracking
    gate. The completed actuator matrix proves gravity sensitivity, falsifies
-   effort 250 as a sufficient fix, and blocks another paid run until raw versus
-   finite-difference velocity telemetry and the next solver/drive matrix pass
-   local review.
+   effort 250 as a sufficient fix, and the local position-derived velocity
+   contract plus four-stage solver/drive plan now pass offline review. The
+   focused remote matrix remains pending a fresh quote and explicit approval.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older

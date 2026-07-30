@@ -2,7 +2,8 @@
 
 The runner has no table, cube, camera, policy, or hardware backend.  It records
 the complete API -> interpolated target -> Isaac target buffer -> articulation
-state path every physics step and uses actual joint velocity for settling.
+state path every physics step.  Windowed position difference is the physical
+settling signal; raw joint velocity is retained as a compatibility signal.
 """
 
 # Isaac Lab modules must be imported after AppLauncher starts Kit.
@@ -25,6 +26,8 @@ from dofbot_actuator_calibration import (
     calibration_trajectory_extrema,
     evaluate_calibration_case,
     load_actuator_calibration_config,
+    position_derived_velocity_deg_s,
+    velocity_signal_mismatch_deg_s,
 )
 
 parser = argparse.ArgumentParser(
@@ -64,6 +67,7 @@ import torch
 import isaaclab.sim as sim_utils
 import omni.physx
 from isaaclab.scene import InteractiveScene
+from isaaclab_physx.physics import PhysxCfg
 from pxr import PhysicsSchemaTools
 
 from dofbot_contact_report import maximum_monitored_contact_force_n
@@ -556,6 +560,8 @@ def _run_pose(
     settle_velocity_threshold_deg_s: float,
     settle_hold_ms: int,
     settle_timeout_ms: int,
+    position_velocity_window_ms: int,
+    maximum_velocity_signal_mismatch_deg_s: float,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], int]:
     robot = scene["dofbot"]
     start_angles_deg = _angles_deg_from_rad(
@@ -581,6 +587,7 @@ def _run_pose(
     stable_s = 0.0
     samples: list[dict[str, Any]] = []
     settled = False
+    stable_mismatches: list[float] = []
     while elapsed_s < maximum_elapsed_s - 1.0e-12:
         if not simulation_app.is_running():
             raise ActuatorCalibrationError(
@@ -603,16 +610,39 @@ def _run_pose(
             api_command_angles_deg=target_angles_deg,
         )
         samples.append(observation)
-        actual_velocities = observation["observed_joint_velocities_deg_s"]
-        velocity_stable = (
-            actual_velocities is not None
-            and max(abs(float(value)) for value in actual_velocities)
+        position_derived_velocities = position_derived_velocity_deg_s(
+            samples,
+            window_s=position_velocity_window_ms / 1000.0,
+        )
+        velocity_mismatch = velocity_signal_mismatch_deg_s(
+            observation["observed_joint_velocities_deg_s"],
+            position_derived_velocities,
+        )
+        position_velocity_stable = (
+            position_derived_velocities is not None
+            and max(
+                abs(float(value))
+                for value in position_derived_velocities
+            )
             <= settle_velocity_threshold_deg_s
         )
-        if backend.trajectory_complete and velocity_stable:
+        observation["position_derived_joint_velocities_deg_s"] = (
+            position_derived_velocities
+        )
+        observation["raw_position_velocity_mismatch_deg_s"] = (
+            velocity_mismatch
+        )
+        observation["trajectory_complete"] = backend.trajectory_complete
+        observation["position_derived_velocity_stable"] = (
+            position_velocity_stable
+        )
+        if backend.trajectory_complete and position_velocity_stable:
             stable_s += physics_dt
+            if velocity_mismatch is not None:
+                stable_mismatches.append(velocity_mismatch)
         else:
             stable_s = 0.0
+            stable_mismatches = []
         if stable_s + 1.0e-12 >= required_stable_s:
             settled = True
             break
@@ -622,13 +652,33 @@ def _run_pose(
     terminal_velocities = terminal["observed_joint_velocities_deg_s"]
     if terminal_velocities is None:
         terminal_velocities = [0.0] * 4
+    terminal_derived_velocities = terminal[
+        "position_derived_joint_velocities_deg_s"
+    ]
+    if terminal_derived_velocities is None:
+        terminal_derived_velocities = [0.0] * 4
+    maximum_velocity_mismatch = max(stable_mismatches, default=0.0)
+    raw_position_velocity_consistent = (
+        bool(stable_mismatches)
+        and maximum_velocity_mismatch
+        <= maximum_velocity_signal_mismatch_deg_s
+    )
     summary = {
         "name": pose_name,
         "command_angles_deg": list(target_angles_deg),
-        "settled": settled,
+        "settled_by_position_derived_velocity": settled,
         "settle_elapsed_s": elapsed_s,
         "terminal_observed_angles_deg": terminal_observed,
         "terminal_actual_velocities_deg_s": terminal_velocities,
+        "terminal_position_derived_velocities_deg_s": (
+            terminal_derived_velocities
+        ),
+        "maximum_settling_velocity_signal_mismatch_deg_s": (
+            maximum_velocity_mismatch
+        ),
+        "raw_position_velocity_consistent": (
+            raw_position_velocity_consistent
+        ),
         "maximum_tracking_error_deg": max(
             abs(float(observed) - target)
             for observed, target in zip(
@@ -657,7 +707,10 @@ def _run_pose(
         f"case={args_cli.case_name} pose={pose_name} settled={settled} "
         f"tracking_error_deg={summary['maximum_tracking_error_deg']:.4f} "
         f"terminal_velocity_deg_s="
-        f"{max(abs(float(value)) for value in terminal_velocities):.4f}",
+        f"{max(abs(float(value)) for value in terminal_velocities):.4f} "
+        f"position_derived_velocity_deg_s="
+        f"{max(abs(float(value)) for value in terminal_derived_velocities):.4f} "
+        f"velocity_signal_mismatch_deg_s={maximum_velocity_mismatch:.4f}",
         flush=True,
     )
     return summary, samples, api_calls
@@ -675,11 +728,26 @@ def main() -> None:
     scene_cfg.dofbot.spawn.rigid_props.disable_gravity = (
         not case.gravity_enabled
     )
+    scene_cfg.dofbot.spawn.articulation_props.solver_position_iteration_count = (
+        case.solver_position_iteration_count
+    )
+    scene_cfg.dofbot.spawn.articulation_props.solver_velocity_iteration_count = (
+        case.solver_velocity_iteration_count
+    )
     for actuator in scene_cfg.dofbot.actuators.values():
         actuator.effort_limit_sim = case.effort_limit_sim
+        actuator.stiffness = case.stiffness
+        actuator.damping = case.damping
 
     sim = sim_utils.SimulationContext(
-        sim_utils.SimulationCfg(device=args_cli.device)
+        sim_utils.SimulationCfg(
+            device=args_cli.device,
+            physics=PhysxCfg(
+                enable_external_forces_every_iteration=(
+                    case.enable_external_forces_every_iteration
+                )
+            ),
+        )
     )
     scene = InteractiveScene(scene_cfg)
     sim.reset()
@@ -720,6 +788,12 @@ def main() -> None:
             ),
             settle_hold_ms=config.trajectory.settle_hold_ms,
             settle_timeout_ms=config.trajectory.settle_timeout_ms,
+            position_velocity_window_ms=(
+                config.trajectory.position_velocity_window_ms
+            ),
+            maximum_velocity_signal_mismatch_deg_s=(
+                config.trajectory.maximum_velocity_signal_mismatch_deg_s
+            ),
         )
         pose_summaries.append(summary)
         all_samples.extend(samples)
@@ -732,6 +806,17 @@ def main() -> None:
     actual_velocity_available = all(
         sample["observed_joint_velocities_deg_s"] is not None
         for sample in all_samples
+    )
+    derived_velocity_samples = [
+        sample
+        for sample in all_samples
+        if sample["trajectory_complete"]
+    ]
+    position_derived_velocity_available = bool(
+        derived_velocity_samples
+    ) and all(
+        sample["position_derived_joint_velocities_deg_s"] is not None
+        for sample in derived_velocity_samples
     )
     computed_available = all(
         sample["computed_torque"] is not None for sample in all_samples
@@ -772,6 +857,9 @@ def main() -> None:
         official_api_call_count=official_api_calls,
         target_buffer_available=target_buffer_available,
         actual_velocity_available=actual_velocity_available,
+        position_derived_velocity_available=(
+            position_derived_velocity_available
+        ),
         torque_interpretation=torque_interpretation,
         torque_saturation_observed=torque_metrics[
             "saturation_observed"
@@ -797,10 +885,23 @@ def main() -> None:
             "device": args_cli.device,
             "gravity_enabled": case.gravity_enabled,
             "configured_effort_limit_sim": case.effort_limit_sim,
-            "configured_stiffness": 10000.0,
-            "configured_damping": 100.0,
-            "solver_position_iteration_count": 8,
-            "solver_velocity_iteration_count": 0,
+            "configured_stiffness": case.stiffness,
+            "configured_damping": case.damping,
+            "solver_position_iteration_count": (
+                case.solver_position_iteration_count
+            ),
+            "solver_velocity_iteration_count": (
+                case.solver_velocity_iteration_count
+            ),
+            "enable_external_forces_every_iteration": (
+                case.enable_external_forces_every_iteration
+            ),
+            "position_velocity_window_ms": (
+                config.trajectory.position_velocity_window_ms
+            ),
+            "maximum_velocity_signal_mismatch_deg_s": (
+                config.trajectory.maximum_velocity_signal_mismatch_deg_s
+            ),
             "planned_trajectory_extrema": calibration_trajectory_extrema(
                 config
             ),
@@ -844,6 +945,9 @@ def main() -> None:
         "telemetry": {
             "target_buffer_available": target_buffer_available,
             "actual_velocity_available": actual_velocity_available,
+            "position_derived_velocity_available": (
+                position_derived_velocity_available
+            ),
             "computed_torque_buffer_available": computed_available,
             "applied_torque_buffer_available": applied_available,
             "torque_interpretation": torque_interpretation,

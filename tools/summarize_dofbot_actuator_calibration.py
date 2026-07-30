@@ -10,13 +10,11 @@ from typing import Any
 
 try:
     from .dofbot_actuator_calibration import (
-        REQUIRED_CASE_NAMES,
         classify_calibration_matrix,
         load_actuator_calibration_config,
     )
 except ImportError:
     from dofbot_actuator_calibration import (
-        REQUIRED_CASE_NAMES,
         classify_calibration_matrix,
         load_actuator_calibration_config,
     )
@@ -39,7 +37,7 @@ def build_summary(
     artifacts: dict[str, dict[str, Any]] = {}
     checks: dict[str, bool] = {}
     evaluations: dict[str, dict[str, Any]] = {}
-    for case_name in REQUIRED_CASE_NAMES:
+    for case_name in config.case_names:
         path = input_dir / f"{case_name}.json"
         present = path.is_file()
         checks[f"{case_name}_artifact_present"] = present
@@ -66,7 +64,7 @@ def build_summary(
 
     decision = classify_calibration_matrix(config, evaluations)
     matrix_complete = (
-        set(evaluations) == set(REQUIRED_CASE_NAMES)
+        set(evaluations) == set(config.case_names)
         and all(checks.values())
     )
     return {

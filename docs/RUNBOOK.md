@@ -198,7 +198,40 @@ The same run proved that changing effort 100 to 250 can update Isaac/PhysX
 effort limits and applied-torque clamps without changing the gravity-on
 trajectory; do not repeat an effort-only matrix as the next paid step.
 
-After applying the decision-specific change, rerun the same calibration matrix.
+The GPU-free replacement contract and next matrix are:
+
+```bash
+make dofbot-actuator-velocity-reanalysis
+make dofbot-solver-drive-dry-run
+make show-dofbot-solver-drive
+```
+
+The replay must pass source SHA/size checks and show gravity-on physical
+settling by position difference while preserving the raw-velocity mismatch.
+The solver/drive plan must list exactly `baseline_tgs`,
+`external_forces_each_iteration`, `velocity_iterations_2`, and
+`reduced_damping_50`, with one changed field at each transition. The runtime
+wiring follows the Isaac Lab 3.0
+[PhysX configuration](https://isaac-sim.github.io/IsaacLab/release/3.0.0-beta2/source/overview/core-concepts/physical-backends/physx/configuration.html)
+and [implicit actuator](https://isaac-sim.github.io/IsaacLab/develop/source/api/lab/isaaclab.actuators.html)
+contracts.
+
+After review, a fresh quote, and explicit approval, the paid diagnostic command
+is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-solver-drive
+```
+
+Require `[MATRIX_EXIT_CODE] 0` and retrieve all four files under
+`artifacts/dofbot/solver_drive_diagnostic_cases/` plus
+`artifacts/dofbot/solver_drive_diagnostic_contract.json`. Stop and poll Brev
+to explicit `STOPPED` before interpreting results. A case may repair tracking,
+repair only raw velocity telemetry, or repair neither; these outcomes are
+separate decisions.
+
+After applying the decision-specific change, rerun the selected gravity-on
+calibration.
 Only a complete calibration with the selected baseline meeting the `1°`
 tracking gate authorizes the unchanged task-scene headless command:
 
