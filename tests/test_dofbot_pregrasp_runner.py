@@ -6,6 +6,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 RUNNER_PATH = PROJECT_DIR / "tools/run_dofbot_pregrasp.py"
 SCENE_CFG_PATH = PROJECT_DIR / "tools/dofbot_pregrasp_scene_cfg.py"
+BASE_SCENE_CFG_PATH = PROJECT_DIR / "tools/dofbot_scene_cfg.py"
 POSE_MODULE_PATH = PROJECT_DIR / "tools/dofbot_pregrasp_pose.py"
 RUN_SCRIPT_PATH = PROJECT_DIR / "scripts/isaac/run_dofbot_pregrasp.sh"
 VIEW_SCRIPT_PATH = PROJECT_DIR / "scripts/isaac/view_dofbot_pregrasp.sh"
@@ -16,6 +17,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.runner = RUNNER_PATH.read_text(encoding="utf-8")
         cls.scene_cfg = SCENE_CFG_PATH.read_text(encoding="utf-8")
+        cls.base_scene_cfg = BASE_SCENE_CFG_PATH.read_text(encoding="utf-8")
         cls.pose_module = POSE_MODULE_PATH.read_text(encoding="utf-8")
         cls.run_script = RUN_SCRIPT_PATH.read_text(encoding="utf-8")
         cls.view_script = VIEW_SCRIPT_PATH.read_text(encoding="utf-8")
@@ -92,6 +94,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "official_api_call_count_matches",
             "api_commands_preserve_limit_margin",
             "validated_joint_candidate_command_reached",
+            "final_api_joint_tracking_within_tolerance",
             "returned_to_neutral",
         ):
             self.assertIn(expected, self.runner + self.pose_module)
@@ -121,6 +124,18 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("except BaseException as error:", self.runner)
         self.assertIn("else:\n        simulation_app.close()", self.runner)
         self.assertNotIn("finally:\n        simulation_app.close()", self.runner)
+
+    def test_controlled_joint_effort_has_tracking_headroom(self) -> None:
+        self.assertIn(
+            "CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 250.0",
+            self.base_scene_cfg,
+        )
+        self.assertEqual(
+            self.base_scene_cfg.count(
+                "effort_limit_sim=CONTROLLED_JOINT_EFFORT_LIMIT_SIM"
+            ),
+            3,
+        )
 
     def test_remote_wrappers_select_candidate_scene_and_pose_contract(self) -> None:
         for script in (self.run_script, self.view_script):

@@ -108,6 +108,7 @@ class CollisionConfig:
 @dataclass(frozen=True)
 class AcceptanceConfig:
     minimum_position_improvement_m: float
+    maximum_final_joint_tracking_error_deg: float
     maximum_neutral_reset_error_deg: float
     viewer_connection_hold_seconds: int
     viewer_success_hold_seconds: int
@@ -554,6 +555,7 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
         raw["acceptance"],
         {
             "minimum_position_improvement_m",
+            "maximum_final_joint_tracking_error_deg",
             "maximum_neutral_reset_error_deg",
             "viewer_connection_hold_seconds",
             "viewer_success_hold_seconds",
@@ -563,6 +565,10 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
     reset = _number(
         acceptance_raw["maximum_neutral_reset_error_deg"],
         "acceptance.maximum_neutral_reset_error_deg",
+    )
+    tracking = _number(
+        acceptance_raw["maximum_final_joint_tracking_error_deg"],
+        "acceptance.maximum_final_joint_tracking_error_deg",
     )
     improvement = _number(
         acceptance_raw["minimum_position_improvement_m"],
@@ -580,10 +586,15 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
         raise PregraspPoseError("minimum_position_improvement_m must be in [0.01, 0.20]")
     if not 0.1 <= reset <= 2.0:
         raise PregraspPoseError("maximum_neutral_reset_error_deg must be in [0.1, 2]")
+    if not 0.1 <= tracking <= 2.0:
+        raise PregraspPoseError(
+            "maximum_final_joint_tracking_error_deg must be in [0.1, 2]"
+        )
     if not 0 <= connection_hold <= 60 or not 0 <= success_hold <= 10:
         raise PregraspPoseError("viewer hold seconds are outside safe bounds")
     acceptance = AcceptanceConfig(
         minimum_position_improvement_m=improvement,
+        maximum_final_joint_tracking_error_deg=tracking,
         maximum_neutral_reset_error_deg=reset,
         viewer_connection_hold_seconds=connection_hold,
         viewer_success_hold_seconds=success_hold,
@@ -1016,6 +1027,35 @@ def validated_joint_candidate_command_reached(
     )
     return angles == solver.preferred_angles_deg and all(
         abs(value) <= 1e-9 for value in velocities
+    )
+
+
+def maximum_joint_tracking_error_deg(
+    *,
+    observed_angles_deg: Sequence[float],
+    command_angles_deg: Sequence[float],
+) -> float:
+    """Return the largest absolute observed/API joint error in degrees."""
+
+    if len(observed_angles_deg) != 4 or len(command_angles_deg) != 4:
+        raise PregraspPoseError(
+            "observed and command joint angle vectors must contain four values"
+        )
+    observed = tuple(
+        _number(value, f"observed_angles_deg[{index}]")
+        for index, value in enumerate(observed_angles_deg)
+    )
+    command = tuple(
+        _number(value, f"command_angles_deg[{index}]")
+        for index, value in enumerate(command_angles_deg)
+    )
+    return max(
+        abs(observed_value - command_value)
+        for observed_value, command_value in zip(
+            observed,
+            command,
+            strict=True,
+        )
     )
 
 

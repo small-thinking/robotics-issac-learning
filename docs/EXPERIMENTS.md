@@ -1299,3 +1299,50 @@
 - Resource lifecycle: approved start at 21:40:39 PDT; evidence retrieved before
   stop; stale `STOPPING` list state was refreshed; explicit `STOPPED` verified
   at 21:55 PDT. No instance or disk was created, resized, or deleted.
+
+## 2026-07-29 — Exact pre-grasp API command exposed implicit-drive tracking error
+
+- Remote source: merged
+  `main@54b25ed98d325f5079daf5d34bec3ad1629ee136`; existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  quoted `$1.58784/hour`
+- Official command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Command result: the corrected controller reached the exact stopped
+  `[90,66,66,66]°` API endpoint. This passes the specific regression that
+  failed at `main@150fa5d`.
+- Observed result: joints settled at
+  `[90.093,66.987,70.641,69.828]°`; maximum observed/API error was `4.641°`.
+  Position improved `0.25660 -> 0.03213 m` but failed the unchanged
+  `0.025 m` gate. Approach and closing passed at `9.465° / 0.412°`.
+- Safety result: all joint-envelope, velocity, acceleration, table/cube
+  clearance, static-target, no-contact, API-count, command-margin, exact
+  command-endpoint, and reset gates passed. Maximum contact was `0 N`.
+  Viewer, gripper, contact, and grasp were not authorized.
+- Evidence: the retrieved full artifact was 327,442 bytes, SHA-256
+  `50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`;
+  the promoted concise record is
+  `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`.
+- Diagnosis: the stable no-contact endpoint plus implicit stiffness `10000`
+  implies per-joint proportional effort demands
+  `[16.15,172.28,809.96,668.14]`, while the solver effort limit was `100`.
+  Isaac Lab documents `effort_limit_sim` as the implicit-actuator solver
+  effort clamp. Effort clipping under gravity is strongly indicated, but the
+  conclusion remains pending corrected remote confirmation.
+- Local correction branch:
+  `codex/dofbot-command-space-remote-validation`
+  - raise only controlled-joint `effort_limit_sim` from `100` to `250`;
+  - leave stiffness, damping, scene, API trajectory, angle/velocity/
+    acceleration limits, Cartesian tolerances, and no-contact rules unchanged;
+  - add `maximum_final_joint_tracking_error_deg=1.0` and require
+    `final_api_joint_tracking_within_tolerance` in the machine contract.
+- Resource lifecycle: start approved at 22:42:05 PDT; stop requested after
+  evidence retrieval; terminal `STOPPED` verified at 22:55:05 PDT. The
+  existing instance and disk were preserved.
+- Current acceptance: **exact API endpoint passed remotely / joint tracking
+  and Cartesian position failed / bounded correction passes locally / Viewer
+  pending machine pass**.

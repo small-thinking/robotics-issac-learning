@@ -137,13 +137,16 @@ make dofbot-pregrasp
 
 Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`. Do not
 open the Viewer unless every machine check passes, including
-`validated_joint_candidate_command_reached`. Confirm that
+`validated_joint_candidate_command_reached` and
+`final_api_joint_tracking_within_tolerance`. Confirm that
 `final_controller_api_command_angles_deg` exactly matches
-`target_joint_candidate_angles_deg`; observed joint tracking lag is permitted
-only inside the physical envelope and never substitutes for the exact API
-endpoint. The experiment remains open-gripper and no-contact: servo 5, wrist
-twist, gripper closing, target motion, camera controller input, policy,
-checkpoint, and real hardware are out of scope.
+`target_joint_candidate_angles_deg` and that
+`maximum_final_joint_tracking_error_deg` is no greater than the configured
+`1°` limit. Merely remaining inside the broad physical envelope is not enough,
+and observed state never substitutes for the exact API endpoint. The
+experiment remains open-gripper and no-contact: servo 5, wrist twist, gripper
+closing, target motion, camera controller input, policy, checkpoint, and real
+hardware are out of scope.
 
 If the machine gate passes:
 

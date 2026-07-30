@@ -5,17 +5,18 @@
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
   pre-grasp is rejected; the first angled terminal-finger machine attempt
-  failed narrowly, and a direct validated-joint-candidate controller now
-  passes its local correction gate
+  failed narrowly; the direct validated-joint-candidate now reaches its exact
+  API endpoint remotely, but Isaac joint tracking still fails under load; a
+  bounded simulator-effort correction and explicit tracking gate pass locally
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --json` at 2026-07-29
-  approximately 21:17 PDT after the angled pre-grasp diagnostic
+  22:55:05 PDT after the joint-tracking validation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class was
-  `$1.58784/hour` compute; checked 2026-07-29 before restart
+  `$1.58784/hour` compute; checked 2026-07-29 before the 22:42 restart
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -389,6 +390,46 @@
   and `brev ls --json` explicitly returned `STOPPED` at 21:55 PDT. The
   instance and disk were retained.
 
+## DOFBOT exact-command joint-tracking correction
+
+- Remote source: merged `main@54b25ed98d325f5079daf5d34bec3ad1629ee136`;
+  existing `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`,
+  NVIDIA L4, quoted `$1.58784/hour`
+- Official command:
+  `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp`
+- Result: **failed closed only on Cartesian position**. The API command now
+  reached the exact stopped `[90,66,66,66]°` candidate, proving the prior
+  command-space bug is fixed. Observed joints instead settled at
+  `[90.093,66.987,70.641,69.828]°`, a maximum `4.641°` tracking error.
+- Cartesian/safety evidence: position improved
+  `0.25660 -> 0.03213 m` against the unchanged `0.025 m` gate; approach and
+  closing passed at `9.465° / 0.412°`; all collision, static-target,
+  no-contact, API-count, command-margin, and reset gates passed; maximum
+  contact was `0 N`; Viewer was not started.
+- Diagnosis boundary: the observed endpoint was stable, the command velocity
+  was zero, and there was no contact. With implicit-drive stiffness `10000`,
+  the measured errors imply proportional effort demand up to `809.96`, above
+  the configured `effort_limit_sim=100`. Isaac Lab documents that
+  `effort_limit_sim` clips implicit-actuator effort in the physics solver.
+  Solver effort clipping under gravity is therefore strongly indicated but
+  remains pending remote confirmation.
+- Local correction: keep stiffness `10000`, damping `100`, trajectory
+  velocity/acceleration limits, scene, and all Cartesian/safety thresholds
+  unchanged; raise only controlled-joint `effort_limit_sim` from `100` to
+  `250`; add an independent `<=1°`
+  `final_api_joint_tracking_within_tolerance` machine gate.
+- Evidence:
+  `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`;
+  full retrieved artifact was 327,442 bytes with SHA-256
+  `50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`.
+- Resource lifecycle: approved start at 22:42:05 PDT; machine evidence was
+  retrieved before stopping; `brev ls --json` explicitly returned `STOPPED`
+  at 22:55:05 PDT. The instance and disk were retained.
+- Acceptance: **remote exact API endpoint passed / Isaac joint tracking and
+  Cartesian position failed / local effort correction passed / Viewer
+  blocked**. Contact, closing, grasping, lifting, and placing remain
+  unauthorized.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
@@ -746,7 +787,7 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped until the revised angled-candidate PR is
+Keep the Brev instance stopped until the joint-tracking correction PR is
 reviewed and merged. Then obtain a fresh quote and explicit approval, run
 `make dofbot-pregrasp` headless first, and open `make
 dofbot-pregrasp-view` only if every machine gate passes. Contact, closing,

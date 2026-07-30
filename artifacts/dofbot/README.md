@@ -173,6 +173,16 @@ steps. All 22 local provenance, trajectory, collision-proxy, no-contact, and
 scope checks pass. This is local regression evidence only; it does not claim
 Isaac machine or Viewer acceptance.
 
+`pregrasp_joint_tracking_failure_2026-07-29.json` records the corrected
+command-space remote retry at merged `main@54b25ed`. The API command reached
+the exact stopped `[90,66,66,66]°` candidate, but observed joints settled at
+approximately `[90.09,66.99,70.64,69.83]°`; the `4.64°` maximum tracking
+error left `0.03213 m` Cartesian error. The artifact separates the measured
+failure from the strongly indicated implicit-drive effort-clipping diagnosis,
+records the bounded `100 -> 250` simulator effort-limit correction and new
+`1°` tracking gate, and keeps machine, Viewer, contact, and grasp acceptance
+false pending another reviewed remote run.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

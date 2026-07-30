@@ -28,6 +28,7 @@ from dofbot_pregrasp_pose import (
     derive_grasp_frame,
     evaluate_pregrasp_observation,
     load_pregrasp_pose_config,
+    maximum_joint_tracking_error_deg,
     next_pregrasp_command,
     validated_joint_candidate_command_reached,
 )
@@ -875,6 +876,13 @@ def main() -> None:
             command_velocities_deg_s=final_controller_velocity,
             solver=pose.solver,
         )
+        final_observed_angles = tuple(
+            float(value) for value in observations[-1]["angles_deg"]
+        )
+        maximum_final_joint_tracking_error = maximum_joint_tracking_error_deg(
+            observed_angles_deg=final_observed_angles,
+            command_angles_deg=final_controller_command,
+        )
         command_min = (
             pose.solver.safe_angle_min_deg
             + pose.solver.command_limit_margin_deg
@@ -904,6 +912,10 @@ def main() -> None:
             "validated_joint_candidate_command_reached": (
                 candidate_command_reached
             ),
+            "final_api_joint_tracking_within_tolerance": (
+                maximum_final_joint_tracking_error
+                <= pose.acceptance.maximum_final_joint_tracking_error_deg
+            ),
             "returned_to_neutral": (
                 reset_error
                 <= pose.acceptance.maximum_neutral_reset_error_deg
@@ -927,6 +939,13 @@ def main() -> None:
             ),
             "official_api_call_count": official_api_calls,
             "expected_official_api_call_count": expected_api_calls,
+            "final_observed_angles_deg": list(final_observed_angles),
+            "maximum_final_joint_tracking_error_deg": (
+                maximum_final_joint_tracking_error
+            ),
+            "maximum_allowed_final_joint_tracking_error_deg": (
+                pose.acceptance.maximum_final_joint_tracking_error_deg
+            ),
             "maximum_neutral_reset_error_deg": reset_error,
         }
         result = {

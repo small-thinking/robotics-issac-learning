@@ -4,7 +4,7 @@
   "sources": {
     "pose_config": {
       "path": "configs/dofbot/pregrasp/goal5_angled_pregrasp.json",
-      "sha256": "156cd35e5ee5f8484fe44b8dc82ba4c4336cca47a7ca99fe3d550e79e5f9f08a"
+      "sha256": "1f01c9437c2c8f38944364ad931e3eaf04cbf3f5b166c36a278f67dc9c0cd73f"
     },
     "scene_config": {
       "path": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",

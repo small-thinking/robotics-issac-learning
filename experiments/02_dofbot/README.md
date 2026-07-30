@@ -864,6 +864,56 @@ machine pending / Viewer blocked pending machine pass**. This correction does
 not loosen the `0.025 m / 12°` Cartesian gates, authorize contact or grasp,
 or claim that local replay is Isaac proof.
 
+### Exact API endpoint passed; simulated joint tracking failed
+
+The command-space correction was remotely tested at merged
+`main@54b25ed98d325f5079daf5d34bec3ad1629ee136` with:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+```
+
+The earlier command-space defect is fixed: the controller reached and stopped
+at the exact `[90,66,66,66]°` Yahboom API candidate. Isaac nevertheless
+settled at observed joints `[90.093,66.987,70.641,69.828]°`, so the maximum
+observed/API tracking error was `4.641°`. The Cartesian endpoint improved
+`0.25660 -> 0.03213 m` but still missed the unchanged `0.025 m` gate.
+Approach and closing passed at `9.465° / 0.412°`; every collision,
+static-target, no-contact, API-count, command-margin, and neutral-reset gate
+passed with `0 N` contact. The Viewer was therefore not started.
+
+This failure is distinct from the previous one. The final API state is now
+correct, while the simulated articulation does not hold that target under
+load. At the stable endpoint, the configured implicit-drive stiffness
+`10000` converts the measured errors into proportional effort demands up to
+`809.96`, above the old `effort_limit_sim=100`. Isaac Lab defines
+`effort_limit_sim` as the physics-solver effort clamp for implicit actuators,
+so clipping under gravity is strongly indicated. It is still an inference
+until the corrected Isaac run reports the observed endpoint.
+
+The bounded local correction:
+
+- raises only the four controlled joints' simulator effort limit from `100`
+  to `250`;
+- leaves stiffness `10000`, damping `100`, the scene, command trajectory,
+  angle envelope, velocity/acceleration limits, and `0.025 m / 12°` pose gates
+  unchanged;
+- adds an independent
+  `final_api_joint_tracking_within_tolerance <= 1°` machine gate;
+- records the full 327,442-byte artifact by SHA-256
+  `50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`
+  in
+  `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`.
+
+The paid window began at 22:42:05 PDT. Evidence was retrieved before stop,
+and `brev ls --json` explicitly returned `STOPPED` at 22:55:05 PDT. No
+instance or disk was created, resized, or deleted.
+
+Acceptance is **remote exact API endpoint passed / simulated joint tracking
+and Cartesian position failed / local effort correction passed / Viewer
+blocked pending a new machine pass**. Contact, closing, grasping, lifting, and
+placing remain unauthorized.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

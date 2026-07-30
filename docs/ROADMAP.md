@@ -127,12 +127,15 @@ The detailed first-stage contract lives in
    machine-validated angle envelopes, rejects the requested low table, and
    produces one residual-aware angled candidate at `[90,66,66,66]°` with a
    `0.26160 m` table top. Two remote attempts then separated Cartesian IK
-   branch drift from a direct-candidate command/observation state mix. The
-   latter is corrected locally with an exact stopped command-space endpoint
-   gate and a preflight braking-reserve check; the 22-check local trajectory
-   contract passes. Corrected Isaac headless and Viewer validation remain
-   pending. Wrist twist, gripper closing, target motion, contact, and grasp
-   success remain unauthorized.
+   branch drift from a direct-candidate command/observation state mix. A third
+   remote attempt proved the corrected command path reaches the exact stopped
+   `[90,66,66,66]°` API endpoint, but the implicit actuators settled as much
+   as `4.64°` away and left `0.03213 m` Cartesian error. A bounded
+   `effort_limit_sim 100 -> 250` correction now preserves the USD gains and
+   every existing trajectory/Cartesian/safety threshold while adding a
+   separate `<=1°` observed/API tracking gate. Local tests pass; corrected
+   Isaac headless and Viewer validation remain pending. Wrist twist, gripper
+   closing, target motion, contact, and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 
