@@ -43,6 +43,7 @@ class SourceContracts:
     motion_config_contract_sha256: str
     reachability_config_sha256: str
     rejected_reachability_artifact_sha256: str
+    angled_machine_failure_sha256: str
 
 
 @dataclass(frozen=True)
@@ -223,6 +224,7 @@ def parse_taskspace_config(value: Any) -> TaskspaceConfig:
             "motion_config_contract_sha256",
             "reachability_config_sha256",
             "rejected_reachability_artifact_sha256",
+            "angled_machine_failure_sha256",
         },
         "source_contracts",
     )
@@ -242,6 +244,10 @@ def parse_taskspace_config(value: Any) -> TaskspaceConfig:
         rejected_reachability_artifact_sha256=_sha256(
             source_raw["rejected_reachability_artifact_sha256"],
             "source_contracts.rejected_reachability_artifact_sha256",
+        ),
+        angled_machine_failure_sha256=_sha256(
+            source_raw["angled_machine_failure_sha256"],
+            "source_contracts.angled_machine_failure_sha256",
         ),
     )
 

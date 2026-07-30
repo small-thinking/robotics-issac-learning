@@ -26,6 +26,7 @@
     "closing_axis_control": "monitor_only_wrist_twist_uncontrolled"
   },
   "solver": {
+    "control_mode": "validated_joint_candidate",
     "controlled_joint_names": ["joint1", "joint2", "joint3", "joint4"],
     "control_hz": 5,
     "maximum_steps": 60,

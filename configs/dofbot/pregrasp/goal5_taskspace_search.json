@@ -5,7 +5,8 @@
     "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
     "motion_config_contract_sha256": "8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5",
     "reachability_config_sha256": "afc2c700dbdda912bea896d296f25ef1b98af8e1c48036bcb9f194a3023d5d21",
-    "rejected_reachability_artifact_sha256": "03b00d4d0cb46247e1c90d945397eb6d791eb088aa600f2336dff0750a056e74"
+    "rejected_reachability_artifact_sha256": "03b00d4d0cb46247e1c90d945397eb6d791eb088aa600f2336dff0750a056e74",
+    "angled_machine_failure_sha256": "1a15da31a8ee81ddabab145f6408fda8c8e7192a7c14a1318c5b7bec84c2b572"
   },
   "geometry": {
     "table_size_m": [0.5, 0.3, 0.04],

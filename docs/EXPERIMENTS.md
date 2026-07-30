@@ -1185,3 +1185,55 @@
 - Decision: accept the revised candidate for future Isaac machine validation,
   not as Isaac, visual, contact, or grasp success. A fresh quote and explicit
   approval remain required before a paid headless run.
+
+## 2026-07-29 — Angled candidate failed narrowly; direct joint-candidate correction prepared
+
+- Remote source: merged `main@7b4591f`; existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  `$1.58784/hour`; no create, resize, delete, real-hardware command, gripper
+  command, contact authorization, policy, or checkpoint
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Headless result: **failed closed**. Position improved
+  `0.25660 -> 0.03382 m` against the unchanged `0.025 m` gate; approach error
+  was `13.568°` against the unchanged `12°` gate; closing error was `0.321°`.
+- Safety result: all sixteen remaining machine checks passed, with `0 N`
+  contact force, `248/248` official API calls, and `0.0613°` maximum neutral
+  reset error. Viewer was not started.
+- Root cause: although the task-space scene was derived from joint candidate
+  `[90,66,66,66]°`, Cartesian DLS settled at API command `[90,65,67,76]°`
+  and observed `[89.989,65.073,68.603,77.889]°`. The controller optimized a
+  Cartesian compromise instead of executing the selected joint branch.
+- Machine evidence:
+  `artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json`;
+  full retrieved artifact: 327,197 bytes, SHA-256
+  `396e19b56805f7771aeee284e9722b49be3bf2006c999d42d32baaafc0ecd555`.
+- Free local correction:
+  `codex/dofbot-isaac-tracking-calibration`. The angled config uses
+  `validated_joint_candidate`; the historical world-down regression config
+  keeps `cartesian_pose_ik`. Both use the same bounded/quantized official
+  Yahboom four-servo API path.
+- Fail-closed boundary: raising the candidate's search-boundary reserve from
+  2° to 3° produces zero candidates, so the correction does not pretend that a
+  stricter offline joint margin solves the controller mismatch.
+- Preserved acceptance: unchanged Cartesian pose/axis tolerances, scene,
+  collision/contact gates, command envelope, 4° maximum step, 20°/s,
+  60°/s², exact API count, neutral reset, static cube, open gripper, and
+  no-contact scope.
+- Local evidence: `artifacts/dofbot/pregrasp_taskspace_candidate.json` now
+  SHA-binds the angled machine failure and passes `33/33` checks; generalized
+  pose dry-run passes `21/21`.
+- Validation: Git LFS attributes, remote command previews, all `155`
+  repository tests, targeted Ruff, and `git diff --check` pass.
+- Current acceptance: **local correction passed / corrected Isaac machine
+  pending / Viewer blocked pending machine pass**. Goal 5, contact, and grasp
+  remain incomplete/unauthorized.
+- Resource lifecycle: the paid window ran approximately 20:02-21:17 PDT. The
+  intended 30-minute cap was exceeded; a 21:12 clock audit triggered immediate
+  stop, and `brev ls --json` later returned explicit `STOPPED`. The instance
+  and disk were preserved. This overrun is an operational failure, not a
+  successful short-window validation.

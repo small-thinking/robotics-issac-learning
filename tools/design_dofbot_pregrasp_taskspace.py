@@ -67,6 +67,14 @@ def _parse_args() -> argparse.Namespace:
         default=Path("artifacts/dofbot/motion_config_contract.json"),
     )
     parser.add_argument(
+        "--angled-machine-failure",
+        type=Path,
+        default=Path(
+            "artifacts/dofbot/"
+            "pregrasp_angled_machine_failure_2026-07-29.json"
+        ),
+    )
+    parser.add_argument(
         "--asset-contract",
         type=Path,
         default=Path("artifacts/dofbot/asset_contract.json"),
@@ -150,6 +158,7 @@ def build_report(
     reachability_config_path: Path,
     rejected_reachability_artifact_path: Path,
     motion_config_contract_path: Path,
+    angled_machine_failure_path: Path,
     asset_contract_path: Path,
     candidate_scene_config_path: Path,
     candidate_pose_config_path: Path,
@@ -164,6 +173,9 @@ def build_report(
         rejected_reachability_artifact_path
     )
     motion, motion_sha256 = _read_json(motion_config_contract_path)
+    angled_failure, angled_failure_sha256 = _read_json(
+        angled_machine_failure_path
+    )
     asset, asset_sha256 = _read_json(asset_contract_path)
     scene, scene_sha256 = load_reaching_config(candidate_scene_config_path)
     pose, pose_sha256 = load_pregrasp_pose_config(candidate_pose_config_path)
@@ -191,6 +203,22 @@ def build_report(
         "rejected_reachability_artifact_sha256_matches": (
             rejected_sha256
             == taskspace.sources.rejected_reachability_artifact_sha256
+        ),
+        "angled_machine_failure_sha256_matches": (
+            angled_failure_sha256
+            == taskspace.sources.angled_machine_failure_sha256
+        ),
+        "angled_machine_failure_is_safe_and_viewer_was_not_started": (
+            angled_failure.get("status") == "machine_failed"
+            and angled_failure.get("machine", {}).get("passed") is False
+            and angled_failure.get("machine", {}).get("failed_checks")
+            == [
+                "grasp_origin_reached_pregrasp_position",
+                "approach_axis_matches_target_within_tolerance",
+            ]
+            and len(angled_failure.get("passed_safety_checks", [])) == 16
+            and angled_failure.get("viewer_started") is False
+            and angled_failure.get("contact_or_grasp_authorized") is False
         ),
         "asset_machine_contract_passed": (
             asset.get("acceptance", {}).get("passed") is True
@@ -302,6 +330,9 @@ def build_report(
                 selected["angles_deg"],
             )
         ),
+        "validated_joint_candidate_control_mode_selected": (
+            pose.solver.control_mode == "validated_joint_candidate"
+        ),
         "scene_cube_matches_selected_candidate": (
             selected is not None
             and _close_sequence(
@@ -356,6 +387,8 @@ def build_report(
             "rejected_reachability_artifact_sha256": rejected_sha256,
             "motion_config_contract": str(motion_config_contract_path),
             "motion_config_contract_sha256": motion_sha256,
+            "angled_machine_failure": str(angled_machine_failure_path),
+            "angled_machine_failure_sha256": angled_failure_sha256,
             "asset_contract": str(asset_contract_path),
             "asset_contract_sha256": asset_sha256,
             "candidate_scene_config": str(candidate_scene_config_path),
@@ -394,7 +427,11 @@ def build_report(
             "joint envelope for a meaningful front-side pre-grasp. The "
             "selected candidate raises the tabletop and uses an angled "
             "upper-side approach with residual-aware joint and clearance "
-            "margins. It is ready for a future Isaac machine gate, but is "
+            "margins. The first Isaac attempt proved the Cartesian IK path "
+            "can trade away from that joint candidate, so the revised "
+            "controller tracks the selected candidate directly while all "
+            "Cartesian and safety gates remain active. It is ready for a "
+            "future Isaac machine gate, but is "
             "not yet Isaac, collision, visual, contact, or grasp proof."
         ),
     }
@@ -409,6 +446,7 @@ def main() -> None:
             args.rejected_reachability_artifact
         ),
         motion_config_contract_path=args.motion_config_contract,
+        angled_machine_failure_path=args.angled_machine_failure,
         asset_contract_path=args.asset_contract,
         candidate_scene_config_path=args.candidate_scene_config,
         candidate_pose_config_path=args.candidate_pose_config,
