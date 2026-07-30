@@ -1056,3 +1056,48 @@
   pending**. The report does not claim live kinematic reach, full collision
   geometry, contact sensing, motion quality, or visual acceptance. Goal 5 is
   not complete and contact/grasp remain unauthorized.
+
+## 2026-07-29 — First pose-aware pre-grasp candidate failed closed remotely
+
+- Branch: `codex/dofbot-pregrasp-remote-validation`; machine commit:
+  `05ececc`
+- Infrastructure: reused only `isaac-launchable-f150a5` (`92xbacz46`), AWS
+  `g6.4xlarge`, NVIDIA L4, at the unchanged `$1.58784/hour` live quote; no
+  instance creation, resize, deletion, or disk deletion
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Compatibility fixes: preserved the original exception instead of allowing
+  Isaac teardown to mask it; settled the arm at vendor-neutral before the
+  first observation; separated observed physical limits from API command
+  margins; planned velocity/acceleration in API-command space; and added
+  stopping-distance braking before a command limit
+- Trajectory result: position error improved by `0.25823 m`, from `0.33035 m`
+  to `0.07212 m`. The API trajectory safely braked to `[90,69,69,69]°`;
+  observed final angles were
+  `[89.99996,65.96283,60.67178,64.98386]°`.
+- Failed gates: terminal-finger position remained outside the `0.025 m`
+  tolerance and the approach axis remained `103.21°` away from world `-Z`,
+  outside the `12°` tolerance.
+- Passed gates: closing axis, observed angle envelope, command margin,
+  velocity, acceleration, collision proxies, physical table/static cube,
+  no-contact/static-target, controller improvement, exact 248 API calls, and
+  neutral reset. Maximum contact force was `0 N`; neutral reset error was
+  `0.2886°`.
+- Evidence:
+  `artifacts/dofbot/pregrasp_machine_failure_2026-07-29.json`; the retrieved
+  full 326,627-byte remote artifact had SHA-256
+  `bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5`
+- Viewer: not started because the headless gate failed. No visual claim was
+  made.
+- Interpretation: this run proves that the current controller path stalls near
+  its lower command margin; it does not prove the pose is globally
+  unreachable. Before another paid run, perform a local reachability search
+  over alternate posture branches and recalibrate the pose/scene without
+  weakening the existing safety envelope.
+- Resource lifecycle: stop was requested immediately after evidence retrieval;
+  terminal `STOPPED` was verified with `brev ls --json` at approximately
+  19:35 PDT. The instance and persistent disk were retained.

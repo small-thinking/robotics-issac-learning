@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "status": "machine_failed",
+  "source_artifact_sha256": "bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5",
+  "source_artifact_size_bytes": 326627,
+  "generated_at_utc": "2026-07-30T02:23:29.028159+00:00",
+  "git_commit": "05ececcbc0f1cceb955014877bcac347e05fa1b0",
+  "scene": {
+    "table_center_world_m": [0.0, 0.31, 0.06],
+    "table_size_m": [0.5, 0.3, 0.04],
+    "target_center_world_m": [0.0, 0.25, 0.105],
+    "target_size_m": [0.05, 0.05, 0.05]
+  },
+  "target_pose": {
+    "origin_world_m": [0.0, 0.25, 0.195],
+    "approach_axis_world_unit": [0.0, 0.0, -1.0]
+  },
+  "machine": {
+    "passed": false,
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "approach_axis_points_down_within_tolerance"
+    ],
+    "initial_position_error_m": 0.330345485991706,
+    "final_position_error_m": 0.07211595758593059,
+    "position_improvement_m": 0.2582295284057754,
+    "final_approach_error_deg": 103.2064770255566,
+    "final_closing_error_deg": 0.32982346681695546,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 248,
+    "expected_official_api_call_count": 248,
+    "maximum_neutral_reset_error_deg": 0.2886314946481434
+  },
+  "final_observation": {
+    "angles_deg": [
+      89.99995807886847,
+      65.96282944267594,
+      60.671779005895964,
+      64.9838635515799
+    ],
+    "grasp_origin_world_m": [
+      -0.0007135756313800812,
+      0.22927086055278778,
+      0.2640688419342041
+    ],
+    "approach_axis_world_unit": [
+      -0.005729757041123354,
+      0.9735362215071978,
+      0.22846092728897466
+    ],
+    "final_api_command_angles_deg": [90.0, 69.0, 69.0, 69.0]
+  },
+  "passed_safety_checks": [
+    "fixed_closing_axis_is_acceptable_without_wrist_command",
+    "joint_angles_remain_within_safe_limits",
+    "joint_velocity_limit_respected",
+    "joint_acceleration_limit_respected",
+    "critical_body_centers_clear_table_proxy",
+    "nonfinger_body_centers_clear_target_proxy",
+    "terminal_finger_centers_remain_precontact",
+    "contact_reporter_force_remains_below_threshold",
+    "target_remains_static",
+    "contact_remains_unauthorized",
+    "physical_table_prim_present",
+    "static_target_cube_prim_present",
+    "pose_controller_improved_position",
+    "official_api_call_count_matches",
+    "api_commands_preserve_limit_margin",
+    "returned_to_neutral"
+  ],
+  "conclusion": "The current controller path reached the lower command-margin neighborhood and stalled before satisfying position or top-down approach gates. This run does not prove global pose infeasibility; target reachability and alternate posture branches must be recalibrated locally before another paid run.",
+  "viewer_started": false,
+  "visual_status": "not_run_machine_gate_failed",
+  "contact_or_grasp_authorized": false
+}

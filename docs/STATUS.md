@@ -3,12 +3,12 @@
 - Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
-  no-contact reaching passed all gates; the lower/farther scene and
-  terminal-finger pose-aware pre-grasp controller passed their free local
-  preparation gates
+  no-contact reaching passed all gates; the first lower/farther,
+  terminal-finger pose-aware pre-grasp remote candidate failed its pose gates
+  safely and requires local reachability recalibration
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
-  08:44 PDT after corrected Goal 4 validation
+  19:35 PDT after the failed pre-grasp machine candidate
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -190,17 +190,32 @@
 - Local validation: all 139 repository tests pass, including 27 focused
   pose/runner tests; targeted Ruff, shell syntax, dry-run generation, Git LFS
   checks, and both remote command previews pass
-- Candidate acceptance: **local preparation passed / Isaac machine pending /
-  Viewer pending**. The local report explicitly records
-  `candidate_isaac_machine_passed=false`,
-  `candidate_visual_passed=false`, and
-  `contact_or_grasp_authorized=false`.
-- Next gate: after this branch is reviewed and merged, obtain a fresh live
-  quote and explicit approval, then run `make dofbot-pregrasp` and
-  `make dofbot-pregrasp-view`. The headless run must prove pose, smoothness,
-  contact, collision, exact API-call, improvement, and neutral-reset gates;
-  the Viewer must separately show a smooth top-down, open-gripper, no-contact
-  approach in the lower/farther scene.
+- Remote validation branch:
+  `codex/dofbot-pregrasp-remote-validation`; machine commit `05ececc`
+- Remote machine result: **failed closed**. Position error improved from
+  `0.33035 m` to `0.07212 m`, but the required `0.025 m` position tolerance
+  and `12°` top-down approach tolerance were not met; final approach error was
+  `103.21°`. The command trajectory braked to `[90,69,69,69]°` before the
+  68° API margin while the observed joints remained within the 60°-120°
+  physical envelope.
+- Safety result: all velocity, acceleration, collision-proxy, no-contact,
+  static-target, exact 248-call, API-margin, and neutral-reset checks passed;
+  maximum reported contact force was `0 N`, and neutral reset error was
+  `0.2886°`.
+- Evidence:
+  `artifacts/dofbot/pregrasp_machine_failure_2026-07-29.json`, summarizing the
+  retrieved 326,627-byte machine artifact with SHA-256
+  `bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5`
+- Viewer result: **not run** because the machine gate failed; no Viewer URL or
+  visual acceptance claim was produced.
+- Candidate acceptance: **local preparation passed / first Isaac machine
+  candidate failed / Viewer blocked**. Goal 5 is not complete, and contact or
+  grasp remains unauthorized.
+- Next free gate: keep Brev stopped and add a local reachable-pose search over
+  alternate joint-space posture branches. Reconcile the desired top-down pose,
+  table/cube geometry, and existing `[60,120]°` physical envelope without
+  weakening safety limits. Only a revised candidate that passes local
+  reachability checks may receive another freshly approved paid machine run.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -559,10 +574,10 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped while
-`codex/dofbot-pose-aware-pregrasp` is reviewed. After merge, obtain a fresh
-quote and explicit approval before starting the retained instance. Run the
-headless pose-aware candidate first; open the Viewer only if every machine gate
-passes, and stop the GPU immediately after evidence retrieval and human review.
-This remains an open-gripper, no-contact pre-grasp gate. Contact, closing,
-grasping, lifting, and placing require separate explicit contracts.
+Keep the Brev instance stopped. Use the retrieved failure contract to design a
+local reachable-pose search that explores alternate posture branches instead
+of continuing to press against the lower command margin. Recalibrate the
+top-down terminal-finger pose and scene only from safety-preserving candidates.
+After a revised local gate passes, obtain a fresh quote and explicit approval,
+run headless first, and open the Viewer only if every machine gate passes.
+Contact, closing, grasping, lifting, and placing remain unauthorized.
