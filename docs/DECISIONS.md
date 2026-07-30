@@ -207,3 +207,28 @@ buffers are explicitly inconclusive. Tracking failure is a valid calibration
 result and must still be written. Pre-grasp may resume only after the matrix
 selects a cause-specific correction and the chosen baseline passes the
 independent one-degree tracking gate.
+
+## 2026-07-30 — Do not treat effort 250 or raw TGS velocity as the actuator fix
+
+The isolated remote matrix confirmed that gravity-off effort-100 tracks the
+same API poses within `0.0032°`, while gravity-on effort-100 misses by
+`4.976°`. This establishes a load-dependent actuator/model problem without
+task contact or a target-buffer mismatch.
+
+Effort 250 is not accepted as the correction. Isaac effort buffers, PhysX DOF
+maximum forces, and the applied-torque clamp all changed from 100 to 250, but
+the complete selected gravity-on target, position, and reported-velocity
+sequence did not change. A higher configured clamp that leaves the measured
+trajectory byte-identical is not evidence of improved control.
+
+Raw `joint_vel` also cannot remain the sole settling authority in this runtime.
+The final position samples vary only by microdegrees while the buffer reports
+multi-degree-per-second motion, and Isaac logs a TGS noisy-velocity warning.
+Preserve both signals: add finite-difference position velocity, retain raw
+velocity as a compatibility diagnostic, and fail closed when they materially
+disagree.
+
+The remaining gravity-on position error is unresolved. The next experiment
+must isolate solver/drive behavior after the telemetry contract is repaired;
+it must not move the task scene, loosen the one-degree gate, jump directly to
+pre-grasp, or assume that additional effort alone will help.

@@ -82,6 +82,8 @@ artifacts/dofbot/*
 !artifacts/dofbot/pregrasp_command_space_contract.json
 !artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json
 !artifacts/dofbot/actuator_calibration_plan.json
+!artifacts/dofbot/actuator_calibration_contract.json
+!artifacts/dofbot/actuator_calibration_result_2026-07-30.json
 
 # macOS and editors
 .DS_Store

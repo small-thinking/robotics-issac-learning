@@ -282,6 +282,8 @@ assert_contains "$dofbot_actuator_calibration_output" 'actuator_calibration_cont
 assert_contains "$dofbot_actuator_calibration_output" '[MATRIX_EXIT_CODE]'
 assert_contains "$dofbot_actuator_calibration_output" 'timeout 300'
 assert_contains "$dofbot_actuator_calibration_output" 'archive-'
+assert_contains "$dofbot_actuator_calibration_output" 'missing_case_artifact'
+assert_contains "$dofbot_actuator_calibration_output" 'case_log='
 assert_contains "$dofbot_actuator_calibration_output" '--device cpu'
 assert_contains "$dofbot_actuator_calibration_output" '--headless'
 assert_not_contains "$dofbot_actuator_calibration_output" '--livestream'

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_actuator_diagnostic_matrix",
+  "generated_at_utc": "2026-07-30T15:34:23.453913+00:00",
+  "git_commit": "abd109f38dba838557910ed1ab439749cbd53120",
+  "calibration_config": {
+    "path": "/workspace/robotics-issac-learning/configs/dofbot/calibration/goal5_actuator_diagnostic.json",
+    "sha256": "e3be35ad14617c252151cdbf9d6090fd7655f9e96ba3600bb659cc9f577cf6f9",
+    "value": {
+      "schema_version": 1,
+      "name": "goal5_actuator_diagnostic",
+      "controlled_joint_names": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4"
+      ],
+      "safe_angle_min_deg": 60,
+      "safe_angle_max_deg": 120,
+      "poses": [
+        {
+          "name": "neutral_start",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "name": "mid_load",
+          "angles_deg": [
+            90,
+            78,
+            78,
+            78
+          ]
+        },
+        {
+          "name": "pregrasp_candidate",
+          "angles_deg": [
+            90,
+            66,
+            66,
+            66
+          ]
+        },
+        {
+          "name": "neutral_return",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "trajectory": {
+        "duration_ms": 2000,
+        "settle_velocity_threshold_deg_s": 0.1,
+        "settle_hold_ms": 500,
+        "settle_timeout_ms": 5000,
+        "sample_every_physics_step": true
+      },
+      "cases": [
+        {
+          "name": "gravity_on_effort_100",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0
+        },
+        {
+          "name": "gravity_off_effort_100",
+          "gravity_enabled": false,
+          "effort_limit_sim": 100.0
+        },
+        {
+          "name": "gravity_on_effort_250",
+          "gravity_enabled": true,
+          "effort_limit_sim": 250.0
+        }
+      ],
+      "acceptance": {
+        "maximum_target_buffer_error_deg": 0.05,
+        "maximum_settled_tracking_error_deg": 1.0,
+        "maximum_overshoot_deg": 2.0,
+        "maximum_contact_force_n": 0.5
+      }
+    }
+  },
+  "case_artifacts": {
+    "gravity_on_effort_100": {
+      "path": "/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_cases/gravity_on_effort_100.json",
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false
+    },
+    "gravity_off_effort_100": {
+      "path": "/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_cases/gravity_off_effort_100.json",
+      "diagnostic_complete": true,
+      "tracking_gate_passed": true
+    },
+    "gravity_on_effort_250": {
+      "path": "/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_cases/gravity_on_effort_250.json",
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false
+    }
+  },
+  "checks": {
+    "gravity_on_effort_100_artifact_present": true,
+    "gravity_on_effort_100_schema_matches": true,
+    "gravity_on_effort_100_config_sha_matches": true,
+    "gravity_on_effort_100_git_commit_matches": true,
+    "gravity_on_effort_100_evaluation_present": true,
+    "gravity_off_effort_100_artifact_present": true,
+    "gravity_off_effort_100_schema_matches": true,
+    "gravity_off_effort_100_config_sha_matches": true,
+    "gravity_off_effort_100_git_commit_matches": true,
+    "gravity_off_effort_100_evaluation_present": true,
+    "gravity_on_effort_250_artifact_present": true,
+    "gravity_on_effort_250_schema_matches": true,
+    "gravity_on_effort_250_config_sha_matches": true,
+    "gravity_on_effort_250_git_commit_matches": true,
+    "gravity_on_effort_250_evaluation_present": true
+  },
+  "matrix_complete": true,
+  "decision": {
+    "decision": "settling_or_drive_stability_failure",
+    "pregrasp_authorized": false,
+    "tracking_identity_validated": false,
+    "next_action": "inspect actual velocity, damping, solver iterations, and oscillation",
+    "unchanged_pregrasp_gates": {
+      "maximum_position_error_m": 0.025,
+      "maximum_approach_error_deg": 12.0
+    }
+  },
+  "pregrasp_authorized": false,
+  "viewer_authorized": false,
+  "contact_or_grasp_authorized": false
+}
