@@ -35,6 +35,9 @@ for stale_path in \
   $quoted_output_dir/gravity_on_effort_100.json \
   $quoted_output_dir/gravity_off_effort_100.json \
   $quoted_output_dir/gravity_on_effort_250.json \
+  $quoted_output_dir/gravity_on_effort_100.log \
+  $quoted_output_dir/gravity_off_effort_100.log \
+  $quoted_output_dir/gravity_on_effort_250.log \
   $quoted_summary_output; do
   if [[ -e \"\$stale_path\" ]]; then
     mkdir -p \"\$archive_dir\"
@@ -45,6 +48,8 @@ matrix_exit_code=0
 run_case() {
   case_name=\"\$1\"
   case_output=$quoted_output_dir/\"\${case_name}.json\"
+  case_log=$quoted_output_dir/\"\${case_name}.log\"
+  case_failed=0
   if ! timeout $quoted_case_timeout_seconds \
     ./isaaclab.sh -p $quoted_project_dir/tools/run_dofbot_actuator_calibration.py \
     --asset-contract $quoted_asset_contract \
@@ -53,9 +58,20 @@ run_case() {
     --output \"\$case_output\" \
     --git-commit \"\$git_commit\" \
     --device cpu \
-    --headless; then
-    printf '[ACTUATOR MATRIX] case_failed=%s\n' \"\$case_name\" >&2
+    --headless >\"\$case_log\" 2>&1; then
+    case_failed=1
+  fi
+  if [[ ! -s \"\$case_output\" ]]; then
+    printf '[ACTUATOR MATRIX] missing_case_artifact=%s\n' \"\$case_output\" >&2
+    case_failed=1
+  fi
+  if (( case_failed != 0 )); then
+    printf '[ACTUATOR MATRIX] case_failed=%s log=%s\n' \
+      \"\$case_name\" \"\$case_log\" >&2
+    tail -80 \"\$case_log\" >&2 || true
     matrix_exit_code=1
+  else
+    grep -E '^\[ACTUATOR CALIBRATION\]' \"\$case_log\" || true
   fi
 }
 run_case gravity_on_effort_100

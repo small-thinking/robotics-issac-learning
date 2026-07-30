@@ -293,7 +293,12 @@ def _optional_physx_view_tensor(
     try:
         value = method()
         if hasattr(value, "detach"):
-            return value.detach().cpu().tolist()
+            value = value.detach().cpu()
+        if hasattr(value, "numpy"):
+            value = value.numpy()
+        if hasattr(value, "tolist"):
+            value = value.tolist()
+        json.dumps(value)
         return value
     # These probes are diagnostic-only and vary across Isaac/PhysX releases.
     # A missing or incompatible optional accessor must become explicit null

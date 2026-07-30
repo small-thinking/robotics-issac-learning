@@ -347,6 +347,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
             "get_dof_stiffnesses",
             "get_dof_max_forces",
             "optional_probe_errors",
+            "hasattr(value, \"tolist\")",
         ):
             self.assertIn(field, runner)
         self.assertIn("sample_every_physics_step", runner)
@@ -366,6 +367,8 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
         self.assertIn("timeout $quoted_case_timeout_seconds", run_script)
         self.assertIn("archive_dir=", run_script)
         self.assertIn("mv ", run_script)
+        self.assertIn('case_log=', run_script)
+        self.assertIn("missing_case_artifact", run_script)
         self.assertIn("exit 0", run_script)
         self.assertIn("grep -Fqx '[MATRIX_EXIT_CODE] 0'", run_script)
         self.assertIn('transport_exit_code="${PIPESTATUS[0]}"', run_script)
