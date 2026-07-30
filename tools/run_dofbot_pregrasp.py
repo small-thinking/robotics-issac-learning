@@ -946,20 +946,13 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    failure: BaseException | None = None
     try:
         main()
     except BaseException as error:
         if isinstance(error, SystemExit) and error.code in (None, 0):
-            failure = RuntimeError(
+            raise RuntimeError(
                 "Isaac requested a zero-code exit before pre-grasp completion"
-            )
-        else:
-            failure = error
-    try:
+            ) from error
+        raise
+    else:
         simulation_app.close()
-    except SystemExit as error:
-        if failure is None and error.code not in (None, 0):
-            failure = error
-    if failure is not None:
-        raise failure
