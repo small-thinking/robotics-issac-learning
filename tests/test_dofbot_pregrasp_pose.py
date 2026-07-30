@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tools.dofbot_pregrasp_pose import (
     EXPECTED_CLOSING_CONTROL,
+    PoseCommand,
     PregraspPoseError,
     derive_grasp_frame,
     direction_error_vector,
@@ -244,6 +245,29 @@ class DofbotPregraspPoseTest(unittest.TestCase):
                 for value in quantized.velocities_deg_s
             )
         )
+
+    def test_quantizer_brakes_before_api_command_limit(self) -> None:
+        desired = PoseCommand(
+            angles_deg=(90.0, 60.0, 60.0, 60.0),
+            velocities_deg_s=(0.0, -20.0, -20.0, -20.0),
+            raw_delta_deg=(0.0, -4.0, -4.0, -4.0),
+            position_error_m=(0.0, 0.0, -0.1),
+            approach_error_rad=(0.0, 0.0, 0.0),
+        )
+        braking = quantize_pose_command(
+            desired,
+            previous_command_angles_deg=(90.0, 72.0, 75.0, 83.0),
+            previous_velocities_deg_s=(0.0, -20.0, -20.0, -15.0),
+            solver=self.config.solver,
+        )
+        self.assertEqual(braking.angles_deg, (90.0, 70.0, 72.0, 79.0))
+        near_limit = quantize_pose_command(
+            desired,
+            previous_command_angles_deg=(90.0, 69.0, 69.0, 69.0),
+            previous_velocities_deg_s=(0.0, -5.0, -5.0, -5.0),
+            solver=self.config.solver,
+        )
+        self.assertEqual(near_limit.angles_deg, (90.0, 69.0, 69.0, 69.0))
 
     def test_pose_solver_rejects_wrong_jacobian_or_unsafe_pose(self) -> None:
         with self.assertRaisesRegex(PregraspPoseError, "shape 6x4"):
