@@ -639,6 +639,7 @@ def _run_pose_controller(
         print(
             "[PREGRASP] "
             f"step={step_index} "
+            f"angles_deg={observation['angles_deg']} "
             f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
             f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
             f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
