@@ -78,6 +78,8 @@ artifacts/dofbot/*
 !artifacts/dofbot/pregrasp_scene_calibration.svg
 !artifacts/dofbot/pregrasp_pose_contract.json
 !artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json
+!artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json
+!artifacts/dofbot/pregrasp_command_space_contract.json
 
 # macOS and editors
 .DS_Store

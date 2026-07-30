@@ -22,13 +22,14 @@ from typing import Any
 from isaaclab.app import AppLauncher
 
 from dofbot_pregrasp_pose import (
+    POSE_IK_CONTROL_MODE,
     PregraspPoseConfig,
     PregraspPoseError,
     derive_grasp_frame,
     evaluate_pregrasp_observation,
     load_pregrasp_pose_config,
-    next_pose_command,
-    quantize_pose_command,
+    next_pregrasp_command,
+    validated_joint_candidate_command_reached,
 )
 from dofbot_reaching import DofbotReachingConfig, load_reaching_config
 
@@ -558,7 +559,12 @@ def _run_pose_controller(
     api_command_angles_deg: list[list[float]] = []
     for step_index in range(1, pose.solver.maximum_steps + 1):
         prior = observations[-1]
-        if prior["evaluation"]["passed"]:
+        command_trajectory_settled = validated_joint_candidate_command_reached(
+            command_angles_deg=previous_command_angles,
+            command_velocities_deg_s=previous_velocity,
+            solver=pose.solver,
+        )
+        if prior["evaluation"]["passed"] and command_trajectory_settled:
             break
         _precommand_safety_checks(prior)
         current_angles = _observed_angles_deg(arm)
@@ -577,7 +583,7 @@ def _run_pose_controller(
         )
         if frame.to_dict() != frame_value:
             raise PregraspPoseError("recorded grasp frame is internally inconsistent")
-        float_command = next_pose_command(
+        command = next_pregrasp_command(
             frame=frame,
             pose_jacobian=_terminal_midpoint_jacobian(
                 scene=scene,
@@ -589,16 +595,11 @@ def _run_pose_controller(
                 ],
                 controlled_joint_ids=controlled_joint_ids,
             ),
-            current_angles_deg=current_angles,
-            previous_velocities_deg_s=previous_velocity,
+            observed_angles_deg=current_angles,
+            previous_command_angles_deg=previous_command_angles,
+            previous_command_velocities_deg_s=previous_velocity,
             solver=pose.solver,
             target=pose.target_pose,
-        )
-        command = quantize_pose_command(
-            float_command,
-            previous_command_angles_deg=previous_command_angles,
-            previous_velocities_deg_s=previous_velocity,
-            solver=pose.solver,
         )
         accelerations = tuple(
             (velocity - previous) / dt
@@ -608,7 +609,11 @@ def _run_pose_controller(
                 strict=True,
             )
         )
-        if command.angles_deg == tuple(round(value) for value in current_angles):
+        if (
+            pose.solver.control_mode == POSE_IK_CONTROL_MODE
+            and command.angles_deg
+            == tuple(round(value) for value in current_angles)
+        ):
             raise PregraspPoseError(
                 "pose controller stalled before satisfying the pose gate"
             )
@@ -856,6 +861,20 @@ def main() -> None:
             *controller_command_angles,
             list(NEUTRAL_ANGLES_DEG),
         ]
+        final_controller_command = (
+            tuple(controller_command_angles[-1])
+            if controller_command_angles
+            else tuple(float(value) for value in NEUTRAL_ANGLES_DEG)
+        )
+        final_controller_velocity = tuple(
+            float(value)
+            for value in observations[-1]["command_velocities_deg_s"]
+        )
+        candidate_command_reached = validated_joint_candidate_command_reached(
+            command_angles_deg=final_controller_command,
+            command_velocities_deg_s=final_controller_velocity,
+            solver=pose.solver,
+        )
         command_min = (
             pose.solver.safe_angle_min_deg
             + pose.solver.command_limit_margin_deg
@@ -881,6 +900,9 @@ def main() -> None:
                 command_min <= angle <= command_max
                 for command in all_api_command_angles
                 for angle in command
+            ),
+            "validated_joint_candidate_command_reached": (
+                candidate_command_reached
             ),
             "returned_to_neutral": (
                 reset_error
@@ -941,6 +963,15 @@ def main() -> None:
                 ),
                 "controlled_joint_names": list(
                     pose.solver.controlled_joint_names
+                ),
+                "target_joint_candidate_angles_deg": (
+                    list(pose.solver.preferred_angles_deg)
+                ),
+                "final_controller_api_command_angles_deg": list(
+                    final_controller_command
+                ),
+                "validated_joint_candidate_command_reached": (
+                    candidate_command_reached
                 ),
                 "api_command_angles_deg": all_api_command_angles,
                 "closing_axis_control": (

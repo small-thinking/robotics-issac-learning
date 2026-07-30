@@ -118,6 +118,12 @@ Before spending:
    make show-dofbot-pregrasp-view
    ```
 
+   Inspect the generated local contract before spending. For
+   `validated_joint_candidate`, it must show the complete bounded API command
+   trajectory ending exactly at the configured integer-degree candidate with
+   zero command velocity. A candidate on the command-margin boundary without
+   one degree of braking reserve must fail during config preflight.
+
 4. Obtain a fresh live quote and explicit approval for the existing instance.
    Do not create, resize, or delete an instance or disk.
 
@@ -130,10 +136,14 @@ make dofbot-pregrasp
 ```
 
 Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`. Do not
-open the Viewer unless every machine check passes. The experiment remains
-open-gripper and no-contact: servo 5, wrist twist, gripper closing, target
-motion, camera controller input, policy, checkpoint, and real hardware are out
-of scope.
+open the Viewer unless every machine check passes, including
+`validated_joint_candidate_command_reached`. Confirm that
+`final_controller_api_command_angles_deg` exactly matches
+`target_joint_candidate_angles_deg`; observed joint tracking lag is permitted
+only inside the physical envelope and never substitutes for the exact API
+endpoint. The experiment remains open-gripper and no-contact: servo 5, wrist
+twist, gripper closing, target motion, camera controller input, policy,
+checkpoint, and real hardware are out of scope.
 
 If the machine gate passes:
 

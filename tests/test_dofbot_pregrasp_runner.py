@@ -71,7 +71,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
 
     def test_runner_preserves_yahboom_four_servo_boundary(self) -> None:
         self.assertIn("Arm_serial_servo_write(", self.runner)
-        self.assertIn("quantize_pose_command(", self.runner)
+        self.assertIn("next_pregrasp_command(", self.runner)
         self.assertNotIn("Arm_serial_servo_write6", self.runner)
         self.assertNotIn("Wrist_Twist_RevoluteJoint", self.runner)
         self.assertNotIn("CameraCfg", self.runner)
@@ -91,6 +91,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "pose_controller_improved_position",
             "official_api_call_count_matches",
             "api_commands_preserve_limit_margin",
+            "validated_joint_candidate_command_reached",
             "returned_to_neutral",
         ):
             self.assertIn(expected, self.runner + self.pose_module)

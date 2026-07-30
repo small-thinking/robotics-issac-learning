@@ -465,6 +465,21 @@ def parse_pregrasp_pose_config(value: Any) -> PregraspPoseConfig:
     command_max = safe_max - margin
     if any(angle < command_min or angle > command_max for angle in preferred):
         raise PregraspPoseError("preferred angles must stay inside command margins")
+    if control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        if any(not angle.is_integer() for angle in preferred):
+            raise PregraspPoseError(
+                "validated joint candidate angles must use integer degrees"
+            )
+        stopped_min = math.ceil(command_min) + 1
+        stopped_max = math.floor(command_max) - 1
+        if any(
+            angle < stopped_min or angle > stopped_max
+            for angle in preferred
+        ):
+            raise PregraspPoseError(
+                "validated joint candidate angles must retain one degree "
+                "of braking reserve inside command margins"
+            )
     solver = PoseSolverConfig(
         control_mode=control_mode,
         controlled_joint_names=CONTROLLED_JOINT_NAMES,
@@ -837,6 +852,10 @@ def next_pose_command(
     solver: PoseSolverConfig,
     target: TargetPoseConfig,
 ) -> PoseCommand:
+    if solver.control_mode != POSE_IK_CONTROL_MODE:
+        raise PregraspPoseError(
+            "next_pose_command requires cartesian_pose_ik control mode"
+        )
     if len(current_angles_deg) != 4 or len(previous_velocities_deg_s) != 4:
         raise PregraspPoseError("joint angle and velocity vectors must contain four values")
     current = tuple(
@@ -857,24 +876,14 @@ def next_pose_command(
         frame.approach_axis_world_unit,
         target.approach_axis_world_unit,
     )
-    if solver.control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
-        raw_delta_deg = tuple(
-            preferred - angle
-            for preferred, angle in zip(
-                solver.preferred_angles_deg,
-                current,
-                strict=True,
-            )
-        )
-    else:
-        raw_delta_rad = weighted_pose_delta(
-            pose_jacobian=pose_jacobian,
-            position_error_m=position_error,
-            approach_error_rad=approach_error,
-            current_angles_deg=current,
-            solver=solver,
-        )
-        raw_delta_deg = tuple(math.degrees(value) for value in raw_delta_rad)
+    raw_delta_rad = weighted_pose_delta(
+        pose_jacobian=pose_jacobian,
+        position_error_m=position_error,
+        approach_error_rad=approach_error,
+        current_angles_deg=current,
+        solver=solver,
+    )
+    raw_delta_deg = tuple(math.degrees(value) for value in raw_delta_rad)
     maximum = max(abs(value) for value in raw_delta_deg)
     if maximum > solver.maximum_joint_delta_deg:
         factor = solver.maximum_joint_delta_deg / maximum
@@ -980,6 +989,110 @@ def quantize_pose_command(
         raw_delta_deg=command.raw_delta_deg,
         position_error_m=command.position_error_m,
         approach_error_rad=command.approach_error_rad,
+    )
+
+
+def validated_joint_candidate_command_reached(
+    *,
+    command_angles_deg: Sequence[float],
+    command_velocities_deg_s: Sequence[float],
+    solver: PoseSolverConfig,
+) -> bool:
+    """Return whether a direct candidate trajectory reached a stopped endpoint."""
+
+    if len(command_angles_deg) != 4 or len(command_velocities_deg_s) != 4:
+        raise PregraspPoseError(
+            "command angle and velocity vectors must contain four values"
+        )
+    if solver.control_mode != VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        return True
+    angles = tuple(
+        _number(value, f"command_angles_deg[{index}]")
+        for index, value in enumerate(command_angles_deg)
+    )
+    velocities = tuple(
+        _number(value, f"command_velocities_deg_s[{index}]")
+        for index, value in enumerate(command_velocities_deg_s)
+    )
+    return angles == solver.preferred_angles_deg and all(
+        abs(value) <= 1e-9 for value in velocities
+    )
+
+
+def next_pregrasp_command(
+    *,
+    frame: DerivedGraspFrame,
+    pose_jacobian: Sequence[Sequence[float]],
+    observed_angles_deg: Sequence[float],
+    previous_command_angles_deg: Sequence[float],
+    previous_command_velocities_deg_s: Sequence[float],
+    solver: PoseSolverConfig,
+    target: TargetPoseConfig,
+) -> PoseCommand:
+    """Build one safe API command without mixing observation and command state.
+
+    Cartesian IK remains observation-feedback control. A validated joint
+    candidate instead advances exclusively from the previous API command to
+    the exact selected command-space endpoint. Live observations are still
+    checked against the physical envelope and remain the source of Cartesian,
+    collision, and contact acceptance.
+    """
+
+    if len(observed_angles_deg) != 4:
+        raise PregraspPoseError("observed joint angle vector must contain four values")
+    observed = tuple(
+        _number(value, f"observed_angles_deg[{index}]")
+        for index, value in enumerate(observed_angles_deg)
+    )
+    if any(
+        angle < solver.safe_angle_min_deg or angle > solver.safe_angle_max_deg
+        for angle in observed
+    ):
+        raise PregraspPoseError("observed joint angles are outside the safe envelope")
+
+    if solver.control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        if len(previous_command_angles_deg) != 4:
+            raise PregraspPoseError(
+                "previous command angle vector must contain four values"
+            )
+        previous_command = tuple(
+            _number(value, f"previous_command_angles_deg[{index}]")
+            for index, value in enumerate(previous_command_angles_deg)
+        )
+        desired = PoseCommand(
+            angles_deg=solver.preferred_angles_deg,
+            velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
+            raw_delta_deg=tuple(
+                preferred - prior
+                for preferred, prior in zip(
+                    solver.preferred_angles_deg,
+                    previous_command,
+                    strict=True,
+                )
+            ),
+            position_error_m=_subtract(
+                target.position_world_m,
+                frame.origin_world_m,
+            ),
+            approach_error_rad=direction_error_vector(
+                frame.approach_axis_world_unit,
+                target.approach_axis_world_unit,
+            ),
+        )
+    else:
+        desired = next_pose_command(
+            frame=frame,
+            pose_jacobian=pose_jacobian,
+            current_angles_deg=observed,
+            previous_velocities_deg_s=previous_command_velocities_deg_s,
+            solver=solver,
+            target=target,
+        )
+    return quantize_pose_command(
+        desired,
+        previous_command_angles_deg=previous_command_angles_deg,
+        previous_velocities_deg_s=previous_command_velocities_deg_s,
+        solver=solver,
     )
 
 

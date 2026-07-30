@@ -154,7 +154,26 @@ failed Cartesian gates, all sixteen passing safety/API/reset gates, the
 controller's final command/observation, the full retrieved artifact SHA and
 size, and that Viewer/contact/grasp were not authorized.
 
-This artifact explicitly keeps `gpu_started=false`,
+`pregrasp_joint_candidate_machine_failure_2026-07-29.json` records the
+follow-up direct-candidate failure and the bounded diagnostic probe. The
+official run passed orientation and every safety/API/reset gate but stopped at
+API command `[90,66,68,69]°` instead of the configured
+`[90,66,66,66]°`, leaving 3.24 cm of position error. The temporary
+`[90,66,64,64]°` probe also failed to reach its configured endpoint. Together
+they locate a command/observation state-space mix in the direct-candidate
+controller rather than another scene or target-pose error. The summary binds
+the two retrieved full artifacts by SHA-256 without committing their
+machine-specific 327 KB payloads.
+
+`pregrasp_command_space_contract.json` is the GPU-free correction artifact. It
+injects the observed tracking-lag neighborhood from the failed run, executes
+the complete bounded integer-degree command trajectory, and proves that the
+official API sequence reaches a stopped `[90,66,66,66]°` endpoint in eight
+steps. All 22 local provenance, trajectory, collision-proxy, no-contact, and
+scope checks pass. This is local regression evidence only; it does not claim
+Isaac machine or Viewer acceptance.
+
+The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is
 local candidate evidence only; future reviewed remote artifacts must establish

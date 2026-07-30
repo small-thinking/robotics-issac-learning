@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "status": "machine_failed",
+  "generated_at_utc": "2026-07-30T04:42:59.190435+00:00",
+  "git_commit": "150fa5d4975ee3f42a4e841360dfc5afce5a5807",
+  "source_artifact": {
+    "sha256": "d1657332164f7ba9f3fb33d691041f29a2c43c81e838967a705d871924c07cfe",
+    "size_bytes": 327299
+  },
+  "source_contracts": {
+    "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
+    "scene_config_sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949",
+    "pose_config_sha256": "156cd35e5ee5f8484fe44b8dc82ba4c4336cca47a7ca99fe3d550e79e5f9f08a"
+  },
+  "control": {
+    "mode": "validated_joint_candidate",
+    "selected_candidate_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_api_command_angles_deg": [
+      90.0,
+      66.0,
+      68.0,
+      69.0
+    ],
+    "final_observed_angles_deg": [
+      89.98016199403266,
+      66.32828212931207,
+      70.52938976136163,
+      71.53466724868787
+    ],
+    "selected_candidate_was_commanded_exactly": false
+  },
+  "machine": {
+    "passed": false,
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position"
+    ],
+    "initial_position_error_m": 0.2565964458227851,
+    "final_position_error_m": 0.032426818528479735,
+    "position_improvement_m": 0.2241696272943054,
+    "final_approach_error_deg": 10.396940376639632,
+    "final_closing_error_deg": 0.3128286490301754,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 248,
+    "expected_official_api_call_count": 248,
+    "maximum_neutral_reset_error_deg": 0.0689092315875115
+  },
+  "final_grasp_frame": {
+    "origin_world_m": [
+      -0.000644877552986145,
+      0.20425231009721756,
+      0.3108346462249756
+    ],
+    "approach_axis_world_unit": [
+      -0.005456726268521675,
+      0.8661821233704996,
+      0.49969866248750683
+    ],
+    "closing_axis_world_unit": [
+      0.9999850948380573,
+      0.0048190565013530905,
+      0.002566475434943951
+    ]
+  },
+  "diagnostic_probe": {
+    "status": "diagnostic_only_machine_failed",
+    "source_artifact_sha256": "d2c61cc0331b2ed4cec4963379bdc68c2873f299820aeba4372d1482c6a61e1b",
+    "source_artifact_size_bytes": 327198,
+    "temporary_pose_config_sha256": "b76ab1e64f6c276900caecd27e833faea98d5b094b55d93fb5159a18a07d5368",
+    "preferred_angles_deg": [
+      90.0,
+      66.0,
+      64.0,
+      64.0
+    ],
+    "final_api_command_angles_deg": [
+      90.0,
+      66.0,
+      70.0,
+      67.0
+    ],
+    "final_observed_angles_deg": [
+      89.98228885757727,
+      66.16846936311211,
+      72.0670019473149,
+      69.26983116142499
+    ],
+    "final_position_error_m": 0.032110599145144234,
+    "final_approach_error_deg": 9.510416223970124,
+    "maximum_contact_force_n": 0.0,
+    "conclusion": "Lowering the preferred angles did not lower the final API command consistently, so the probe falsified the assumption that the direct-candidate controller tracked its configured endpoint."
+  },
+  "passed_safety_checks": [
+    "approach_axis_matches_target_within_tolerance",
+    "fixed_closing_axis_is_acceptable_without_wrist_command",
+    "joint_angles_remain_within_safe_limits",
+    "joint_velocity_limit_respected",
+    "joint_acceleration_limit_respected",
+    "critical_body_centers_clear_table_proxy",
+    "nonfinger_body_centers_clear_target_proxy",
+    "terminal_finger_centers_remain_precontact",
+    "contact_reporter_force_remains_below_threshold",
+    "target_remains_static",
+    "contact_remains_unauthorized",
+    "physical_table_prim_present",
+    "static_target_cube_prim_present",
+    "pose_controller_improved_position",
+    "official_api_call_count_matches",
+    "api_commands_preserve_limit_margin",
+    "returned_to_neutral"
+  ],
+  "root_cause": {
+    "status": "located",
+    "summary": "The validated-joint-candidate path computed its desired delta from live observed angles, but quantized velocity, acceleration, and braking against the previous API command. Persistent Isaac drive tracking error therefore mixed observation space and command space and let the integer command stall before the selected candidate.",
+    "regression_gap": "The prior local test checked only that one float command moved toward the candidate. It did not execute the full quantized command sequence or require the final stopped API command to equal the selected candidate.",
+    "boundary_probe_issue": "The temporary 64-degree probe also selected the command-margin boundary, which cannot satisfy the existing one-degree stopped braking reserve and must be rejected before launch."
+  },
+  "conclusion": "This run failed because the selected joint candidate was never commanded exactly. The local correction must generate the complete direct-candidate trajectory exclusively in command space, preserve live observation-based safety gates, require an exact stopped endpoint, and reject unreachable boundary candidates before another paid run.",
+  "viewer_started": false,
+  "visual_status": "not_run_machine_gate_failed",
+  "gpu_final_status": "STOPPED",
+  "contact_or_grasp_authorized": false
+}
