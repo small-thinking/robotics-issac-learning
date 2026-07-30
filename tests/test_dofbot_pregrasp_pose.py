@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tools.dofbot_pregrasp_pose import (
     EXPECTED_CLOSING_CONTROL,
+    PoseCommand,
     PregraspPoseError,
     derive_grasp_frame,
     direction_error_vector,
@@ -76,6 +77,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         *,
         frame=None,
         body_positions=None,
+        angles_deg=(90.0, 80.0, 80.0, 90.0),
         maximum_contact_force_n: float = 0.0,
     ) -> dict[str, object]:
         return evaluate_pregrasp_observation(
@@ -87,7 +89,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             target_center_world_m=self.scene.target_cube.center_world_m,
             target_size_m=self.scene.target_cube.size_m,
             target_is_static=True,
-            angles_deg=(90.0, 80.0, 80.0, 90.0),
+            angles_deg=angles_deg,
             velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
             accelerations_deg_s2=(0.0, 0.0, 0.0, 0.0),
             maximum_contact_force_n=maximum_contact_force_n,
@@ -231,7 +233,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         self.assertTrue(all(68.0 <= value <= 112.0 for value in command.angles_deg))
         quantized = quantize_pose_command(
             command,
-            current_angles_deg=(90.0, 90.0, 90.0, 90.0),
+            previous_command_angles_deg=(90.0, 90.0, 90.0, 90.0),
             previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
             solver=self.config.solver,
         )
@@ -243,6 +245,29 @@ class DofbotPregraspPoseTest(unittest.TestCase):
                 for value in quantized.velocities_deg_s
             )
         )
+
+    def test_quantizer_brakes_before_api_command_limit(self) -> None:
+        desired = PoseCommand(
+            angles_deg=(90.0, 60.0, 60.0, 60.0),
+            velocities_deg_s=(0.0, -20.0, -20.0, -20.0),
+            raw_delta_deg=(0.0, -4.0, -4.0, -4.0),
+            position_error_m=(0.0, 0.0, -0.1),
+            approach_error_rad=(0.0, 0.0, 0.0),
+        )
+        braking = quantize_pose_command(
+            desired,
+            previous_command_angles_deg=(90.0, 72.0, 75.0, 83.0),
+            previous_velocities_deg_s=(0.0, -20.0, -20.0, -15.0),
+            solver=self.config.solver,
+        )
+        self.assertEqual(braking.angles_deg, (90.0, 70.0, 72.0, 79.0))
+        near_limit = quantize_pose_command(
+            desired,
+            previous_command_angles_deg=(90.0, 69.0, 69.0, 69.0),
+            previous_velocities_deg_s=(0.0, -5.0, -5.0, -5.0),
+            solver=self.config.solver,
+        )
+        self.assertEqual(near_limit.angles_deg, (90.0, 69.0, 69.0, 69.0))
 
     def test_pose_solver_rejects_wrong_jacobian_or_unsafe_pose(self) -> None:
         with self.assertRaisesRegex(PregraspPoseError, "shape 6x4"):
@@ -270,6 +295,21 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         self.assertAlmostEqual(result["position_error_m"], 0.0)
         self.assertAlmostEqual(result["approach_error_deg"], 0.0)
         self.assertAlmostEqual(result["closing_error_deg"], 0.0)
+
+    def test_observed_angles_use_physical_limits_not_command_margin(self) -> None:
+        tracking_overshoot = self._evaluate(
+            angles_deg=(90.0, 67.5, 64.6, 77.8)
+        )
+        self.assertTrue(tracking_overshoot["passed"])
+        self.assertTrue(
+            tracking_overshoot["checks"][
+                "joint_angles_remain_within_safe_limits"
+            ]
+        )
+        unsafe = self._evaluate(angles_deg=(90.0, 59.9, 80.0, 90.0))
+        self.assertFalse(
+            unsafe["checks"]["joint_angles_remain_within_safe_limits"]
+        )
 
     def test_collision_proxy_and_fixed_closing_axis_fail_closed(self) -> None:
         collision_positions = self._body_positions()

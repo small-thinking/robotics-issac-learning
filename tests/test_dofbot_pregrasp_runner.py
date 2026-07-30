@@ -45,13 +45,29 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
 
     def test_contact_reporter_is_enabled_and_machine_gated(self) -> None:
         self.assertIn("activate_contact_sensors=True", self.scene_cfg)
-        self.assertIn("ContactSensorCfg(", self.scene_cfg)
-        self.assertIn("net_forces_w", self.runner)
+        self.assertNotIn("ContactSensorCfg", self.scene_cfg)
+        for expected_text in (
+            'f"/World/envs/env_0/Dofbot/{name}"',
+            'f"/World/envs/env_0/Dofbot/link5/{name}"',
+            '"link2", "link3", "link4"',
+            '"Wrist_Twist"',
+            '"Finger_Left_02"',
+            '"Finger_Right_03"',
+        ):
+            self.assertIn(expected_text, self.scene_cfg)
+        self.assertNotIn("Finger_Left_02/Finger_Left_02", self.scene_cfg)
+        self.assertIn("subscribe_contact_report_events", self.runner)
+        self.assertIn("PhysicsSchemaTools.intToSdfPath", self.runner)
+        self.assertIn("maximum_monitored_contact_force_n(", self.runner)
+        self.assertIn("physics_dt=self._physics_dt", self.runner)
         self.assertIn(
             "contact_reporter_force_remains_below_threshold",
             self.runner,
         )
         self.assertIn("maximum_critical_contact_force_n", self.runner)
+        self.assertIn('"step=0 "', self.runner)
+        self.assertIn("angles_deg={initial['angles_deg']}", self.runner)
+        self.assertIn("angles_deg={observation['angles_deg']}", self.runner)
 
     def test_runner_preserves_yahboom_four_servo_boundary(self) -> None:
         self.assertIn("Arm_serial_servo_write(", self.runner)
@@ -68,17 +84,42 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "grasp_origin_reached_pregrasp_position",
             "approach_axis_points_down_within_tolerance",
             "fixed_closing_axis_is_acceptable_without_wrist_command",
-            "joint_angles_preserve_command_limit_margin",
+            "joint_angles_remain_within_safe_limits",
             "joint_velocity_limit_respected",
             "joint_acceleration_limit_respected",
             "contact_reporter_force_remains_below_threshold",
             "pose_controller_improved_position",
             "official_api_call_count_matches",
+            "api_commands_preserve_limit_margin",
             "returned_to_neutral",
         ):
             self.assertIn(expected, self.runner + self.pose_module)
         self.assertIn('"status": "pending_user_confirmation"', self.runner)
         self.assertIn('"goal5_complete": False', self.runner)
+        self.assertIn(
+            "simulation app stopped before the headless pose",
+            self.runner,
+        )
+        self.assertIn(
+            "simulation app stopped before the headless neutral",
+            self.runner,
+        )
+        self.assertIn(
+            "simulation app stopped before initial neutral settle completed",
+            self.runner,
+        )
+        self.assertIn("initialization_api_calls", self.runner)
+        self.assertIn(
+            "4 + (len(observations) - 1) * 4 + 4",
+            self.runner,
+        )
+        self.assertIn(
+            "Isaac requested a zero-code exit before pre-grasp completion",
+            self.runner,
+        )
+        self.assertIn("except BaseException as error:", self.runner)
+        self.assertIn("else:\n        simulation_app.close()", self.runner)
+        self.assertNotIn("finally:\n        simulation_app.close()", self.runner)
 
     def test_remote_wrappers_select_candidate_scene_and_pose_contract(self) -> None:
         for script in (self.run_script, self.view_script):

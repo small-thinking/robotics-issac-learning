@@ -663,6 +663,23 @@ top-down approach in the lower/farther scene, with the gripper open, cube
 stationary, and no visible contact. Until both gates pass, candidate Isaac and
 visual status remain pending and Goal 5 is not complete.
 
+The first remote candidate was run on 2026-07-29 at commit `05ececc` and
+failed closed before Viewer launch. It improved terminal-finger position error
+from `0.33035 m` to `0.07212 m`, preserved every motion/contact/API/reset
+safety gate, and reported `0 N` maximum contact force. However, the controller
+braked at the lower API command margin and did not satisfy the `0.025 m`
+position or `12°` top-down approach gates; final approach error was `103.21°`.
+
+The concise failure record is
+`artifacts/dofbot/pregrasp_machine_failure_2026-07-29.json`; the full retrieved
+machine artifact was 326,627 bytes with SHA-256
+`bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5`.
+This establishes failure of the current controller path, not global
+infeasibility of the pose. The next free task is a local reachable-pose search
+over alternate posture branches, followed by safety-preserving pose/scene
+recalibration. Do not restart Brev or open the Viewer until that local gate
+passes.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

@@ -115,9 +115,10 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 import torch
-from pxr import UsdPhysics
+from pxr import PhysicsSchemaTools, UsdPhysics
 
 import isaaclab.sim as sim_utils
+import omni.physx
 from isaaclab.scene import InteractiveScene
 
 from dofbot_control_api import (
@@ -126,12 +127,17 @@ from dofbot_control_api import (
     JointPositionCommand,
     YahboomServoApiAdapter,
 )
-from dofbot_motion_config import CONTROL_INTERVAL_MS, NEUTRAL_ANGLES_DEG
+from dofbot_contact_report import maximum_monitored_contact_force_n
+from dofbot_motion_config import NEUTRAL_ANGLES_DEG
 from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
 )
-from dofbot_pregrasp_scene_cfg import DofbotPregraspSceneCfg
+from dofbot_pregrasp_scene_cfg import (
+    CONTACT_BODY_NAMES,
+    CONTACT_BODY_PATHS,
+    DofbotPregraspSceneCfg,
+)
 
 
 def _load_json_object(path: Path) -> dict[str, Any]:
@@ -367,23 +373,41 @@ def _terminal_midpoint_jacobian(
     ]
 
 
-def _maximum_critical_contact_force_n(
-    *,
-    scene: InteractiveScene,
-    critical_body_names: tuple[str, ...],
-) -> tuple[float, list[str]]:
-    sensor = scene["contact_forces"]
-    sensor_names = list(sensor.body_names)
-    missing = sorted(set(critical_body_names) - set(sensor_names))
-    if missing:
-        raise PregraspPoseError(
-            f"contact reporter is missing critical bodies: {missing}"
+class _CriticalContactReporter:
+    """Accumulate contact impulses for explicit nested DOFBOT actor paths."""
+
+    def __init__(self, physics_dt: float) -> None:
+        self._physics_dt = physics_dt
+        self._critical_paths = frozenset(CONTACT_BODY_PATHS)
+        self._maximum_force_n_since_read = 0.0
+        self._subscription = (
+            omni.physx.get_physx_simulation_interface()
+            .subscribe_contact_report_events(self._on_contact_report)
         )
-    forces = sensor.data.net_forces_w[0]
-    indexes = [sensor_names.index(name) for name in critical_body_names]
-    selected = forces[indexes]
-    maximum = float(torch.linalg.vector_norm(selected, dim=-1).max().item())
-    return maximum, sensor_names
+
+    def _on_contact_report(
+        self,
+        headers: Any,
+        contact_data: Any,
+    ) -> None:
+        force_n = maximum_monitored_contact_force_n(
+            headers=headers,
+            contact_data=contact_data,
+            critical_paths=self._critical_paths,
+            physics_dt=self._physics_dt,
+            decode_path=lambda value: str(
+                PhysicsSchemaTools.intToSdfPath(value)
+            ),
+        )
+        self._maximum_force_n_since_read = max(
+            self._maximum_force_n_since_read,
+            force_n,
+        )
+
+    def maximum_force_n(self) -> float:
+        maximum = self._maximum_force_n_since_read
+        self._maximum_force_n_since_read = 0.0
+        return maximum
 
 
 def _issue_angles(
@@ -410,6 +434,7 @@ def _observation(
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
+    contact_reporter: _CriticalContactReporter,
     velocities_deg_s: tuple[float, float, float, float],
     accelerations_deg_s2: tuple[float, float, float, float],
     step_index: int,
@@ -425,10 +450,11 @@ def _observation(
         ],
         config=pose.grasp_frame,
     )
-    contact_force, contact_body_names = _maximum_critical_contact_force_n(
-        scene=scene,
-        critical_body_names=pose.collision.critical_body_names,
-    )
+    if tuple(pose.collision.critical_body_names) != CONTACT_BODY_NAMES:
+        raise PregraspPoseError(
+            "pose contract critical bodies do not match the PhysX contact views"
+        )
+    contact_force = contact_reporter.maximum_force_n()
     angles = _observed_angles_deg(arm)
     evaluation = evaluate_pregrasp_observation(
         config=pose,
@@ -451,7 +477,7 @@ def _observation(
         "command_velocities_deg_s": list(velocities_deg_s),
         "command_accelerations_deg_s2": list(accelerations_deg_s2),
         "maximum_critical_contact_force_n": contact_force,
-        "contact_sensor_body_names": contact_body_names,
+        "contact_report_body_names": list(CONTACT_BODY_NAMES),
         "body_positions_world_m": {
             name: list(position) for name, position in positions.items()
         },
@@ -462,7 +488,7 @@ def _observation(
 def _precommand_safety_checks(observation: dict[str, Any]) -> None:
     checks = observation["evaluation"]["checks"]
     safety_keys = (
-        "joint_angles_preserve_command_limit_margin",
+        "joint_angles_remain_within_safe_limits",
         "joint_velocity_limit_respected",
         "joint_acceleration_limit_respected",
         "critical_body_centers_clear_table_proxy",
@@ -489,9 +515,10 @@ def _run_pose_controller(
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
+    contact_reporter: _CriticalContactReporter,
     controlled_joint_ids: list[int],
     render: bool,
-) -> tuple[list[dict[str, Any]], int] | None:
+) -> tuple[list[dict[str, Any]], int, list[list[float]]] | None:
     dt = pose.solver.control_dt_s
     physics_steps = round(dt / sim.get_physics_dt())
     if physics_steps <= 0 or not math.isclose(
@@ -510,13 +537,25 @@ def _run_pose_controller(
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             velocities_deg_s=zero,
             accelerations_deg_s2=zero,
             step_index=0,
         )
     ]
+    initial = observations[0]
+    print(
+        "[PREGRASP] "
+        "step=0 "
+        f"angles_deg={initial['angles_deg']} "
+        f"position_error_m={initial['evaluation']['position_error_m']:.5f} "
+        f"contact_force_n={initial['maximum_critical_contact_force_n']:.4f}",
+        flush=True,
+    )
     previous_velocity = zero
+    previous_command_angles = tuple(float(value) for value in NEUTRAL_ANGLES_DEG)
     api_calls = 0
+    api_command_angles_deg: list[list[float]] = []
     for step_index in range(1, pose.solver.maximum_steps + 1):
         prior = observations[-1]
         if prior["evaluation"]["passed"]:
@@ -557,7 +596,7 @@ def _run_pose_controller(
         )
         command = quantize_pose_command(
             float_command,
-            current_angles_deg=current_angles,
+            previous_command_angles_deg=previous_command_angles,
             previous_velocities_deg_s=previous_velocity,
             solver=pose.solver,
         )
@@ -578,6 +617,7 @@ def _run_pose_controller(
             angles_deg=command.angles_deg,
             duration_ms=round(dt * 1000),
         )
+        api_command_angles_deg.append(list(command.angles_deg))
         if not _step_simulation(
             scene=scene,
             sim=sim,
@@ -592,22 +632,27 @@ def _run_pose_controller(
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             velocities_deg_s=command.velocities_deg_s,
             accelerations_deg_s2=accelerations,  # type: ignore[arg-type]
             step_index=step_index,
         )
         observations.append(observation)
+        previous_command_angles = command.angles_deg
         previous_velocity = command.velocities_deg_s
         print(
             "[PREGRASP] "
             f"step={step_index} "
+            f"command_angles_deg={command.angles_deg} "
+            f"command_velocities_deg_s={command.velocities_deg_s} "
+            f"angles_deg={observation['angles_deg']} "
             f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
             f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
             f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
             f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
             flush=True,
         )
-    return observations, api_calls
+    return observations, api_calls, api_command_angles_deg
 
 
 def _reset_to_neutral(
@@ -687,6 +732,7 @@ def main() -> None:
     )
     sim.reset()
     scene.update(sim.get_physics_dt())
+    contact_reporter = _CriticalContactReporter(sim.get_physics_dt())
     assert_compatible_asset_contracts(
         recorded_contract,
         _live_asset_contract(scene),
@@ -708,12 +754,26 @@ def main() -> None:
     yahboom_api = YahboomServoApiAdapter(arm)
     render = args_cli.cycles < 0
 
+    neutral_step = scene_config.scripted_baseline.steps[-1]
+    initialization_api_calls = _issue_angles(
+        yahboom_api=yahboom_api,
+        angles_deg=tuple(float(value) for value in NEUTRAL_ANGLES_DEG),
+        duration_ms=neutral_step.duration_ms,
+    )
+    if not _hold(
+        seconds=(neutral_step.duration_ms + neutral_step.hold_ms) / 1000.0,
+        scene=scene,
+        sim=sim,
+        backend=backend,
+        render=render,
+    ):
+        if args_cli.cycles > 0:
+            raise PregraspPoseError(
+                "simulation app stopped before initial neutral settle completed"
+            )
+        return
+
     if viewer_connection_hold_seconds > 0.0:
-        _issue_angles(
-            yahboom_api=yahboom_api,
-            angles_deg=tuple(float(value) for value in NEUTRAL_ANGLES_DEG),
-            duration_ms=CONTROL_INTERVAL_MS,
-        )
         print(
             "[PREGRASP] "
             f"viewer_connection_hold_seconds={viewer_connection_hold_seconds:g}",
@@ -741,12 +801,20 @@ def main() -> None:
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
+            contact_reporter=contact_reporter,
             controlled_joint_ids=controlled_joint_ids,
             render=render,
         )
         if controller_result is None:
+            if args_cli.cycles > 0:
+                raise PregraspPoseError(
+                    "simulation app stopped before the headless pose "
+                    "controller completed"
+                )
             break
-        observations, controller_api_calls = controller_result
+        observations, controller_api_calls, controller_command_angles = (
+            controller_result
+        )
         if render and observations[-1]["evaluation"]["passed"]:
             if not _hold(
                 seconds=float(
@@ -768,14 +836,34 @@ def main() -> None:
             render=render,
         )
         if reset_result is None:
+            if args_cli.cycles > 0:
+                raise PregraspPoseError(
+                    "simulation app stopped before the headless neutral "
+                    "reset completed"
+                )
             break
         reset_error, reset_api_calls = reset_result
         initial_position_error = observations[0]["evaluation"]["position_error_m"]
         final_evaluation = observations[-1]["evaluation"]
         final_position_error = final_evaluation["position_error_m"]
         improvement = initial_position_error - final_position_error
-        official_api_calls = controller_api_calls + reset_api_calls
-        expected_api_calls = (len(observations) - 1) * 4 + 4
+        official_api_calls = (
+            initialization_api_calls + controller_api_calls + reset_api_calls
+        )
+        expected_api_calls = 4 + (len(observations) - 1) * 4 + 4
+        all_api_command_angles = [
+            list(NEUTRAL_ANGLES_DEG),
+            *controller_command_angles,
+            list(NEUTRAL_ANGLES_DEG),
+        ]
+        command_min = (
+            pose.solver.safe_angle_min_deg
+            + pose.solver.command_limit_margin_deg
+        )
+        command_max = (
+            pose.solver.safe_angle_max_deg
+            - pose.solver.command_limit_margin_deg
+        )
         checks = {
             **final_evaluation["checks"],
             "physical_table_prim_present": table_present,
@@ -788,6 +876,11 @@ def main() -> None:
             ),
             "official_api_call_count_matches": (
                 official_api_calls == expected_api_calls
+            ),
+            "api_commands_preserve_limit_margin": all(
+                command_min <= angle <= command_max
+                for command in all_api_command_angles
+                for angle in command
             ),
             "returned_to_neutral": (
                 reset_error
@@ -852,6 +945,7 @@ def main() -> None:
                 "controlled_joint_names": list(
                     pose.solver.controlled_joint_names
                 ),
+                "api_command_angles_deg": all_api_command_angles,
                 "closing_axis_control": (
                     pose.target_pose.closing_axis_control
                 ),
@@ -907,5 +1001,11 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    finally:
+    except BaseException as error:
+        if isinstance(error, SystemExit) and error.code in (None, 0):
+            raise RuntimeError(
+                "Isaac requested a zero-code exit before pre-grasp completion"
+            ) from error
+        raise
+    else:
         simulation_app.close()

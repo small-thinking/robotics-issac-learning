@@ -878,8 +878,6 @@ def next_pose_command(
         )
         velocity = max(-maximum_velocity, min(maximum_velocity, velocity))
         command = max(command_min, min(command_max, angle + velocity * dt))
-        if abs(command - angle) > solver.maximum_joint_delta_deg + 1e-9:
-            raise PregraspPoseError(f"joint {index} command exceeds maximum delta")
         velocities.append(velocity)
         commands.append(command)
     return PoseCommand(
@@ -894,17 +892,19 @@ def next_pose_command(
 def quantize_pose_command(
     command: PoseCommand,
     *,
-    current_angles_deg: Sequence[float],
+    previous_command_angles_deg: Sequence[float],
     previous_velocities_deg_s: Sequence[float],
     solver: PoseSolverConfig,
 ) -> PoseCommand:
-    """Quantize to Yahboom integer degrees without violating motion limits."""
+    """Quantize the next Yahboom target while preserving command-space limits."""
 
-    if len(current_angles_deg) != 4 or len(previous_velocities_deg_s) != 4:
-        raise PregraspPoseError("joint angle and velocity vectors must contain four values")
-    current = tuple(
-        _number(value, f"current_angles_deg[{index}]")
-        for index, value in enumerate(current_angles_deg)
+    if len(previous_command_angles_deg) != 4 or len(previous_velocities_deg_s) != 4:
+        raise PregraspPoseError(
+            "previous command angle and velocity vectors must contain four values"
+        )
+    previous_command = tuple(
+        _number(value, f"previous_command_angles_deg[{index}]")
+        for index, value in enumerate(previous_command_angles_deg)
     )
     previous_velocity = tuple(
         _number(value, f"previous_velocities_deg_s[{index}]")
@@ -922,15 +922,24 @@ def quantize_pose_command(
     for index, desired in enumerate(command.angles_deg):
         candidates: list[tuple[float, int, float]] = []
         for candidate in range(minimum, maximum + 1):
-            delta = candidate - current[index]
+            delta = candidate - previous_command[index]
             velocity = delta / dt
             acceleration = (velocity - previous_velocity[index]) / dt
+            stopping_distance = velocity * velocity / (
+                2.0 * solver.maximum_joint_acceleration_deg_s2
+            )
+            preserves_stopping_margin = (
+                velocity >= 0.0 or candidate - minimum >= stopping_distance - 1e-9
+            ) and (
+                velocity <= 0.0 or maximum - candidate >= stopping_distance - 1e-9
+            )
             if (
                 abs(delta) <= solver.maximum_joint_delta_deg + 1e-9
                 and abs(velocity)
                 <= solver.maximum_joint_velocity_deg_s + 1e-9
                 and abs(acceleration)
                 <= solver.maximum_joint_acceleration_deg_s2 + 1e-9
+                and preserves_stopping_margin
             ):
                 candidates.append((abs(candidate - desired), candidate, velocity))
         if not candidates:
@@ -1034,12 +1043,6 @@ def evaluate_pregrasp_observation(
         frame.closing_axis_world_unit,
         config.target_pose.closing_axis_world_unit,
     )
-    command_min = (
-        config.solver.safe_angle_min_deg + config.solver.command_limit_margin_deg
-    )
-    command_max = (
-        config.solver.safe_angle_max_deg - config.solver.command_limit_margin_deg
-    )
     checks = {
         "grasp_origin_reached_pregrasp_position": (
             position_error <= config.target_pose.position_tolerance_m
@@ -1050,8 +1053,11 @@ def evaluate_pregrasp_observation(
         "fixed_closing_axis_is_acceptable_without_wrist_command": (
             closing_error <= config.target_pose.closing_tolerance_deg
         ),
-        "joint_angles_preserve_command_limit_margin": all(
-            command_min <= value <= command_max for value in angles
+        "joint_angles_remain_within_safe_limits": all(
+            config.solver.safe_angle_min_deg
+            <= value
+            <= config.solver.safe_angle_max_deg
+            for value in angles
         ),
         "joint_velocity_limit_respected": all(
             abs(value) <= config.solver.maximum_joint_velocity_deg_s + 1e-9
