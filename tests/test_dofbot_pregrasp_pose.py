@@ -232,7 +232,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         self.assertTrue(all(68.0 <= value <= 112.0 for value in command.angles_deg))
         quantized = quantize_pose_command(
             command,
-            current_angles_deg=(90.0, 90.0, 90.0, 90.0),
+            previous_command_angles_deg=(90.0, 90.0, 90.0, 90.0),
             previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
             solver=self.config.solver,
         )

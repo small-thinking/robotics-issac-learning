@@ -131,7 +131,7 @@ def build_preview(
     )
     command = quantize_pose_command(
         float_command,
-        current_angles_deg=(90.0, 90.0, 90.0, 90.0),
+        previous_command_angles_deg=(90.0, 90.0, 90.0, 90.0),
         previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
         solver=pose.solver,
     )

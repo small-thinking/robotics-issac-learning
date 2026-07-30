@@ -553,6 +553,7 @@ def _run_pose_controller(
         flush=True,
     )
     previous_velocity = zero
+    previous_command_angles = tuple(float(value) for value in NEUTRAL_ANGLES_DEG)
     api_calls = 0
     api_command_angles_deg: list[list[float]] = []
     for step_index in range(1, pose.solver.maximum_steps + 1):
@@ -595,7 +596,7 @@ def _run_pose_controller(
         )
         command = quantize_pose_command(
             float_command,
-            current_angles_deg=current_angles,
+            previous_command_angles_deg=previous_command_angles,
             previous_velocities_deg_s=previous_velocity,
             solver=pose.solver,
         )
@@ -637,10 +638,13 @@ def _run_pose_controller(
             step_index=step_index,
         )
         observations.append(observation)
+        previous_command_angles = command.angles_deg
         previous_velocity = command.velocities_deg_s
         print(
             "[PREGRASP] "
             f"step={step_index} "
+            f"command_angles_deg={command.angles_deg} "
+            f"command_velocities_deg_s={command.velocities_deg_s} "
             f"angles_deg={observation['angles_deg']} "
             f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
             f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
