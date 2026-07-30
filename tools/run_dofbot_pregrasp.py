@@ -128,7 +128,7 @@ from dofbot_control_api import (
     YahboomServoApiAdapter,
 )
 from dofbot_contact_report import maximum_monitored_contact_force_n
-from dofbot_motion_config import CONTROL_INTERVAL_MS, NEUTRAL_ANGLES_DEG
+from dofbot_motion_config import NEUTRAL_ANGLES_DEG
 from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
@@ -747,12 +747,26 @@ def main() -> None:
     yahboom_api = YahboomServoApiAdapter(arm)
     render = args_cli.cycles < 0
 
+    neutral_step = scene_config.scripted_baseline.steps[-1]
+    initialization_api_calls = _issue_angles(
+        yahboom_api=yahboom_api,
+        angles_deg=tuple(float(value) for value in NEUTRAL_ANGLES_DEG),
+        duration_ms=neutral_step.duration_ms,
+    )
+    if not _hold(
+        seconds=(neutral_step.duration_ms + neutral_step.hold_ms) / 1000.0,
+        scene=scene,
+        sim=sim,
+        backend=backend,
+        render=render,
+    ):
+        if args_cli.cycles > 0:
+            raise PregraspPoseError(
+                "simulation app stopped before initial neutral settle completed"
+            )
+        return
+
     if viewer_connection_hold_seconds > 0.0:
-        _issue_angles(
-            yahboom_api=yahboom_api,
-            angles_deg=tuple(float(value) for value in NEUTRAL_ANGLES_DEG),
-            duration_ms=CONTROL_INTERVAL_MS,
-        )
         print(
             "[PREGRASP] "
             f"viewer_connection_hold_seconds={viewer_connection_hold_seconds:g}",
@@ -824,8 +838,10 @@ def main() -> None:
         final_evaluation = observations[-1]["evaluation"]
         final_position_error = final_evaluation["position_error_m"]
         improvement = initial_position_error - final_position_error
-        official_api_calls = controller_api_calls + reset_api_calls
-        expected_api_calls = (len(observations) - 1) * 4 + 4
+        official_api_calls = (
+            initialization_api_calls + controller_api_calls + reset_api_calls
+        )
+        expected_api_calls = 4 + (len(observations) - 1) * 4 + 4
         checks = {
             **final_evaluation["checks"],
             "physical_table_prim_present": table_present,

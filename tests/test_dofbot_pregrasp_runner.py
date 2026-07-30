@@ -103,6 +103,15 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             self.runner,
         )
         self.assertIn(
+            "simulation app stopped before initial neutral settle completed",
+            self.runner,
+        )
+        self.assertIn("initialization_api_calls", self.runner)
+        self.assertIn(
+            "4 + (len(observations) - 1) * 4 + 4",
+            self.runner,
+        )
+        self.assertIn(
             "Isaac requested a zero-code exit before pre-grasp completion",
             self.runner,
         )
