@@ -6,7 +6,8 @@ SHELL := /bin/bash
 	dofbot-motion-config dofbot-motion-config-view \
 	dofbot-camera dofbot-camera-view \
 	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
-	dofbot-pregrasp-pose-dry-run dofbot-pregrasp dofbot-pregrasp-view \
+	dofbot-pregrasp-pose-dry-run dofbot-pregrasp-reachability \
+	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
 	show-dofbot-camera show-dofbot-camera-view \
@@ -106,6 +107,14 @@ dofbot-pregrasp-pose-dry-run:
 	 --scene-config "$${REACHING:-configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json}" \
 	 --asset-contract "$${DOFBOT_ASSET_CONTRACT:-artifacts/dofbot/asset_contract.json}" \
 	 --output "$${DOFBOT_PREGRASP_POSE_OUTPUT:-/tmp/dofbot-pregrasp-pose-contract.json}"
+
+dofbot-pregrasp-reachability:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/search_dofbot_pregrasp_reachability.py \
+	 --reachability-config "$${PREGRASP_REACHABILITY:-configs/dofbot/pregrasp/goal5_planar_reachability.json}" \
+	 --pose-config "$${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json}" \
+	 --failure-summary "$${PREGRASP_FAILURE:-artifacts/dofbot/pregrasp_machine_failure_2026-07-29.json}" \
+	 --output "$${DOFBOT_PREGRASP_REACHABILITY_OUTPUT:-/tmp/dofbot-pregrasp-reachability.json}"
 
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh

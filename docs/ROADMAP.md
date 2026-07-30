@@ -118,12 +118,13 @@ The detailed first-stage contract lives in
    reaching. Scene calibration and posture-aware pose control are required
    before contact or grasping.
 6. Establish a no-contact terminal-finger pre-grasp pose before any grasp
-   attempt. The lower/farther horizontal scene, midpoint grasp frame,
-   world-down approach target, four-joint pose-aware damped-least-squares
-   solver, preferred posture, motion limits, collision proxies, and contact
-   reporter passed local preparation. Remote Isaac machine and user Viewer
-   gates remain pending; wrist twist, gripper closing, target motion, contact,
-   and grasp success remain unauthorized.
+   attempt. The first lower/farther, world-down candidate passed preparation
+   but failed the remote pose gates. The evidence-calibrated local planar model
+   fits the recorded Isaac path within 2.03 mm and exhaustively rejects the
+   target across both the physical and API-margin angle spaces; its coupled
+   wrist anchor also exceeds the unbounded proximal-chain reach by 16.13 cm.
+   Revise the pose/scene before another paid gate. Wrist twist, gripper closing,
+   target motion, contact, and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

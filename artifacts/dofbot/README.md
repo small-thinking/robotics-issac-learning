@@ -130,3 +130,11 @@ This artifact does not come from Isaac and explicitly records
 separate `pregrasp_machine_contract.json` or
 `pregrasp_viewer_contract.json`; those machine-specific files remain ignored
 until reviewed and intentionally promoted.
+
+`pregrasp_machine_failure_2026-07-29.json` is the concise promoted summary of
+the first failed remote candidate. `pregrasp_reachability.json` is its
+GPU-free follow-up. The latter binds that failure SHA and twelve exact
+observation steps, fits the planar three-pitch chain within 2.03 mm, and
+records exhaustive physical-envelope and command-margin searches. Its local
+search contract passes, but it rejects the current world-down pose and keeps
+remote, Viewer, contact, and grasp authorization false.

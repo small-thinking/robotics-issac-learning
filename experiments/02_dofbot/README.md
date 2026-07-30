@@ -680,6 +680,29 @@ over alternate posture branches, followed by safety-preserving pose/scene
 recalibration. Do not restart Brev or open the Viewer until that local gate
 passes.
 
+The follow-up local gate is now
+`make dofbot-pregrasp-reachability`. It fits a planar three-pitch-chain model
+to twelve observations from the failed Isaac artifact. Maximum position and
+approach residuals are `0.00203 m` and `0.00246°`. It then evaluates all
+`226,981` integer-degree physical-envelope combinations and all `91,125`
+command-margin combinations, retaining the best candidate from every visible
+workspace-front posture branch.
+
+No candidate meets the current `0.025 m` position and `12°` world-down
+approach tolerances. More strongly, the continuous orientation lower bounds
+are `88.41°` and `112.41°` for the physical and command envelopes. Coupled
+position/orientation geometry is also impossible before angle bounds: the
+world-down pose requires `0.35791 m` of proximal reach, while the fitted first
+two links provide at most `0.19656 m`.
+
+The machine-readable result is
+`artifacts/dofbot/pregrasp_reachability.json`. Its search contract passes, but
+`current_target_feasible`, `revised_candidate_ready_for_remote_validation`,
+`paid_gpu_run_authorized`, and `viewer_authorized` are all false. This rejects
+the current pose rather than Goal 5 itself. The next design choice is either
+to preserve the current safety envelope and revise the scene/approach pose, or
+to establish a separately calibrated wider envelope before searching again.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

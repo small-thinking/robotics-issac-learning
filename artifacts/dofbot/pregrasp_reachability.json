@@ -1,0 +1,723 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-30T02:59:14.568893+00:00",
+  "experiment": "goal5_planar_reachability",
+  "sources": {
+    "reachability_config": "configs/dofbot/pregrasp/goal5_planar_reachability.json",
+    "reachability_config_sha256": "afc2c700dbdda912bea896d296f25ef1b98af8e1c48036bcb9f194a3023d5d21",
+    "pose_config": "configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json",
+    "pose_config_sha256": "7ad00b5407b7bd2a768b7a00b77a1ed49531b40ca0aa6a38413b386bda335ffc",
+    "failure_summary": "artifacts/dofbot/pregrasp_machine_failure_2026-07-29.json",
+    "failure_summary_sha256": "a1515d78c69400f554bbb6fcc24ddcbe5ecb228285ee3d999a93c14321dd0dae",
+    "full_machine_artifact_sha256": "bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5",
+    "machine_git_commit": "05ececcbc0f1cceb955014877bcac347e05fa1b0",
+    "sample_step_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "scope": {
+    "runtime": "local_pure_python",
+    "model_limit": "calibrated planar joint1=90 branch; not Isaac, dynamics, contact, or command-tracking proof",
+    "policy_used": false,
+    "gpu_started": false,
+    "isaac_started": false,
+    "real_hardware_command_sent": false,
+    "contact_or_grasp_authorized": false
+  },
+  "target_pose": {
+    "position_world_m": [
+      0.0,
+      0.25,
+      0.195
+    ],
+    "approach_axis_world_unit": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "position_tolerance_m": 0.025,
+    "approach_tolerance_deg": 12.0
+  },
+  "fitted_model": {
+    "type": "planar_three_pitch_chain",
+    "x_offset_m": -0.0007122220316280922,
+    "y_offset_m": -0.0055355133465704864,
+    "z_offset_m": 0.07688601680855678,
+    "link_lengths_m": [
+      0.13678677391936134,
+      0.05977529354014399,
+      0.1324811283667286
+    ],
+    "approach_x": -0.005728349758157469,
+    "approach_angle_offset_deg": -1.5882676481759879,
+    "maximum_position_residual_m": 0.0020299711072919997,
+    "rms_position_residual_m": 0.0013578254528210942,
+    "maximum_approach_residual_deg": 0.0024547932919518666
+  },
+  "coupled_pose_geometry": {
+    "target_wrist_anchor_world_m": [
+      0.0,
+      0.25,
+      0.3274811283667286
+    ],
+    "proximal_base_world_m": [
+      -0.0007122220316280922,
+      -0.0055355133465704864,
+      0.07688601680855678
+    ],
+    "terminal_link_length_m": 0.1324811283667286,
+    "required_proximal_reach_m": 0.3579061549881061,
+    "minimum_proximal_reach_m": 0.07701148037921735,
+    "maximum_proximal_reach_m": 0.19656206745950533,
+    "maximum_reach_margin_m": -0.16134408752860074,
+    "reachable_without_angle_bounds": false
+  },
+  "searches": {
+    "physical_envelope": {
+      "angle_bounds_deg": [
+        60,
+        120
+      ],
+      "grid_step_deg": 1,
+      "evaluated_count": 226981,
+      "workspace_front_count": 109823,
+      "posture_branch_count": 19,
+      "passed_candidate_count": 0,
+      "target_feasible": false,
+      "minimum_approach_error_lower_bound_deg": 88.41175841741459,
+      "minimum_workspace_front_approach_error_deg": 91.58824158258543,
+      "ranked_branch_candidates": [
+        {
+          "angles_deg": [
+            90,
+            60,
+            60,
+            60
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.24710592470427534,
+            0.22523448469451443
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.9995994107196623,
+            0.02771649505171907
+          ],
+          "position_error_m": 0.030381030212658807,
+          "approach_error_deg": 91.58824158258543,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 7.728494718432451,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            60,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.2293568190251609,
+            0.29147504887787873
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8518202357653228,
+            0.5238028941784856
+          ],
+          "position_error_m": 0.09866145770751303,
+          "approach_error_deg": 121.58768958694002,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 10.87373844435154,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            60,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.2281832875336255,
+            0.2934673100104261
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8425488784153036,
+            0.5385894294266851
+          ],
+          "position_error_m": 0.10085775797504203,
+          "approach_error_deg": 122.58766672836991,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 10.983393727042603,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            90,
+            60
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.20747754307079633,
+            0.31335432483224324
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8518202357653228,
+            0.5238028941784856
+          ],
+          "position_error_m": 0.12576332060666362,
+          "approach_error_deg": 121.58768958694002,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 11.312378842358383,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            91,
+            60
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.20539600217049947,
+            0.31586031297060624
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8425488784153036,
+            0.5385894294266851
+          ],
+          "position_error_m": 0.12883027258354038,
+          "approach_error_deg": 122.58766672836991,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 11.441803206992955,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            90,
+            60,
+            60
+          ],
+          "posture_branch": "joint2_neutral/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.1390841561111157,
+            0.331680277635719
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8518202357653228,
+            0.5238028941784856
+          ],
+          "position_error_m": 0.1760236631262482,
+          "approach_error_deg": 121.58768958694002,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 12.338500011979862,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            91,
+            60,
+            60
+          ],
+          "posture_branch": "joint2_high/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.1346153568371333,
+            0.33416543248587244
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.8425488784153036,
+            0.5385894294266851
+          ],
+          "position_error_m": 0.18077925969818642,
+          "approach_error_deg": 122.58766672836991,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 12.515953946562535,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            90,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.15898608456654645,
+            0.36184578333649314
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.4757965165411767,
+            0.879536730817042
+          ],
+          "position_error_m": 0.19005671648199698,
+          "approach_error_deg": 151.58652994416943,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.743379503631763,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            90,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.15697364591646207,
+            0.3629843663424838
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.4603740179243967,
+            0.8877065673009271
+          ],
+          "position_error_m": 0.19202384526350866,
+          "approach_error_deg": 152.58645505377137,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.85536792084926,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            91,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.1560656365077006,
+            0.3634980933482994
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.4603740179243967,
+            0.8877065673009271
+          ],
+          "position_error_m": 0.1929139169861469,
+          "approach_error_deg": 152.58645505377137,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.873807569390017,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            60,
+            91,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.15403363334838696,
+            0.3646013810453321
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.4448112849220136,
+            0.8956059997650057
+          ],
+          "position_error_m": 0.1948709296971154,
+          "approach_error_deg": 153.58637494718982,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.985673868581339,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            90,
+            60,
+            90
+          ],
+          "posture_branch": "joint2_neutral/joint3_low/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.0905926976068658,
+            0.38017173613996885
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.4757965165411767,
+            0.879536730817042
+          ],
+          "position_error_m": 0.24433535802574444,
+          "approach_error_deg": 151.58652994416943,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 15.971611625341696,
+          "passed": false
+        }
+      ]
+    },
+    "command_margin": {
+      "angle_bounds_deg": [
+        68,
+        112
+      ],
+      "grid_step_deg": 1,
+      "evaluated_count": 91125,
+      "workspace_front_count": 43586,
+      "posture_branch_count": 19,
+      "passed_candidate_count": 0,
+      "target_feasible": false,
+      "minimum_approach_error_lower_bound_deg": 112.4113446626637,
+      "minimum_workspace_front_approach_error_deg": 115.58781748472867,
+      "ranked_branch_candidates": [
+        {
+          "angles_deg": [
+            90,
+            68,
+            68,
+            68
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.20825665510280983,
+            0.3005961822479948
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.9019061869700048,
+            0.43189398689293523
+          ],
+          "position_error_m": 0.11354984724243286,
+          "approach_error_deg": 115.58781748472867,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 10.649472331093914,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            68,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.17925824680781954,
+            0.34201020125317916
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6744425197457037,
+            0.7383051358131774
+          ],
+          "position_error_m": 0.16314687302374492,
+          "approach_error_deg": 137.5872385852518,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 13.192691180260974,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            68,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_low/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.17758103434535688,
+            0.3436018164509088
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6614545975782653,
+            0.7499633333381194
+          ],
+          "position_error_m": 0.1653103556926193,
+          "approach_error_deg": 138.58720181148922,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 13.307963275547653,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            90,
+            68
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.16012705788702442,
+            0.3544341406052396
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6744425197457037,
+            0.7383051358131774
+          ],
+          "position_error_m": 0.1830215784403465,
+          "approach_error_deg": 137.5872385852518,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 13.603495660069424,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            91,
+            68
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.15747917572050207,
+            0.35640811276776047
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6614545975782653,
+            0.7499633333381194
+          ],
+          "position_error_m": 0.18604620139317585,
+          "approach_error_deg": 138.58720181148922,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 13.73895800667215,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            90,
+            68,
+            68
+          ],
+          "posture_branch": "joint2_neutral/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.10888583048473995,
+            0.36439442622829177
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6744425197457037,
+            0.7383051358131774
+          ],
+          "position_error_m": 0.22047264622944968,
+          "approach_error_deg": 137.5872385852518,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.464893966791458,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            91,
+            68,
+            68
+          ],
+          "posture_branch": "joint2_high/joint3_low/joint4_low",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.10385068994453209,
+            0.3663475651026031
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.6614545975782653,
+            0.7499633333381194
+          ],
+          "position_error_m": 0.22521127004770972,
+          "approach_error_deg": 138.58720181148922,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 14.646844386248405,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            90,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.11772623732857984,
+            0.3819695554336986
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.3487582433131116,
+            0.9371952164464993
+          ],
+          "position_error_m": 0.22902940905165958,
+          "approach_error_deg": 159.58574163791613,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 16.148855925815397,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            90,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_neutral/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.11557492346545573,
+            0.38281698050071883
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.3323488139149043,
+            0.9431391476862809
+          ],
+          "position_error_m": 0.2309671548639499,
+          "approach_error_deg": 160.58560012498447,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 16.261451824218753,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            91,
+            90
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.11460425376139605,
+            0.38319933746551
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.3323488139149043,
+            0.9431391476862809
+          ],
+          "position_error_m": 0.23184371024935674,
+          "approach_error_deg": 160.58560012498447,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 16.281397433923512,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            68,
+            91,
+            91
+          ],
+          "posture_branch": "joint2_low/joint3_high/joint4_high",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.11243847794709863,
+            0.38400908786167454
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.3158381478484434,
+            0.9487957896052833
+          ],
+          "position_error_m": 0.23376936262914225,
+          "approach_error_deg": 161.5854438654952,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 16.393761801177362,
+          "passed": false
+        },
+        {
+          "angles_deg": [
+            90,
+            90,
+            68,
+            90
+          ],
+          "posture_branch": "joint2_neutral/joint3_low/joint4_neutral",
+          "origin_world_m": [
+            -0.0007122220316280922,
+            0.06648500992629537,
+            0.39192984105675077
+          ],
+          "approach_axis_world_unit": [
+            -0.005728349758157469,
+            0.3487582433131116,
+            0.9371952164464993
+          ],
+          "position_error_m": 0.2691832482540683,
+          "approach_error_deg": 159.58574163791613,
+          "minimum_angle_margin_deg": 0,
+          "normalized_score": 17.111218226673323,
+          "passed": false
+        }
+      ]
+    }
+  },
+  "acceptance": {
+    "checks": {
+      "failure_summary_sha256_matches": true,
+      "full_machine_artifact_sha256_matches_summary": true,
+      "machine_git_commit_matches_summary": true,
+      "source_machine_gate_failed": true,
+      "calibration_sample_count_matches": true,
+      "calibration_position_residual_within_limit": true,
+      "calibration_approach_residual_within_limit": true,
+      "physical_envelope_exhaustively_searched": true,
+      "command_margin_exhaustively_searched": true,
+      "current_world_down_target_rejected_in_physical_envelope": true,
+      "current_world_down_target_rejected_in_command_margin": true,
+      "current_pose_rejected_by_unbounded_chain_geometry": true,
+      "gpu_not_started": true,
+      "isaac_not_started": true,
+      "real_hardware_command_not_sent": true,
+      "contact_or_grasp_not_authorized": true
+    },
+    "search_contract_passed": true,
+    "current_target_feasible": false,
+    "revised_candidate_ready_for_remote_validation": false,
+    "paid_gpu_run_authorized": false,
+    "viewer_authorized": false,
+    "contact_or_grasp_authorized": false
+  },
+  "conclusion": "The current world-down pose is unreachable under the evidence-calibrated planar model even before angle bounds, and its orientation is also outside the established physical and command envelopes. Revise the task pose or scene before another paid run."
+}

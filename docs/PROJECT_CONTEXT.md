@@ -55,9 +55,11 @@ lightweight VLA post-training, and optional real hardware.
 - Goal 4 fixed-tabletop reaching: corrected physical-front v2 passed local,
   remote Isaac machine, and user Viewer gates for safe no-contact reaching.
   Scene depth/height and motion quality remain explicit pre-grasp limitations.
-- The lower/farther scene and terminal-finger pose-aware pre-grasp controller
-  passed free local gates. Candidate Isaac machine and Viewer acceptance remain
-  pending; no contact or grasp is authorized.
+- The first lower/farther terminal-finger pre-grasp candidate failed its remote
+  pose gates safely. A subsequent evidence-calibrated exhaustive local search
+  proved that the strict world-down target is incompatible with the calibrated
+  chain geometry and established angle envelopes. No contact or grasp is
+  authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -78,10 +80,10 @@ The CartPole stage is complete. The canonical next-stage plan is
    tabletop, static cube, corrected physical-front frame, safe scripted
    approach, and Jacobian state-controller approach passed local, remote
    machine, and visual gates through the same Yahboom API.
-6. Goal 5 local preparation: complete — define the terminal-finger midpoint
-   grasp frame, lower/farther target pose, four-joint pose-aware IK, preferred
-   posture, velocity/acceleration limits, collision proxies, and Isaac contact
-   reporter gate. Remote machine and Viewer validation remain pending.
+6. Goal 5 first candidate: rejected — the terminal-finger frame, pose-aware
+   controller, smoothness, collision, and contact gates worked fail-closed, but
+   the world-down pose failed remotely and is rejected by the local calibrated
+   all-branch search. Revise the task pose or scene before another paid run.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -102,10 +104,12 @@ closed on body-center collision proxies or Isaac contact reports. Only
 `joint1`-`joint4` cross the Yahboom API; wrist twist and gripper remain
 uncommanded.
 
-The exact next step is review and merge, followed by a separately approved
-Isaac headless machine gate and then a human Viewer gate. A fresh cost quote,
-explicit approval, and prompt shutdown remain mandatory. Contact and grasping
-are still out of scope.
+The exact next step is a task-design choice, not another GPU run. Preserve the
+current safety envelope and revise the scene/approach pose, or separately
+calibrate a wider envelope before revisiting the lower/farther task. Any
+revised candidate must first pass the local reachability contract. Only then
+may a freshly quoted and explicitly approved Isaac headless gate precede a
+human Viewer gate. Contact and grasping remain out of scope.
 
 ## Sources of truth
 
