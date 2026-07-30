@@ -123,8 +123,12 @@ The detailed first-stage contract lives in
    fits the recorded Isaac path within 2.03 mm and exhaustively rejects the
    target across both the physical and API-margin angle spaces; its coupled
    wrist anchor also exceeds the unbounded proximal-chain reach by 16.13 cm.
-   Revise the pose/scene before another paid gate. Wrist twist, gripper closing,
-   target motion, contact, and grasp success remain unauthorized.
+   A follow-up joint-first search preserves the established physical and
+   machine-validated angle envelopes, rejects the requested low table, and
+   produces one residual-aware angled candidate at `[90,66,66,66]°` with a
+   `0.26160 m` table top. Local design and dry-run gates pass; Isaac headless
+   and Viewer validation remain pending. Wrist twist, gripper closing, target
+   motion, contact, and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

@@ -47,7 +47,7 @@ parser.add_argument(
     type=Path,
     default=Path(
         "/workspace/robotics-issac-learning/configs/dofbot/reaching/"
-        "goal4_pregrasp_scene_candidate.json"
+        "goal5_angled_pregrasp_scene_candidate.json"
     ),
 )
 parser.add_argument(
@@ -55,7 +55,7 @@ parser.add_argument(
     type=Path,
     default=Path(
         "/workspace/robotics-issac-learning/configs/dofbot/pregrasp/"
-        "goal5_pose_aware_pregrasp.json"
+        "goal5_angled_pregrasp.json"
     ),
 )
 parser.add_argument(
@@ -909,7 +909,7 @@ def main() -> None:
         }
         result = {
             "schema_version": 1,
-            "experiment": "dofbot_goal5_pose_aware_pregrasp",
+            "experiment": "dofbot_goal5_angled_pregrasp",
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "git_commit": args_cli.git_commit,
             "sources": {

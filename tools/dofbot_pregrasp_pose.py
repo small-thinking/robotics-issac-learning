@@ -1047,7 +1047,7 @@ def evaluate_pregrasp_observation(
         "grasp_origin_reached_pregrasp_position": (
             position_error <= config.target_pose.position_tolerance_m
         ),
-        "approach_axis_points_down_within_tolerance": (
+        "approach_axis_matches_target_within_tolerance": (
             approach_error <= config.target_pose.approach_tolerance_deg
         ),
         "fixed_closing_axis_is_acceptable_without_wrist_command": (

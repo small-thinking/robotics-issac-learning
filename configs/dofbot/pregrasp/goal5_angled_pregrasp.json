@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "name": "goal5_angled_pregrasp_v2",
+  "source_contracts": {
+    "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
+    "scene_config_sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949"
+  },
+  "grasp_frame": {
+    "mode": "terminal_finger_midpoint",
+    "wrist_body_name": "Wrist_Twist",
+    "left_tip_body_name": "Finger_Left_03",
+    "right_tip_body_name": "Finger_Right_03",
+    "approach_axis_definition": "wrist_to_finger_midpoint",
+    "closing_axis_definition": "left_tip_to_right_tip",
+    "minimum_finger_separation_m": 0.005,
+    "maximum_finger_separation_m": 0.12,
+    "minimum_axis_cross_norm": 0.2
+  },
+  "target_pose": {
+    "position_world_m": [-0.0007122220316280922, 0.22051942039962125, 0.2827833512992581],
+    "approach_axis_world_unit": [0.0, 0.9421261228400827, 0.33525865933979027],
+    "closing_axis_world_unit": [1.0, 0.0, 0.0],
+    "position_tolerance_m": 0.025,
+    "approach_tolerance_deg": 12.0,
+    "closing_tolerance_deg": 20.0,
+    "closing_axis_control": "monitor_only_wrist_twist_uncontrolled"
+  },
+  "solver": {
+    "controlled_joint_names": ["joint1", "joint2", "joint3", "joint4"],
+    "control_hz": 5,
+    "maximum_steps": 60,
+    "damping": 0.08,
+    "translation_gain": 0.7,
+    "orientation_gain": 0.35,
+    "orientation_length_scale_m": 0.06,
+    "posture_weight": 0.01,
+    "posture_gain": 0.08,
+    "preferred_angles_deg": [90.0, 66.0, 66.0, 66.0],
+    "safe_angle_min_deg": 60.0,
+    "safe_angle_max_deg": 120.0,
+    "command_limit_margin_deg": 4.0,
+    "maximum_joint_delta_deg": 4.0,
+    "maximum_joint_velocity_deg_s": 20.0,
+    "maximum_joint_acceleration_deg_s2": 60.0
+  },
+  "collision": {
+    "critical_body_names": [
+      "link2",
+      "link3",
+      "link4",
+      "Wrist_Twist",
+      "Finger_Left_01",
+      "Finger_Right_01",
+      "Finger_Left_02",
+      "Finger_Right_02",
+      "Finger_Left_03",
+      "Finger_Right_03"
+    ],
+    "minimum_body_center_table_distance_m": 0.015,
+    "minimum_nonfinger_body_center_target_distance_m": 0.03,
+    "minimum_terminal_finger_target_distance_m": 0.04,
+    "maximum_contact_force_n": 0.5,
+    "require_static_target": true,
+    "contact_authorized": false
+  },
+  "acceptance": {
+    "minimum_position_improvement_m": 0.03,
+    "maximum_neutral_reset_error_deg": 1.0,
+    "viewer_connection_hold_seconds": 20,
+    "viewer_success_hold_seconds": 3
+  }
+}

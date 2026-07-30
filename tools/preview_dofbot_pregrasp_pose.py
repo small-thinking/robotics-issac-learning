@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -35,13 +36,14 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--pose-config",
         type=Path,
-        default=Path("configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json"),
+        default=Path("configs/dofbot/pregrasp/goal5_angled_pregrasp.json"),
     )
     parser.add_argument(
         "--scene-config",
         type=Path,
         default=Path(
-            "configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json"
+            "configs/dofbot/reaching/"
+            "goal5_angled_pregrasp_scene_candidate.json"
         ),
     )
     parser.add_argument(
@@ -65,18 +67,52 @@ def _read_json(path: Path) -> tuple[dict[str, Any], str]:
     return value, hashlib.sha256(raw).hexdigest()
 
 
-def _body_positions() -> dict[str, tuple[float, float, float]]:
+def _shift(
+    origin: tuple[float, float, float],
+    direction: tuple[float, float, float],
+    distance: float,
+) -> tuple[float, float, float]:
+    return tuple(
+        origin[index] + distance * direction[index] for index in range(3)
+    )  # type: ignore[return-value]
+
+
+def _close_vector(
+    left: tuple[float, float, float],
+    right: tuple[float, float, float],
+) -> bool:
+    return all(
+        math.isclose(
+            left_value,
+            right_value,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        )
+        for left_value, right_value in zip(left, right, strict=True)
+    )
+
+
+def _target_body_positions(pose) -> dict[str, tuple[float, float, float]]:
+    origin = pose.target_pose.position_world_m
+    approach = pose.target_pose.approach_axis_world_unit
+    closing = pose.target_pose.closing_axis_world_unit
+    left_tip = _shift(origin, closing, -0.025)
+    right_tip = _shift(origin, closing, 0.025)
+    left_02 = _shift(_shift(origin, approach, -0.02), closing, -0.023)
+    right_02 = _shift(_shift(origin, approach, -0.02), closing, 0.023)
+    left_01 = _shift(_shift(origin, approach, -0.04), closing, -0.02)
+    right_01 = _shift(_shift(origin, approach, -0.04), closing, 0.02)
     return {
-        "link2": (0.0, 0.08, 0.30),
-        "link3": (0.0, 0.12, 0.28),
-        "link4": (0.0, 0.18, 0.27),
-        "Wrist_Twist": (0.0, 0.25, 0.255),
-        "Finger_Left_01": (-0.02, 0.24, 0.24),
-        "Finger_Right_01": (0.02, 0.24, 0.24),
-        "Finger_Left_02": (-0.023, 0.245, 0.215),
-        "Finger_Right_02": (0.023, 0.245, 0.215),
-        "Finger_Left_03": (-0.025, 0.25, 0.195),
-        "Finger_Right_03": (0.025, 0.25, 0.195),
+        "link2": _shift(_shift(origin, approach, -0.19), (0.0, 0.0, 1.0), 0.04),
+        "link3": _shift(_shift(origin, approach, -0.14), (0.0, 0.0, 1.0), 0.02),
+        "link4": _shift(origin, approach, -0.09),
+        "Wrist_Twist": _shift(origin, approach, -0.06),
+        "Finger_Left_01": left_01,
+        "Finger_Right_01": right_01,
+        "Finger_Left_02": left_02,
+        "Finger_Right_02": right_02,
+        "Finger_Left_03": left_tip,
+        "Finger_Right_03": right_tip,
     }
 
 
@@ -96,7 +132,7 @@ def build_preview(
     ):
         raise ValueError("asset contract body_names are missing")
 
-    positions = _body_positions()
+    positions = _target_body_positions(pose)
     frame = derive_grasp_frame(
         wrist_position_world_m=positions[pose.grasp_frame.wrist_body_name],
         left_tip_position_world_m=positions[
@@ -115,10 +151,27 @@ def build_preview(
         (0.00, 0.00, 0.50, 0.20),
         (0.30, 0.00, 0.00, 0.30),
     )
+    offset_origin = _shift(
+        pose.target_pose.position_world_m,
+        pose.target_pose.approach_axis_world_unit,
+        -0.02,
+    )
     offset_frame = derive_grasp_frame(
-        wrist_position_world_m=(0.0, 0.23, 0.275),
-        left_tip_position_world_m=(-0.025, 0.23, 0.215),
-        right_tip_position_world_m=(0.025, 0.23, 0.215),
+        wrist_position_world_m=_shift(
+            offset_origin,
+            pose.target_pose.approach_axis_world_unit,
+            -0.06,
+        ),
+        left_tip_position_world_m=_shift(
+            offset_origin,
+            pose.target_pose.closing_axis_world_unit,
+            -0.025,
+        ),
+        right_tip_position_world_m=_shift(
+            offset_origin,
+            pose.target_pose.closing_axis_world_unit,
+            0.025,
+        ),
         config=pose.grasp_frame,
     )
     float_command = next_pose_command(
@@ -150,15 +203,15 @@ def build_preview(
         maximum_contact_force_n=0.0,
     )
     collision_positions = dict(positions)
-    collision_positions[pose.grasp_frame.left_tip_body_name] = (
+    collision_positions[pose.grasp_frame.left_tip_body_name] = _shift(
+        scene.target_cube.center_world_m,
+        pose.target_pose.closing_axis_world_unit,
         -0.01,
-        0.25,
-        0.105,
     )
-    collision_positions[pose.grasp_frame.right_tip_body_name] = (
+    collision_positions[pose.grasp_frame.right_tip_body_name] = _shift(
+        scene.target_cube.center_world_m,
+        pose.target_pose.closing_axis_world_unit,
         0.01,
-        0.25,
-        0.105,
     )
     collision_evaluation = evaluate_pregrasp_observation(
         config=pose,
@@ -175,9 +228,13 @@ def build_preview(
         maximum_contact_force_n=5.0,
     )
     reversed_frame = derive_grasp_frame(
-        wrist_position_world_m=(0.0, 0.25, 0.255),
-        left_tip_position_world_m=(0.025, 0.25, 0.195),
-        right_tip_position_world_m=(-0.025, 0.25, 0.195),
+        wrist_position_world_m=positions[pose.grasp_frame.wrist_body_name],
+        left_tip_position_world_m=positions[
+            pose.grasp_frame.right_tip_body_name
+        ],
+        right_tip_position_world_m=positions[
+            pose.grasp_frame.left_tip_body_name
+        ],
         config=pose.grasp_frame,
     )
     reversed_evaluation = evaluate_pregrasp_observation(
@@ -218,19 +275,29 @@ def build_preview(
             scene_sha256 == pose.source_contracts.scene_config_sha256
         ),
         "target_position_matches_scene_waypoint": (
-            pose.target_pose.position_world_m == scene.approach_target_world_m
+            _close_vector(
+                pose.target_pose.position_world_m,
+                scene.approach_target_world_m,
+            )
         ),
         "target_cube_is_static": scene.target_cube.static,
         "grasp_origin_is_terminal_finger_midpoint": (
-            frame.origin_world_m == pose.target_pose.position_world_m
+            _close_vector(
+                frame.origin_world_m,
+                pose.target_pose.position_world_m,
+            )
         ),
-        "approach_axis_is_world_down": (
-            frame.approach_axis_world_unit
-            == pose.target_pose.approach_axis_world_unit
+        "approach_axis_matches_target": (
+            _close_vector(
+                frame.approach_axis_world_unit,
+                pose.target_pose.approach_axis_world_unit,
+            )
         ),
-        "closing_axis_is_world_positive_x": (
-            frame.closing_axis_world_unit
-            == pose.target_pose.closing_axis_world_unit
+        "closing_axis_matches_target": (
+            _close_vector(
+                frame.closing_axis_world_unit,
+                pose.target_pose.closing_axis_world_unit,
+            )
         ),
         "frame_axes_are_orthogonal": (
             abs(

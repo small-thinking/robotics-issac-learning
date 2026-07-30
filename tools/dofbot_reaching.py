@@ -34,6 +34,7 @@ except ImportError:
 SCHEMA_VERSION = 2
 CONTROLLED_JOINT_COUNT = 4
 EXPECTED_END_EFFECTOR_BODY = "Wrist_Twist"
+EXPECTED_TERMINAL_GRASP_FRAME = "terminal_finger_midpoint"
 EXPECTED_WORKSPACE_FRONT_WORLD_UNIT = (0.0, 1.0, 0.0)
 EXPECTED_ELECTRONICS_REAR_WORLD_UNIT = (0.0, -1.0, 0.0)
 MAX_STATE_CONTROLLER_STEPS = 100
@@ -431,6 +432,7 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
         raise ReachingConfigError(f"schema_version must equal {SCHEMA_VERSION}")
     if not isinstance(raw["name"], str) or _NAME_PATTERN.fullmatch(raw["name"]) is None:
         raise ReachingConfigError("name must be lowercase snake_case")
+    name = raw["name"]
 
     scene = _strict_object(
         raw["scene"],
@@ -488,13 +490,31 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
         {"body_name", "approach_offset_from_cube_center_m"},
         "end_effector",
     )
-    if end_effector["body_name"] != EXPECTED_END_EFFECTOR_BODY:
-        raise ReachingConfigError(f"end_effector.body_name must be {EXPECTED_END_EFFECTOR_BODY}")
+    is_goal5_terminal_scene = name.startswith("goal5_")
+    expected_body = (
+        EXPECTED_TERMINAL_GRASP_FRAME
+        if is_goal5_terminal_scene
+        else EXPECTED_END_EFFECTOR_BODY
+    )
+    if end_effector["body_name"] != expected_body:
+        raise ReachingConfigError(f"end_effector.body_name must be {expected_body}")
     approach_offset = _vector3(
         end_effector["approach_offset_from_cube_center_m"],
         "end_effector.approach_offset_from_cube_center_m",
     )
-    if (
+    if is_goal5_terminal_scene:
+        offset_norm = math.sqrt(sum(value * value for value in approach_offset))
+        if (
+            abs(approach_offset[0]) > 0.01
+            or not -0.15 <= approach_offset[1] <= -0.04
+            or abs(approach_offset[2]) > 0.05
+            or not 0.05 <= offset_norm <= 0.15
+        ):
+            raise ReachingConfigError(
+                "goal5 terminal-finger approach must be a bounded front-side "
+                "standoff from the cube"
+            )
+    elif (
         abs(approach_offset[0]) > 0.05
         or abs(approach_offset[1]) > 0.05
         or approach_offset[2] < target.size_m[2] / 2.0 + 0.04
@@ -526,7 +546,7 @@ def parse_reaching_config(value: Any) -> DofbotReachingConfig:
         raise ReachingConfigError("viewer.success_hold_seconds must be in [0, 10]")
 
     return DofbotReachingConfig(
-        name=raw["name"],
+        name=name,
         robot_frame=robot_frame,
         table=table,
         target_cube=target,
