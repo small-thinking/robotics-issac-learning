@@ -47,14 +47,16 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("activate_contact_sensors=True", self.scene_cfg)
         self.assertIn("ContactSensorCfg(", self.scene_cfg)
         self.assertNotIn('prim_path="{ENV_REGEX_NS}/Dofbot/.*"', self.scene_cfg)
-        for expected_path in (
-            "{ENV_REGEX_NS}/Dofbot/link2",
-            "{ENV_REGEX_NS}/Dofbot/link5/Wrist_Twist",
-            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Left_01",
-            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Left_02/Finger_Left_02",
-            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Right_03/Finger_Right_03",
+        for expected_text in (
+            '"{ENV_REGEX_NS}/Dofbot"',
+            '"{ENV_REGEX_NS}/Dofbot/link5"',
+            '"link2", "link3", "link4"',
+            '"Wrist_Twist"',
+            '"Finger_Left_02"',
+            '"Finger_Right_03"',
         ):
-            self.assertIn(expected_path, self.scene_cfg)
+            self.assertIn(expected_text, self.scene_cfg)
+        self.assertNotIn("Finger_Left_02/Finger_Left_02", self.scene_cfg)
         self.assertIn("CONTACT_SENSOR_KEYS_BY_BODY", self.runner)
         self.assertIn("net_forces_w", self.runner)
         self.assertIn(
@@ -95,6 +97,10 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         )
         self.assertIn(
             "simulation app stopped before the headless neutral",
+            self.runner,
+        )
+        self.assertIn(
+            "Isaac requested a zero-code exit before pre-grasp completion",
             self.runner,
         )
 

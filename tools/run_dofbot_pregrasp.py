@@ -387,17 +387,20 @@ def _maximum_critical_contact_force_n(
     for expected_name in critical_body_names:
         sensor = scene[CONTACT_SENSOR_KEYS_BY_BODY[expected_name]]
         sensor_names = list(sensor.body_names)
-        if sensor_names != [expected_name]:
+        if expected_name not in sensor_names:
             raise PregraspPoseError(
                 "contact reporter body mismatch: "
-                f"expected {[expected_name]}, got {sensor_names}"
+                f"expected {expected_name!r} in {sensor_names}"
             )
-        forces = sensor.data.net_forces_w[0]
+        body_index = sensor_names.index(expected_name)
         force = float(
-            torch.linalg.vector_norm(forces, dim=-1).max().item()
+            torch.linalg.vector_norm(
+                sensor.data.net_forces_w[0, body_index],
+                dim=-1,
+            ).item()
         )
         maximum = max(maximum, force)
-        observed_names.extend(sensor_names)
+        observed_names.append(expected_name)
     return maximum, observed_names
 
 
@@ -930,7 +933,17 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    failure: BaseException | None = None
     try:
         main()
+    except BaseException as error:
+        if isinstance(error, SystemExit) and error.code in (None, 0):
+            failure = RuntimeError(
+                "Isaac requested a zero-code exit before pre-grasp completion"
+            )
+        else:
+            failure = error
     finally:
         simulation_app.close()
+    if failure is not None:
+        raise failure
