@@ -115,11 +115,11 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 import torch
-from pxr import UsdPhysics
+from pxr import PhysicsSchemaTools, UsdPhysics
 
 import isaaclab.sim as sim_utils
+import omni.physx
 from isaaclab.scene import InteractiveScene
-from isaaclab_physx.physics import PhysxManager as SimulationManager
 
 from dofbot_control_api import (
     CONTROLLED_JOINT_NAMES,
@@ -127,14 +127,15 @@ from dofbot_control_api import (
     JointPositionCommand,
     YahboomServoApiAdapter,
 )
+from dofbot_contact_report import maximum_monitored_contact_force_n
 from dofbot_motion_config import CONTROL_INTERVAL_MS, NEUTRAL_ANGLES_DEG
 from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
 )
 from dofbot_pregrasp_scene_cfg import (
-    CONTACT_BODY_GLOBS,
     CONTACT_BODY_NAMES,
+    CONTACT_BODY_PATHS,
     DofbotPregraspSceneCfg,
 )
 
@@ -373,34 +374,39 @@ def _terminal_midpoint_jacobian(
 
 
 class _CriticalContactReporter:
-    """Read net forces from explicit PhysX views for nested DOFBOT bodies."""
+    """Accumulate contact impulses for explicit nested DOFBOT actor paths."""
 
     def __init__(self, physics_dt: float) -> None:
-        physics_view = SimulationManager.get_physics_sim_view()
-        self._views = tuple(
-            physics_view.create_rigid_contact_view(body_glob)
-            for body_glob in CONTACT_BODY_GLOBS
-        )
-        expected_counts = (3, 7)
-        counts = tuple(view.count for view in self._views)
-        if counts != expected_counts:
-            raise PregraspPoseError(
-                "critical contact view count mismatch: "
-                f"expected {expected_counts}, got {counts}"
-            )
         self._physics_dt = physics_dt
+        self._critical_paths = frozenset(CONTACT_BODY_PATHS)
+        self._maximum_force_n_since_read = 0.0
+        self._subscription = (
+            omni.physx.get_physx_simulation_interface()
+            .subscribe_contact_report_events(self._on_contact_report)
+        )
+
+    def _on_contact_report(
+        self,
+        headers: Any,
+        contact_data: Any,
+    ) -> None:
+        force_n = maximum_monitored_contact_force_n(
+            headers=headers,
+            contact_data=contact_data,
+            critical_paths=self._critical_paths,
+            physics_dt=self._physics_dt,
+            decode_path=lambda value: str(
+                PhysicsSchemaTools.intToSdfPath(value)
+            ),
+        )
+        self._maximum_force_n_since_read = max(
+            self._maximum_force_n_since_read,
+            force_n,
+        )
 
     def maximum_force_n(self) -> float:
-        maximum = 0.0
-        for view in self._views:
-            forces = view.get_net_contact_forces(dt=self._physics_dt)
-            force = float(
-                torch.linalg.vector_norm(
-                    forces.reshape(-1, 3),
-                    dim=-1,
-                ).max().item()
-            )
-            maximum = max(maximum, force)
+        maximum = self._maximum_force_n_since_read
+        self._maximum_force_n_since_read = 0.0
         return maximum
 
 
@@ -471,7 +477,7 @@ def _observation(
         "command_velocities_deg_s": list(velocities_deg_s),
         "command_accelerations_deg_s2": list(accelerations_deg_s2),
         "maximum_critical_contact_force_n": contact_force,
-        "contact_sensor_body_names": list(CONTACT_BODY_NAMES),
+        "contact_report_body_names": list(CONTACT_BODY_NAMES),
         "body_positions_world_m": {
             name: list(position) for name, position in positions.items()
         },

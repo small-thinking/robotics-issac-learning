@@ -47,8 +47,8 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("activate_contact_sensors=True", self.scene_cfg)
         self.assertNotIn("ContactSensorCfg", self.scene_cfg)
         for expected_text in (
-            '"/World/envs/env_*/Dofbot/(link2|link3|link4)"',
-            '"/World/envs/env_*/Dofbot/link5/"',
+            'f"/World/envs/env_0/Dofbot/{name}"',
+            'f"/World/envs/env_0/Dofbot/link5/{name}"',
             '"link2", "link3", "link4"',
             '"Wrist_Twist"',
             '"Finger_Left_02"',
@@ -56,9 +56,10 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         ):
             self.assertIn(expected_text, self.scene_cfg)
         self.assertNotIn("Finger_Left_02/Finger_Left_02", self.scene_cfg)
-        self.assertIn("create_rigid_contact_view", self.runner)
-        self.assertIn("get_net_contact_forces", self.runner)
-        self.assertIn("critical contact view count mismatch", self.runner)
+        self.assertIn("subscribe_contact_report_events", self.runner)
+        self.assertIn("PhysicsSchemaTools.intToSdfPath", self.runner)
+        self.assertIn("maximum_monitored_contact_force_n(", self.runner)
+        self.assertIn("physics_dt=self._physics_dt", self.runner)
         self.assertIn(
             "contact_reporter_force_remains_below_threshold",
             self.runner,
