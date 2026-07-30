@@ -84,12 +84,13 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "grasp_origin_reached_pregrasp_position",
             "approach_axis_points_down_within_tolerance",
             "fixed_closing_axis_is_acceptable_without_wrist_command",
-            "joint_angles_preserve_command_limit_margin",
+            "joint_angles_remain_within_safe_limits",
             "joint_velocity_limit_respected",
             "joint_acceleration_limit_respected",
             "contact_reporter_force_remains_below_threshold",
             "pose_controller_improved_position",
             "official_api_call_count_matches",
+            "api_commands_preserve_limit_margin",
             "returned_to_neutral",
         ):
             self.assertIn(expected, self.runner + self.pose_module)

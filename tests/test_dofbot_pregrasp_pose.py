@@ -76,6 +76,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         *,
         frame=None,
         body_positions=None,
+        angles_deg=(90.0, 80.0, 80.0, 90.0),
         maximum_contact_force_n: float = 0.0,
     ) -> dict[str, object]:
         return evaluate_pregrasp_observation(
@@ -87,7 +88,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             target_center_world_m=self.scene.target_cube.center_world_m,
             target_size_m=self.scene.target_cube.size_m,
             target_is_static=True,
-            angles_deg=(90.0, 80.0, 80.0, 90.0),
+            angles_deg=angles_deg,
             velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
             accelerations_deg_s2=(0.0, 0.0, 0.0, 0.0),
             maximum_contact_force_n=maximum_contact_force_n,
@@ -270,6 +271,21 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         self.assertAlmostEqual(result["position_error_m"], 0.0)
         self.assertAlmostEqual(result["approach_error_deg"], 0.0)
         self.assertAlmostEqual(result["closing_error_deg"], 0.0)
+
+    def test_observed_angles_use_physical_limits_not_command_margin(self) -> None:
+        tracking_overshoot = self._evaluate(
+            angles_deg=(90.0, 67.5, 64.6, 77.8)
+        )
+        self.assertTrue(tracking_overshoot["passed"])
+        self.assertTrue(
+            tracking_overshoot["checks"][
+                "joint_angles_remain_within_safe_limits"
+            ]
+        )
+        unsafe = self._evaluate(angles_deg=(90.0, 59.9, 80.0, 90.0))
+        self.assertFalse(
+            unsafe["checks"]["joint_angles_remain_within_safe_limits"]
+        )
 
     def test_collision_proxy_and_fixed_closing_axis_fail_closed(self) -> None:
         collision_positions = self._body_positions()

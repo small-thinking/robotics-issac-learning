@@ -1034,12 +1034,6 @@ def evaluate_pregrasp_observation(
         frame.closing_axis_world_unit,
         config.target_pose.closing_axis_world_unit,
     )
-    command_min = (
-        config.solver.safe_angle_min_deg + config.solver.command_limit_margin_deg
-    )
-    command_max = (
-        config.solver.safe_angle_max_deg - config.solver.command_limit_margin_deg
-    )
     checks = {
         "grasp_origin_reached_pregrasp_position": (
             position_error <= config.target_pose.position_tolerance_m
@@ -1050,8 +1044,11 @@ def evaluate_pregrasp_observation(
         "fixed_closing_axis_is_acceptable_without_wrist_command": (
             closing_error <= config.target_pose.closing_tolerance_deg
         ),
-        "joint_angles_preserve_command_limit_margin": all(
-            command_min <= value <= command_max for value in angles
+        "joint_angles_remain_within_safe_limits": all(
+            config.solver.safe_angle_min_deg
+            <= value
+            <= config.solver.safe_angle_max_deg
+            for value in angles
         ),
         "joint_velocity_limit_respected": all(
             abs(value) <= config.solver.maximum_joint_velocity_deg_s + 1e-9

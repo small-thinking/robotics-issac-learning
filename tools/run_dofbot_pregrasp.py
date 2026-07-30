@@ -488,7 +488,7 @@ def _observation(
 def _precommand_safety_checks(observation: dict[str, Any]) -> None:
     checks = observation["evaluation"]["checks"]
     safety_keys = (
-        "joint_angles_preserve_command_limit_margin",
+        "joint_angles_remain_within_safe_limits",
         "joint_velocity_limit_respected",
         "joint_acceleration_limit_respected",
         "critical_body_centers_clear_table_proxy",
@@ -518,7 +518,7 @@ def _run_pose_controller(
     contact_reporter: _CriticalContactReporter,
     controlled_joint_ids: list[int],
     render: bool,
-) -> tuple[list[dict[str, Any]], int] | None:
+) -> tuple[list[dict[str, Any]], int, list[list[float]]] | None:
     dt = pose.solver.control_dt_s
     physics_steps = round(dt / sim.get_physics_dt())
     if physics_steps <= 0 or not math.isclose(
@@ -554,6 +554,7 @@ def _run_pose_controller(
     )
     previous_velocity = zero
     api_calls = 0
+    api_command_angles_deg: list[list[float]] = []
     for step_index in range(1, pose.solver.maximum_steps + 1):
         prior = observations[-1]
         if prior["evaluation"]["passed"]:
@@ -615,6 +616,7 @@ def _run_pose_controller(
             angles_deg=command.angles_deg,
             duration_ms=round(dt * 1000),
         )
+        api_command_angles_deg.append(list(command.angles_deg))
         if not _step_simulation(
             scene=scene,
             sim=sim,
@@ -646,7 +648,7 @@ def _run_pose_controller(
             f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
             flush=True,
         )
-    return observations, api_calls
+    return observations, api_calls, api_command_angles_deg
 
 
 def _reset_to_neutral(
@@ -806,7 +808,9 @@ def main() -> None:
                     "controller completed"
                 )
             break
-        observations, controller_api_calls = controller_result
+        observations, controller_api_calls, controller_command_angles = (
+            controller_result
+        )
         if render and observations[-1]["evaluation"]["passed"]:
             if not _hold(
                 seconds=float(
@@ -843,6 +847,19 @@ def main() -> None:
             initialization_api_calls + controller_api_calls + reset_api_calls
         )
         expected_api_calls = 4 + (len(observations) - 1) * 4 + 4
+        all_api_command_angles = [
+            list(NEUTRAL_ANGLES_DEG),
+            *controller_command_angles,
+            list(NEUTRAL_ANGLES_DEG),
+        ]
+        command_min = (
+            pose.solver.safe_angle_min_deg
+            + pose.solver.command_limit_margin_deg
+        )
+        command_max = (
+            pose.solver.safe_angle_max_deg
+            - pose.solver.command_limit_margin_deg
+        )
         checks = {
             **final_evaluation["checks"],
             "physical_table_prim_present": table_present,
@@ -855,6 +872,11 @@ def main() -> None:
             ),
             "official_api_call_count_matches": (
                 official_api_calls == expected_api_calls
+            ),
+            "api_commands_preserve_limit_margin": all(
+                command_min <= angle <= command_max
+                for command in all_api_command_angles
+                for angle in command
             ),
             "returned_to_neutral": (
                 reset_error
@@ -919,6 +941,7 @@ def main() -> None:
                 "controlled_joint_names": list(
                     pose.solver.controlled_joint_names
                 ),
+                "api_command_angles_deg": all_api_command_angles,
                 "closing_axis_control": (
                     pose.target_pose.closing_axis_control
                 ),
