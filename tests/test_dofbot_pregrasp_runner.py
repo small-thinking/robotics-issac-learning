@@ -65,6 +65,8 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             self.runner,
         )
         self.assertIn("maximum_critical_contact_force_n", self.runner)
+        self.assertIn('"step=0 "', self.runner)
+        self.assertIn("angles_deg={initial['angles_deg']}", self.runner)
 
     def test_runner_preserves_yahboom_four_servo_boundary(self) -> None:
         self.assertIn("Arm_serial_servo_write(", self.runner)

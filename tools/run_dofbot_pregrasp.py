@@ -543,6 +543,15 @@ def _run_pose_controller(
             step_index=0,
         )
     ]
+    initial = observations[0]
+    print(
+        "[PREGRASP] "
+        "step=0 "
+        f"angles_deg={initial['angles_deg']} "
+        f"position_error_m={initial['evaluation']['position_error_m']:.5f} "
+        f"contact_force_n={initial['maximum_critical_contact_force_n']:.4f}",
+        flush=True,
+    )
     previous_velocity = zero
     api_calls = 0
     for step_index in range(1, pose.solver.maximum_steps + 1):
