@@ -130,15 +130,18 @@ The detailed first-stage contract lives in
    branch drift from a direct-candidate command/observation state mix. A third
    remote attempt proved the corrected command path reaches the exact stopped
    `[90,66,66,66]°` API endpoint, but the implicit actuators settled as much
-   as `4.64°` away and left `0.03213 m` Cartesian error. The earlier artifact
-   did not record actual joint velocity, Isaac target buffers, resolved drive
-   parameters, or meaningful torque telemetry, so effort clipping remains one
-   hypothesis rather than a verified fix. A GPU-free three-case
-   gravity/effort calibration plan now preserves the original effort-100
-   baseline, samples every physics step, and routes the next result through an
-   explicit failure decision tree before another pre-grasp. The separate
-   `<=1°` tracking gate remains. Wrist twist, gripper closing, target motion,
-   contact, and grasp success remain unauthorized.
+   as `4.64°` away and left `0.03213 m` Cartesian error. The completed
+   three-case matrix now records target, drive, torque, contact, and physics
+   telemetry every step. Gravity-off effort-100 passes with `0.0032°` maximum
+   error; both gravity-on effort-100 and effort-250 follow an identical
+   selected target/position/velocity sequence and miss by `4.976°`, even
+   though the applied-torque clamp changes from 100 to 250. This establishes
+   load dependence and falsifies effort 250 alone as a fix. Nearly stationary
+   final position samples disagree with raw TGS `joint_vel`, so the next
+   GPU-free gate is finite-difference velocity instrumentation and a focused
+   solver/drive design. The separate `<=1°` tracking gate remains. Pre-grasp,
+   Viewer, wrist twist, gripper closing, target motion, contact, and grasp
+   success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

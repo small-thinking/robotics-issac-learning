@@ -1,23 +1,24 @@
 # Status
 
-- Updated: 2026-07-29 America/Los_Angeles
+- Updated: 2026-07-30 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
   pre-grasp is rejected; the first angled terminal-finger machine attempt
   failed narrowly; the direct validated-joint-candidate now reaches its exact
   API endpoint remotely, but Isaac joint tracking still fails under load; the
-  original effort-100 baseline, explicit tracking gate, and isolated
-  three-case actuator diagnostic now pass local preparation
+  isolated three-case actuator matrix now proves gravity dependence, falsifies
+  effort-250 as a sufficient fix, and exposes a raw-velocity telemetry
+  inconsistency that must be repaired before another paid actuator run
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with `brev ls --json` at 2026-07-29
-  23:17 PDT during the actuator-diagnostic preparation
+- Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
+  2026-07-30 08:50:21 PDT after artifact retrieval
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class was
-  `$1.58784/hour` compute; checked 2026-07-29 before the 22:42 restart
+  `$1.58784/hour` compute; rechecked 2026-07-30 before the 08:16 restart
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -463,6 +464,54 @@
   matrix and Viewer pending**. Pre-grasp rerun, contact, closing, grasping,
   lifting, and placing remain unauthorized.
 
+## DOFBOT actuator diagnostic remote result
+
+- Remote provenance: merged `main@95b0ab1`, runtime-fix commit
+  `abd109f38dba838557910ed1ab439749cbd53120`, config SHA-256
+  `e3be35ad14617c252151cdbf9d6090fd7655f9e96ba3600bb659cc9f577cf6f9`.
+  Existing `isaac-launchable-f150a5` (`92xbacz46`) remained the approved AWS
+  `g6.4xlarge` / NVIDIA L4; no instance or disk was created, resized, or
+  deleted.
+- The first matrix attempt executed the poses but exposed an Isaac
+  6.0.1 compatibility defect while serializing an optional PhysX array:
+  `TypeError: Object of type array is not JSON serializable`. The launcher
+  still returned zero. Commit `abd109f` normalizes tensor/NumPy values to JSON,
+  persists a log per case, and fails a case when its artifact is missing.
+- The repaired matrix completed all three cases with
+  `[MATRIX_EXIT_CODE] 0`, `matrix_complete=true`, and zero monitored contact:
+  - gravity off / effort 100 passed: maximum tracking error `0.00316°`,
+    maximum terminal reported velocity `0.04567°/s`;
+  - gravity on / effort 100 failed: maximum tracking error `4.97619°`,
+    maximum terminal reported velocity `16.34411°/s`;
+  - gravity on / effort 250 produced exactly the same selected target,
+    position, and velocity sequence as effort 100, despite confirmed
+    `250` effort buffers, PhysX maximum force, and applied-torque clamp.
+- The API, backend target, and Isaac target buffer agree within
+  `0.0000013°`, and every case recorded `0 N` contact. Gravity dependence is
+  therefore established, while increasing only `effort_limit_sim` from
+  `100` to `250` is falsified as a sufficient correction.
+- The gravity-on candidate's last twelve position samples span `0.183 s` and
+  vary by at most `0.0000103°` per joint, yet raw `joint_vel` reports as much
+  as `16.344°/s`. Isaac also warns that this TGS configuration may produce
+  noisy velocities. The current automatic
+  `settling_or_drive_stability_failure` is therefore not a safe final
+  diagnosis: raw velocity is a compatibility signal, not a trustworthy sole
+  settling criterion in this runtime.
+- Durable evidence:
+  `artifacts/dofbot/actuator_calibration_contract.json` and
+  `artifacts/dofbot/actuator_calibration_result_2026-07-30.json`. Full case
+  JSON and logs were retrieved locally but remain ignored; their exact sizes
+  and SHA-256 values are bound by the concise result artifact.
+- Resource lifecycle: paid start at 08:16:04 PDT; stop requested after artifact
+  retrieval at 08:36:28 PDT, 20 minutes 24 seconds after start. Brev's
+  asynchronous transition and list refresh reached explicit `STOPPED` at
+  08:50:21 PDT, 34 minutes 17 seconds after start. No instance or disk was
+  created, resized, or deleted.
+- Acceptance: **matrix machine execution passed / gravity-on actuator
+  tracking failed / effort-250 hypothesis falsified / velocity instrumentation
+  requires correction / pre-grasp and Viewer blocked**. No pre-grasp, Viewer,
+  contact, closing, grasping, lifting, or placing ran in this paid window.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
@@ -820,11 +869,12 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped until the actuator-diagnostic PR is reviewed
-and merged. Then obtain a fresh quote and explicit approval and run
-`make dofbot-actuator-calibration`. Require all three case artifacts,
-`matrix_complete=true`, and `[MATRIX_EXIT_CODE] 0`. Apply only the
-decision-specific correction and rerun the calibration before
-`make dofbot-pregrasp`; open the Viewer only after every unchanged pre-grasp
-machine gate passes. Contact, closing, grasping, lifting, and placing remain
-unauthorized.
+Keep the Brev instance stopped. First add finite-difference position velocity
+beside raw `joint_vel` and classify material disagreement as telemetry/runtime
+compatibility; then prepare a focused solver/drive diagnostic that preserves
+the gravity-off control and does not assume effort 250 is a fix. Only after
+local review, a fresh quote, and explicit approval may that diagnostic run.
+Rerun actuator calibration before `make dofbot-pregrasp`; open the Viewer only
+after the selected gravity-on baseline passes the independent `1°` tracking
+gate and every unchanged pre-grasp machine gate. Contact, closing, grasping,
+lifting, and placing remain unauthorized.

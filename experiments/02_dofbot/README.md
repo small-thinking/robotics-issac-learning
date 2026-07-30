@@ -951,6 +951,68 @@ diagnostic matrix and Viewer pending**. The next paid command is the diagnostic
 matrix, not pre-grasp. Contact, closing, grasping, lifting, and placing remain
 unauthorized.
 
+### Remote actuator diagnostic matrix
+
+The approved 2026-07-30 paid window reused
+`isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, at the
+rechecked `$1.58784/hour` compute quote. It ran only the isolated matrix: no
+table, cube, camera, Viewer, pre-grasp, contact, gripper, policy, checkpoint,
+or real hardware.
+
+The first attempt exposed a runtime compatibility defect after every pose had
+executed: an optional PhysX array reached `json.dumps` without conversion and
+raised `TypeError: Object of type array is not JSON serializable`. The Isaac
+launcher still returned zero, so the absence of artifacts was the only
+fail-closed signal. Commit `abd109f` performs tensor/NumPy-to-list
+normalization, writes a durable per-case log, and independently requires a
+non-empty case artifact. All 171 local tests, targeted Ruff, shell syntax, and
+the remote preview passed before resynchronization.
+
+The repaired matrix completed with `[MATRIX_EXIT_CODE] 0`:
+
+| Case | Tracking error | Terminal reported velocity | Target-buffer error | Contact | Result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| gravity off / effort 100 | `0.00316°` | `0.04567°/s` | `0.000000851°` | `0 N` | tracking pass |
+| gravity on / effort 100 | `4.97619°` | `16.34411°/s` | `0.000001271°` | `0 N` | fail |
+| gravity on / effort 250 | `4.97619°` | `16.34411°/s` | `0.000001271°` | `0 N` | fail |
+
+The effort-250 case is not a configuration no-op: both the Isaac effort
+buffers and PhysX DOF maximum forces are `250`, and maximum applied torque
+changes from `100` to `250`. Nevertheless, the complete selected sequence of
+API target, backend target, Isaac target, observed position, and reported
+velocity is identical to gravity-on effort-100. Increasing only
+`effort_limit_sim` is therefore falsified as a sufficient fix.
+
+Gravity-off passing establishes that the API/backend/Isaac target path works
+and that the failure is load-dependent. The target buffer agrees within
+`0.0000013°`, no optional PhysX probes failed, and every case records `0 N`
+monitored contact.
+
+One instrumentation problem remains before a drive conclusion is safe. During
+the last `0.183 s` of the gravity-on candidate, each observed joint position
+varies by at most `0.0000103°`, while the raw Isaac `joint_vel` buffer reports
+up to `16.344°/s`. The runtime log also warns that TGS with
+`enable_external_forces_every_iteration=False` may produce noisy velocities.
+The automatic `settling_or_drive_stability_failure` label is retained as the
+matrix output, but raw velocity cannot remain the sole acceptance signal.
+
+The tracked evidence is
+`artifacts/dofbot/actuator_calibration_contract.json` plus the reviewed
+`artifacts/dofbot/actuator_calibration_result_2026-07-30.json`. The latter
+binds all retrieved full JSON/log files by size and SHA-256; the multi-megabyte
+raw payloads remain ignored.
+
+Acceptance is **matrix execution complete / gravity dependence established /
+effort-250-only fix rejected / raw velocity instrumentation requires
+correction / pre-grasp and Viewer blocked**. The next free local step adds
+finite-difference position velocity beside raw `joint_vel`, routes material
+disagreement as a runtime compatibility failure, and prepares a focused
+solver/drive matrix. Another paid run requires review, a fresh quote, and
+explicit approval. Stop was requested 20 minutes 24 seconds after start;
+standard `brev ls --json` reached explicit `STOPPED` at 08:50:21 PDT after the
+asynchronous shutdown and list refresh. The existing instance and disk remain
+preserved.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

@@ -189,6 +189,15 @@ Follow only the matrix decision:
 - missing telemetry or failure to settle: repair instrumentation/runtime
   compatibility before task control.
 
+The 2026-07-30 matrix adds one runtime-specific requirement. When raw
+`joint_vel` materially disagrees with finite differences of the observed
+position sequence, do not classify the pose as physically oscillating from
+raw velocity alone. Record both signals, retain the mismatch and TGS warning
+as compatibility evidence, and repair the diagnostic before tuning the task.
+The same run proved that changing effort 100 to 250 can update Isaac/PhysX
+effort limits and applied-torque clamps without changing the gravity-on
+trajectory; do not repeat an effort-only matrix as the next paid step.
+
 After applying the decision-specific change, rerun the same calibration matrix.
 Only a complete calibration with the selected baseline meeting the `1°`
 tracking gate authorizes the unchanged task-scene headless command:

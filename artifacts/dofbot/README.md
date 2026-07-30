@@ -194,6 +194,20 @@ resolved drive buffers, torque availability, terminal body positions, and
 contact every physics step. The local plan passes all preparation checks while
 keeping paid GPU, pre-grasp, Viewer, contact, and grasp authorization false.
 
+`actuator_calibration_contract.json` is the retrieved machine-generated
+2026-07-30 matrix summary. It binds the machine commit and calibration config,
+confirms all three artifacts were present, records
+`matrix_complete=true`, and keeps pre-grasp, Viewer, contact, and grasp
+authorization false.
+
+`actuator_calibration_result_2026-07-30.json` is the reviewed concise promotion
+of that paid run. It records exact per-case tracking, velocity, target-buffer,
+contact, and torque metrics; proves that the gravity-on effort-100 and
+effort-250 selected sequences are identical despite the changed force clamp;
+and binds every ignored multi-megabyte JSON/log payload by size and SHA-256.
+It distinguishes machine facts from the inference that the raw TGS velocity
+buffer is incompatible with nearly stationary position samples.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

@@ -1416,3 +1416,68 @@
   `[MATRIX_EXIT_CODE] 0`, apply only the decision-specific correction, and
   rerun calibration. Pre-grasp and Viewer remain blocked until the selected
   actuator baseline passes the independent `1°` tracking gate.
+
+## 2026-07-30 — Actuator matrix established gravity dependence and rejected effort 250 alone
+
+- Scope: one approved paid matrix on the existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4.
+  Rechecked compute quote: `$1.58784/hour`; existing disk approximately
+  `$0.04/hour`. No Viewer, task scene, pre-grasp, contact, gripper, policy,
+  checkpoint, hardware command, new instance, resize, or deletion.
+- Provenance: merged `main@95b0ab1`; repaired machine commit
+  `abd109f38dba838557910ed1ab439749cbd53120`; config SHA-256
+  `e3be35ad14617c252151cdbf9d6090fd7655f9e96ba3600bb659cc9f577cf6f9`.
+- Initial result: all poses executed, but optional PhysX array serialization
+  raised `TypeError: Object of type array is not JSON serializable`. Because
+  the Isaac launcher returned zero despite the traceback, the matrix failed
+  closed on missing case artifacts.
+- Minimal compatibility fix: normalize optional tensor/NumPy values to JSON
+  lists, persist one `.log` per case, and require each case artifact to be
+  non-empty independently of launcher exit status. Before remote rerun,
+  171/171 local tests, targeted Ruff, shell syntax, remote preview, and
+  `git diff --check` passed.
+- Official command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-actuator-calibration
+  ```
+
+- Matrix result: `[MATRIX_EXIT_CODE] 0`, `matrix_complete=true`, automatic
+  decision `settling_or_drive_stability_failure`, and pre-grasp, Viewer,
+  contact, and grasp authorization all false.
+- Gravity off / effort 100: diagnostic and one-degree tracking gates passed;
+  maximum tracking error `0.0031647°`, maximum terminal reported velocity
+  `0.0456728°/s`, maximum target-buffer error `0.000000851°`, contact `0 N`.
+- Gravity on / effort 100: diagnostic and tracking gates failed; maximum
+  tracking error `4.976193°`, maximum terminal reported velocity
+  `16.344113°/s`, maximum target-buffer error `0.000001271°`, contact `0 N`;
+  maximum applied torque reached the configured `100`.
+- Gravity on / effort 250: the effort buffer, PhysX maximum force, and maximum
+  applied torque all changed to `250`, but every selected target, observed
+  position, and reported-velocity sample was identical to effort 100. Maximum
+  tracking error remained `4.976193°`; contact remained `0 N`.
+- Established: the API/backend/Isaac target path agrees; gravity removal
+  resolves tracking; the gravity-on error is repeatable and contact-free.
+  Falsified: increasing only `effort_limit_sim` from 100 to 250 changes or
+  fixes the gravity-on trajectory.
+- Instrumentation finding: over the last `0.183 s` of the gravity-on candidate,
+  per-joint positions span at most `0.0000103°` while raw `joint_vel` reports
+  as much as `16.344°/s`. The runtime simultaneously warns that this TGS
+  configuration may produce noisy velocities. This is an evidence-bounded
+  inference that raw velocity is not a trustworthy sole settling criterion,
+  not proof that the remaining position error is solved.
+- Evidence:
+  `artifacts/dofbot/actuator_calibration_contract.json` and
+  `artifacts/dofbot/actuator_calibration_result_2026-07-30.json`.
+  The concise result binds the retrieved full case JSON, logs, and archive by
+  exact size and SHA-256.
+- Resource lifecycle: paid window began at 08:16:04 PDT; artifacts were
+  retrieved and stop requested at 08:36:28 PDT, 20 minutes 24 seconds after
+  start. Brev's asynchronous transition reached explicit `STOPPED` in standard
+  `brev ls --json` at 08:50:21 PDT, 34 minutes 17 seconds after start. No
+  instance or disk was created, resized, or deleted.
+- Conclusion: **machine matrix complete / gravity dependence established /
+  effort-250-only fix rejected / velocity instrumentation correction required /
+  pre-grasp and Viewer blocked**. The next work is free local instrumentation
+  and solver/drive experiment design, not another task-scene retry.

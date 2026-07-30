@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_actuator_diagnostic_remote_result",
+  "generated_at_utc": "2026-07-30T15:34:23.453913+00:00",
+  "base_merge_commit": "95b0ab1",
+  "machine_commit": "abd109f38dba838557910ed1ab439749cbd53120",
+  "calibration_config_sha256": "e3be35ad14617c252151cdbf9d6090fd7655f9e96ba3600bb659cc9f577cf6f9",
+  "remote": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "provider_instance_type": "AWS g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "quoted_compute_usd_per_hour": 1.58784,
+    "persistent_disk_usd_per_hour_approx": 0.04,
+    "paid_window_started_local": "2026-07-30T08:16:04-07:00",
+    "stop_requested_local": "2026-07-30T08:36:28-07:00",
+    "stop_verified_local": "2026-07-30T08:50:21-07:00",
+    "stop_status": "STOPPED",
+    "elapsed_from_start_to_stop_request_s": 1224,
+    "elapsed_from_start_to_explicit_stopped_confirmation_s": 2057,
+    "instance_or_disk_created_resized_or_deleted": false
+  },
+  "initial_runtime_compatibility_failure": {
+    "failure": "optional PhysX array was not JSON serializable",
+    "exception": "TypeError: Object of type array is not JSON serializable",
+    "impact": "all cases executed their poses but no case artifact was written",
+    "fix": [
+      "normalize optional PhysX tensors and arrays through detach, cpu, numpy, and tolist before JSON validation",
+      "persist one log per case",
+      "require a non-empty case artifact even when the Isaac launcher exits zero"
+    ],
+    "fix_commit": "abd109f38dba838557910ed1ab439749cbd53120"
+  },
+  "matrix": {
+    "matrix_complete": true,
+    "matrix_exit_code": 0,
+    "decision": "settling_or_drive_stability_failure",
+    "pregrasp_authorized": false,
+    "viewer_authorized": false,
+    "contact_or_grasp_authorized": false,
+    "unchanged_pregrasp_gates": {
+      "maximum_position_error_m": 0.025,
+      "maximum_approach_error_deg": 12.0,
+      "maximum_joint_tracking_error_deg": 1.0
+    }
+  },
+  "cases": {
+    "gravity_off_effort_100": {
+      "gravity_enabled": false,
+      "effort_limit_sim": 100.0,
+      "diagnostic_complete": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.0031647229619551354,
+      "maximum_terminal_reported_joint_velocity_deg_s": 0.04567277128362777,
+      "maximum_target_buffer_error_deg": 8.511203191119421e-7,
+      "maximum_overshoot_deg": 0.3905118769685316,
+      "maximum_contact_force_n": 0.0,
+      "maximum_absolute_computed_torque": 3151.123779296875,
+      "maximum_absolute_applied_torque": 100.0,
+      "torque_saturation_observed": true
+    },
+    "gravity_on_effort_100": {
+      "gravity_enabled": true,
+      "effort_limit_sim": 100.0,
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false,
+      "maximum_settled_tracking_error_deg": 4.97619304428158,
+      "maximum_terminal_reported_joint_velocity_deg_s": 16.34411334417984,
+      "maximum_target_buffer_error_deg": 1.2712689567706548e-6,
+      "maximum_overshoot_deg": 5.0793903724513,
+      "maximum_contact_force_n": 0.0,
+      "maximum_absolute_computed_torque": 3151.8876953125,
+      "maximum_absolute_applied_torque": 100.0,
+      "torque_saturation_observed": true,
+      "candidate_terminal_observed_angles_deg": [
+        89.99971805839759,
+        64.06353312696112,
+        61.02380695571842,
+        63.921323465799574
+      ],
+      "candidate_terminal_reported_joint_velocities_deg_s": [
+        -0.009935098784691997,
+        5.036155887804746,
+        16.34411334417984,
+        -4.180461677735909
+      ]
+    },
+    "gravity_on_effort_250": {
+      "gravity_enabled": true,
+      "effort_limit_sim": 250.0,
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false,
+      "maximum_settled_tracking_error_deg": 4.97619304428158,
+      "maximum_terminal_reported_joint_velocity_deg_s": 16.34411334417984,
+      "maximum_target_buffer_error_deg": 1.2712689567706548e-6,
+      "maximum_overshoot_deg": 5.0793903724513,
+      "maximum_contact_force_n": 0.0,
+      "maximum_absolute_computed_torque": 3151.8876953125,
+      "maximum_absolute_applied_torque": 250.0,
+      "torque_saturation_observed": true
+    }
+  },
+  "comparisons": {
+    "gravity_off_resolves_tracking": true,
+    "effort_250_changes_configured_and_physx_max_force": true,
+    "effort_250_changes_applied_torque_clamp": true,
+    "effort_250_changes_observed_or_control_sequence": false,
+    "gravity_on_100_and_250_selected_sequence_sha256": "53834657dfb5b5ab647132fe11281c98476805d73edff78f53fd888b603a95a9",
+    "selected_sequence_fields": [
+      "api_command_angles_deg",
+      "backend_interpolated_target_angles_deg",
+      "joint_pos_target_angles_deg",
+      "observed_joint_angles_deg",
+      "observed_joint_velocities_deg_s"
+    ],
+    "gravity_on_candidate_last_12_position_sample_range_deg": [
+      8.397299495754851e-7,
+      5.122641880461742e-6,
+      1.0245283753818057e-5,
+      6.830189178685941e-6
+    ],
+    "gravity_on_candidate_last_12_elapsed_range_s": [
+      6.816666666666648,
+      6.9999999999999805
+    ],
+    "runtime_warning": "TGS solver with enable_external_forces_every_iteration=False may cause noisy velocities."
+  },
+  "evidence_interpretation": {
+    "established": [
+      "the official API, backend target, and Isaac joint_pos_target agree within 0.0000013 degrees",
+      "gravity-off effort-100 passes the one-degree tracking and reported-velocity settling gates",
+      "gravity-on creates a reproducible approximately five-degree load-dependent tracking error with zero monitored contact",
+      "effort-250 is present in both Isaac effort buffers and the PhysX maximum-force snapshot and raises the applied-torque clamp to 250"
+    ],
+    "falsified": [
+      "raising only effort_limit_sim from 100 to 250 is sufficient to change or fix the gravity-on trajectory"
+    ],
+    "instrumentation_inference": "The final 0.183 seconds of candidate positions vary by at most 0.0000103 degrees per joint while the raw joint_vel buffer reports up to 16.344 degrees per second. Together with the TGS warning, this is evidence that raw velocity is not a trustworthy sole settling criterion in this runtime.",
+    "unresolved": [
+      "why the gravity-on position holds approximately five degrees away from the target",
+      "whether drive gain, damping, solver settings, model mass or inertia, or a PhysX TGS compatibility issue explains the load-dependent error"
+    ],
+    "next_local_action": "add finite-difference position velocity beside raw joint_vel, route material disagreement as a telemetry compatibility failure, and design the next solver or drive matrix before another paid run"
+  },
+  "source_artifacts": {
+    "matrix_contract": {
+      "path": "artifacts/dofbot/actuator_calibration_contract.json",
+      "bytes": 4231,
+      "sha256": "059ccd673f89b495f8d102c7f815d7d73118108aef299576f9758212a1a1c0a9"
+    },
+    "gravity_off_effort_100_json": {
+      "bytes": 2156208,
+      "sha256": "30e0d17d755fa519cecdf8b20ea07e73342842e133629a60163ce2c2efff15a7"
+    },
+    "gravity_on_effort_100_json": {
+      "bytes": 3540927,
+      "sha256": "83a73fd5e612c7903e190762b85a0696f55b97bdeea32819e494c70c8b12219e"
+    },
+    "gravity_on_effort_250_json": {
+      "bytes": 3551622,
+      "sha256": "1a378e018b7e72311801bdf7936770bc4c11e135338cf6aaaf95aa35b189ff28"
+    },
+    "retrieved_archive": {
+      "path": "/tmp/dofbot-actuator-abd109f.tgz",
+      "sha256": "2a51064ff9c6605d9c3979c827a2dca291211f6d778c5ec354da637760b8617f"
+    }
+  }
+}

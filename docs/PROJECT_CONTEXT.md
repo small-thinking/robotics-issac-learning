@@ -62,10 +62,14 @@ lightweight VLA post-training, and optional real hardware.
 - A joint-first task-space search now supplies a revised local candidate:
   `[90,66,66,66]°`, a horizontal table top at `z=0.26160 m`, and an angled
   front/up approach. The exact API endpoint passed remotely, but Isaac settled
-  up to `4.64°` away and left `0.03213 m` Cartesian error. The default
-  simulator effort remains `100`; an isolated three-case gravity/effort
-  diagnostic is prepared to identify the actuator-layer cause before another
-  pre-grasp or Viewer attempt. No contact or grasp is authorized.
+  up to `4.64°` away and left `0.03213 m` Cartesian error. The isolated
+  gravity/effort matrix subsequently showed that gravity-off effort-100 tracks
+  within `0.0032°`, while both gravity-on effort-100 and effort-250 follow the
+  same trajectory and miss by `4.976°`. Raising only the effort limit is
+  therefore not a fix. Raw TGS `joint_vel` also disagrees materially with
+  nearly stationary position samples, so velocity instrumentation must be
+  corrected before a focused solver/drive experiment. No pre-grasp, Viewer,
+  contact, or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -89,8 +93,12 @@ The CartPole stage is complete. The canonical next-stage plan is
 6. Goal 5 first candidate: rejected — the terminal-finger frame, pose-aware
    controller, smoothness, collision, and contact gates worked fail-closed, but
    the world-down pose failed remotely and is rejected by the calibrated
-   all-branch search. A revised angled pre-grasp candidate now passes its local
-   design gate; Isaac machine and Viewer gates remain pending.
+   all-branch search. A revised angled pre-grasp candidate reaches its exact API
+   endpoint, but the gravity-on articulation fails the one-degree tracking
+   gate. The completed actuator matrix proves gravity sensitivity, falsifies
+   effort 250 as a sufficient fix, and blocks another paid run until raw versus
+   finite-difference velocity telemetry and the next solver/drive matrix pass
+   local review.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
