@@ -6,11 +6,12 @@
   no-contact reaching passed all gates; the first lower/farther world-down
   pre-grasp is rejected; the first angled terminal-finger machine attempt
   failed narrowly; the direct validated-joint-candidate now reaches its exact
-  API endpoint remotely, but Isaac joint tracking still fails under load; a
-  bounded simulator-effort correction and explicit tracking gate pass locally
+  API endpoint remotely, but Isaac joint tracking still fails under load; the
+  original effort-100 baseline, explicit tracking gate, and isolated
+  three-case actuator diagnostic now pass local preparation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --json` at 2026-07-29
-  22:55:05 PDT after the joint-tracking validation
+  23:17 PDT during the actuator-diagnostic preparation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -390,7 +391,7 @@
   and `brev ls --json` explicitly returned `STOPPED` at 21:55 PDT. The
   instance and disk were retained.
 
-## DOFBOT exact-command joint-tracking correction
+## DOFBOT exact-command failure and actuator-diagnostic preparation
 
 - Remote source: merged `main@54b25ed98d325f5079daf5d34bec3ad1629ee136`;
   existing `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`,
@@ -406,29 +407,61 @@
   closing passed at `9.465° / 0.412°`; all collision, static-target,
   no-contact, API-count, command-margin, and reset gates passed; maximum
   contact was `0 N`; Viewer was not started.
-- Diagnosis boundary: the observed endpoint was stable, the command velocity
-  was zero, and there was no contact. With implicit-drive stiffness `10000`,
-  the measured errors imply proportional effort demand up to `809.96`, above
-  the configured `effort_limit_sim=100`. Isaac Lab documents that
-  `effort_limit_sim` clips implicit-actuator effort in the physics solver.
-  Solver effort clipping under gravity is therefore strongly indicated but
-  remains pending remote confirmation.
-- Local correction: keep stiffness `10000`, damping `100`, trajectory
-  velocity/acceleration limits, scene, and all Cartesian/safety thresholds
-  unchanged; raise only controlled-joint `effort_limit_sim` from `100` to
-  `250`; add an independent `<=1°`
-  `final_api_joint_tracking_within_tolerance` machine gate.
+- Diagnosis boundary: the final planned command velocity was zero and contact
+  was `0 N`, but the old artifact did not record actual `joint_vel`,
+  `joint_pos_target`, resolved drive buffers, or computed/applied torque.
+  Multiplying error by stiffness is compatible with solver effort clipping,
+  but it cannot distinguish clipping from a target-buffer mismatch, unresolved
+  settling, implicit-drive semantics, joint-axis mapping, self-collision,
+  solver configuration, or mass/inertia effects.
+- Local preparation keeps the default effort limit at `100`, retains the
+  independent `<=1°` `final_api_joint_tracking_within_tolerance` pre-grasp
+  gate, and adds
+  `configs/dofbot/calibration/goal5_actuator_diagnostic.json`.
+- The future diagnostic runs exactly three isolated cases:
+  gravity-on/effort-100, gravity-off/effort-100, and
+  gravity-on/effort-250. Every case uses the same neutral, mid-load,
+  `[90,66,66,66]°` candidate, and neutral-return poses through sixteen
+  official API calls.
+- Per-physics-step evidence includes API command, backend interpolated target,
+  Isaac `joint_pos_target`, observed `joint_pos` and actual `joint_vel`,
+  resolved stiffness/damping/effort-limit buffers, computed/applied torque
+  when meaningful, optional PhysX mass/inertia/DOF properties, terminal body
+  positions, and monitored contact. Missing optional fields are recorded as
+  null together with probe error details; implicit zero or unavailable torque
+  buffers are explicitly
+  non-evidence. When nonzero computed/applied buffers exist, the case also
+  records their maximum gap and whether applied effort reached 98% of the
+  configured limit.
+- Settling is based on actual velocity below `0.1°/s` for `0.5 s`, not on
+  planned command velocity. Case completion, tracking pass, and matrix
+  classification are separate so a tracking failure still produces useful
+  evidence. The 2-second smoothstep has bounded 18°/s peak velocity and
+  36°/s² peak acceleration, inside the existing 20°/s and 60°/s² limits.
+- The decision tree prioritizes contact/self-collision, settling instability,
+  target-buffer mismatch, and telemetry/runtime compatibility before comparing
+  direct measured saturation, gravity, and effort controls. The wrapper prints
+  an internal matrix exit code while returning outer success to prevent Brev
+  from retrying the paid matrix automatically; the local wrapper parses that
+  code and fails `make` when the internal matrix failed.
 - Evidence:
   `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`;
   full retrieved artifact was 327,442 bytes with SHA-256
   `50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`.
+  The deterministic local preparation evidence is
+  `artifacts/dofbot/actuator_calibration_plan.json`.
+- Local validation: all 171 repository tests pass, including strict config,
+  synthetic failure-routing, stale-artifact, Git-commit/SHA, and remote-command
+  preview checks; targeted Ruff, Python compilation, shell syntax,
+  deterministic plan regeneration, JSON parsing, and `git diff --check` pass.
 - Resource lifecycle: approved start at 22:42:05 PDT; machine evidence was
   retrieved before stopping; `brev ls --json` explicitly returned `STOPPED`
-  at 22:55:05 PDT. The instance and disk were retained.
+  at 22:55:05 PDT. A read-only check during local preparation again returned
+  `STOPPED` at 23:17 PDT. The instance and disk were retained.
 - Acceptance: **remote exact API endpoint passed / Isaac joint tracking and
-  Cartesian position failed / local effort correction passed / Viewer
-  blocked**. Contact, closing, grasping, lifting, and placing remain
-  unauthorized.
+  Cartesian position failed / local actuator diagnostic prepared / diagnostic
+  matrix and Viewer pending**. Pre-grasp rerun, contact, closing, grasping,
+  lifting, and placing remain unauthorized.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -787,8 +820,11 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped until the joint-tracking correction PR is
-reviewed and merged. Then obtain a fresh quote and explicit approval, run
-`make dofbot-pregrasp` headless first, and open `make
-dofbot-pregrasp-view` only if every machine gate passes. Contact, closing,
-grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped until the actuator-diagnostic PR is reviewed
+and merged. Then obtain a fresh quote and explicit approval and run
+`make dofbot-actuator-calibration`. Require all three case artifacts,
+`matrix_complete=true`, and `[MATRIX_EXIT_CODE] 0`. Apply only the
+decision-specific correction and rerun the calibration before
+`make dofbot-pregrasp`; open the Viewer only after every unchanged pre-grasp
+machine gate passes. Contact, closing, grasping, lifting, and placing remain
+unauthorized.

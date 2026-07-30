@@ -266,4 +266,34 @@ assert_contains "$dofbot_pregrasp_view_output" '--viz kit'
 assert_contains "$dofbot_pregrasp_view_output" 'pose-aware pre-grasp repeats until the process or instance is stopped'
 assert_contains "$dofbot_pregrasp_view_output" '[dry-run] Command displayed but not executed.'
 
+dofbot_actuator_calibration_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_actuator_calibration.sh
+)"
+
+assert_contains "$dofbot_actuator_calibration_output" 'run_dofbot_actuator_calibration.py'
+assert_contains "$dofbot_actuator_calibration_output" 'goal5_actuator_diagnostic.json'
+assert_contains "$dofbot_actuator_calibration_output" 'gravity_on_effort_100'
+assert_contains "$dofbot_actuator_calibration_output" 'gravity_off_effort_100'
+assert_contains "$dofbot_actuator_calibration_output" 'gravity_on_effort_250'
+assert_contains "$dofbot_actuator_calibration_output" 'summarize_dofbot_actuator_calibration.py'
+assert_contains "$dofbot_actuator_calibration_output" 'actuator_calibration_contract.json'
+assert_contains "$dofbot_actuator_calibration_output" '[MATRIX_EXIT_CODE]'
+assert_contains "$dofbot_actuator_calibration_output" 'timeout 300'
+assert_contains "$dofbot_actuator_calibration_output" 'archive-'
+assert_contains "$dofbot_actuator_calibration_output" '--device cpu'
+assert_contains "$dofbot_actuator_calibration_output" '--headless'
+assert_not_contains "$dofbot_actuator_calibration_output" '--livestream'
+assert_not_contains "$dofbot_actuator_calibration_output" '--viz'
+assert_contains "$dofbot_actuator_calibration_output" '[dry-run] Command displayed but not executed.'
+
+if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_actuator_calibration.sh >/dev/null 2>&1; then
+  printf 'expected actuator calibration preview to reject unsafe timeout\n' >&2
+  exit 1
+fi
+
 printf 'remote command preview tests passed\n'

@@ -191,10 +191,10 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         ):
             parse_pregrasp_pose_config(loose)
 
-    def test_remote_tracking_failure_drives_bounded_effort_correction(self) -> None:
+    def test_remote_tracking_failure_requires_discriminating_calibration(self) -> None:
         evidence = json.loads(TRACKING_FAILURE_PATH.read_text(encoding="utf-8"))
         control = evidence["control"]
-        correction = evidence["local_correction"]
+        follow_up = evidence["local_follow_up"]
         self.assertAlmostEqual(
             maximum_joint_tracking_error_deg(
                 observed_angles_deg=control["final_observed_angles_deg"],
@@ -204,14 +204,23 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         )
         self.assertGreater(
             control["maximum_observed_command_error_deg"],
-            correction["maximum_final_joint_tracking_error_deg"],
+            follow_up["tracking_gate_retained_deg"],
         )
-        self.assertGreater(
-            correction["controlled_joint_effort_limit_sim_after"],
-            correction["controlled_joint_effort_limit_sim_before"],
+        self.assertEqual(
+            follow_up["default_controlled_joint_effort_limit_sim"],
+            100.0,
         )
-        self.assertFalse(correction["candidate_isaac_machine_passed"])
-        self.assertFalse(correction["candidate_visual_passed"])
+        self.assertEqual(
+            follow_up["required_diagnostic_cases"],
+            [
+                "gravity_on_effort_100",
+                "gravity_off_effort_100",
+                "gravity_on_effort_250",
+            ],
+        )
+        self.assertFalse(follow_up["pregrasp_rerun_authorized"])
+        self.assertFalse(follow_up["candidate_isaac_machine_passed"])
+        self.assertFalse(follow_up["candidate_visual_passed"])
 
     def test_parser_rejects_fabricated_grasp_body_or_wrist_control(self) -> None:
         wrong_body = copy.deepcopy(self.raw)

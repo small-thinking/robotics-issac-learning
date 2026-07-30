@@ -61,8 +61,11 @@ lightweight VLA post-training, and optional real hardware.
   chain geometry and established angle envelopes.
 - A joint-first task-space search now supplies a revised local candidate:
   `[90,66,66,66]°`, a horizontal table top at `z=0.26160 m`, and an angled
-  front/up approach. It passes the residual-aware local design contract but
-  has not run in Isaac or the Viewer. No contact or grasp is authorized.
+  front/up approach. The exact API endpoint passed remotely, but Isaac settled
+  up to `4.64°` away and left `0.03213 m` Cartesian error. The default
+  simulator effort remains `100`; an isolated three-case gravity/effort
+  diagnostic is prepared to identify the actuator-layer cause before another
+  pre-grasp or Viewer attempt. No contact or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -109,9 +112,14 @@ approach axis is `(0,+0.94213,+0.33526)`, closing remains monitor-only world
 `+X`, and only `joint1`-`joint4` cross the Yahboom API. Wrist twist and the
 gripper remain uncommanded.
 
-The exact next step, after review and merge, is a freshly quoted and explicitly
-approved Isaac headless gate for this revised candidate. Open the Viewer only
-if every machine gate passes. Contact and grasping remain out of scope.
+The exact next paid step, after review, merge, a fresh quote, and explicit
+approval, is `make dofbot-actuator-calibration`. It runs the same neutral,
+mid-load, candidate, and neutral-return poses under gravity-on/effort-100,
+gravity-off/effort-100, and gravity-on/effort-250 cases. It records actual
+joint velocity, the Isaac target buffer, resolved drive parameters, contact,
+and torque availability every physics step. Do not rerun pre-grasp or open the
+Viewer until that matrix is complete and its decision-specific correction
+passes calibration. Contact and grasping remain out of scope.
 
 ## Sources of truth
 

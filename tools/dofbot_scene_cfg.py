@@ -15,11 +15,10 @@ ASSET_RELATIVE_PATH = "Robots/Yahboom/Dofbot/dofbot.usd"
 ASSET_USD_PATH = f"{ISAAC_NUCLEUS_DIR}/{ASSET_RELATIVE_PATH}"
 EXPECTED_JOINTS = 11
 EXPECTED_BODIES = 12
-# A no-contact pre-grasp run at the original 100-unit limit settled as much as
-# 4.64 degrees above the stopped API target. Keep the USD gains unchanged and
-# add bounded solver-effort headroom; the runner independently requires <=1
-# degree final observed/API tracking before machine acceptance.
-CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 250.0
+# Preserve the original asset-control baseline.  Alternate effort limits belong
+# to the isolated actuator calibration matrix until remote evidence identifies
+# the lowest stable setting.
+CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 100.0
 
 
 DOFBOT_CFG = ArticulationCfg(

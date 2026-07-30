@@ -7,13 +7,15 @@ SHELL := /bin/bash
 	dofbot-camera dofbot-camera-view \
 	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
 	dofbot-pregrasp-pose-dry-run dofbot-pregrasp-reachability \
-	dofbot-pregrasp-taskspace \
+	dofbot-pregrasp-taskspace dofbot-actuator-calibration-dry-run \
+	dofbot-actuator-calibration \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
 	show-dofbot-camera show-dofbot-camera-view \
 	show-dofbot-reach show-dofbot-reach-view \
 	show-dofbot-pregrasp show-dofbot-pregrasp-view \
+	show-dofbot-actuator-calibration \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -122,6 +124,16 @@ dofbot-pregrasp-taskspace:
 	 uv run --python 3.12 python tools/design_dofbot_pregrasp_taskspace.py \
 	 --output "$${DOFBOT_PREGRASP_TASKSPACE_OUTPUT:-artifacts/dofbot/pregrasp_taskspace_candidate.json}"
 
+dofbot-actuator-calibration-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/preview_dofbot_actuator_calibration.py \
+	 --config "$${ACTUATOR_CALIBRATION:-configs/dofbot/calibration/goal5_actuator_diagnostic.json}" \
+	 --tracking-failure "$${PREGRASP_TRACKING_FAILURE:-artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json}" \
+	 --output "$${DOFBOT_ACTUATOR_CALIBRATION_PLAN:-artifacts/dofbot/actuator_calibration_plan.json}"
+
+dofbot-actuator-calibration:
+	@./scripts/isaac/run_dofbot_actuator_calibration.sh
+
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh
 
@@ -203,6 +215,9 @@ show-dofbot-pregrasp:
 
 show-dofbot-pregrasp-view:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/view_dofbot_pregrasp.sh
+
+show-dofbot-actuator-calibration:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_actuator_calibration.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

@@ -125,9 +125,9 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("else:\n        simulation_app.close()", self.runner)
         self.assertNotIn("finally:\n        simulation_app.close()", self.runner)
 
-    def test_controlled_joint_effort_has_tracking_headroom(self) -> None:
+    def test_default_scene_preserves_original_effort_baseline(self) -> None:
         self.assertIn(
-            "CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 250.0",
+            "CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 100.0",
             self.base_scene_cfg,
         )
         self.assertEqual(

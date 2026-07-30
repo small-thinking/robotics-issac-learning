@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "name": "goal5_actuator_diagnostic",
+  "controlled_joint_names": [
+    "joint1",
+    "joint2",
+    "joint3",
+    "joint4"
+  ],
+  "safe_angle_min_deg": 60,
+  "safe_angle_max_deg": 120,
+  "poses": [
+    {
+      "name": "neutral_start",
+      "angles_deg": [90, 90, 90, 90]
+    },
+    {
+      "name": "mid_load",
+      "angles_deg": [90, 78, 78, 78]
+    },
+    {
+      "name": "pregrasp_candidate",
+      "angles_deg": [90, 66, 66, 66]
+    },
+    {
+      "name": "neutral_return",
+      "angles_deg": [90, 90, 90, 90]
+    }
+  ],
+  "trajectory": {
+    "duration_ms": 2000,
+    "settle_velocity_threshold_deg_s": 0.1,
+    "settle_hold_ms": 500,
+    "settle_timeout_ms": 5000,
+    "sample_every_physics_step": true
+  },
+  "cases": [
+    {
+      "name": "gravity_on_effort_100",
+      "gravity_enabled": true,
+      "effort_limit_sim": 100
+    },
+    {
+      "name": "gravity_off_effort_100",
+      "gravity_enabled": false,
+      "effort_limit_sim": 100
+    },
+    {
+      "name": "gravity_on_effort_250",
+      "gravity_enabled": true,
+      "effort_limit_sim": 250
+    }
+  ],
+  "acceptance": {
+    "maximum_target_buffer_error_deg": 0.05,
+    "maximum_settled_tracking_error_deg": 1.0,
+    "maximum_overshoot_deg": 2.0,
+    "maximum_contact_force_n": 0.5
+  }
+}

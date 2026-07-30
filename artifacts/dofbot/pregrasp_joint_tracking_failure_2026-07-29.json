@@ -90,11 +90,14 @@
     "returned_to_neutral"
   ],
   "diagnosis": {
-    "status": "strongly_indicated_pending_remote_confirmation",
+    "status": "hypothesis_requires_discriminating_calibration",
     "facts": {
       "implicit_actuator_stiffness": 10000.0,
       "old_effort_limit_sim": 100.0,
-      "pose_was_stable_for_last_observations": true,
+      "final_planned_command_velocity_was_zero": true,
+      "actual_joint_velocity_was_not_recorded": true,
+      "joint_position_target_buffer_was_not_recorded": true,
+      "computed_and_applied_torque_were_not_recorded": true,
       "contact_force_n": 0.0,
       "proportional_effort_demand_from_final_error": [
         16.152039170265198,
@@ -103,18 +106,32 @@
         668.1387450924813
       ]
     },
-    "inference": "The exact stopped API target still left joints 2-4 above their targets. With stiffness 10000 and no contact, the corresponding proportional effort demand exceeded the configured 100-unit implicit-actuator solver limit on joints 2-4, strongly indicating solver effort clipping under gravity.",
-    "official_semantics": "Isaac Lab documents stiffness as the PD P gain and effort_limit_sim as the physics-solver effort clamp for implicit actuators.",
+    "inference": "The exact stopped API target still left joints 2-4 above their targets. The proportional-error calculation is compatible with solver effort clipping under gravity, but the artifact cannot distinguish clipping from a target-buffer mismatch, unresolved settling, implicit-drive semantics, joint-axis mapping, collision, solver settings, or mass/inertia effects because those signals were not recorded.",
+    "official_semantics": "Isaac Lab documents stiffness as the PD P gain and effort_limit_sim as the physics-solver effort clamp for implicit actuators. Some implicit-actuator versions expose zero or unavailable computed/applied torque buffers, so zero telemetry must not be interpreted as proof that clipping is absent.",
     "official_reference": "https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.actuators.html"
   },
-  "local_correction": {
-    "controlled_joint_effort_limit_sim_before": 100.0,
-    "controlled_joint_effort_limit_sim_after": 250.0,
-    "stiffness_unchanged": 10000.0,
-    "damping_unchanged": 100.0,
-    "maximum_final_joint_tracking_error_deg": 1.0,
+  "local_follow_up": {
+    "default_controlled_joint_effort_limit_sim": 100.0,
+    "unverified_effort_limit_sim_hypothesis": 250.0,
+    "tracking_gate_retained_deg": 1.0,
+    "required_diagnostic_cases": [
+      "gravity_on_effort_100",
+      "gravity_off_effort_100",
+      "gravity_on_effort_250"
+    ],
+    "required_per_physics_step_telemetry": [
+      "backend_interpolated_target",
+      "joint_pos_target",
+      "joint_pos",
+      "joint_vel",
+      "resolved_drive_parameters",
+      "computed_and_applied_torque_if_meaningful",
+      "critical_contact_force"
+    ],
     "cartesian_position_tolerance_m_unchanged": 0.025,
     "approach_tolerance_deg_unchanged": 12.0,
+    "actuator_calibration_machine_passed": false,
+    "pregrasp_rerun_authorized": false,
     "contact_or_grasp_authorized": false,
     "candidate_isaac_machine_passed": false,
     "candidate_visual_passed": false
@@ -122,5 +139,5 @@
   "viewer_started": false,
   "visual_status": "not_run_machine_gate_failed",
   "gpu_final_status": "STOPPED",
-  "conclusion": "The command-space correction worked, but the simulated joints did not track the exact stopped API target closely enough under load. The next paid run must prove the new explicit joint-tracking gate and all unchanged Cartesian and safety gates before Viewer startup."
+  "conclusion": "The command-space correction worked, but the simulated joints did not track the exact stopped API target closely enough. The default effort limit remains 100 until an isolated gravity/effort calibration matrix records actual velocity, target buffers, drive settings, torque availability, and contact. Pre-grasp and Viewer remain blocked."
 }
