@@ -104,6 +104,23 @@ ISAAC_CHECKPOINT_DIR=logs/skrl/cartpole/<run>/checkpoints \
 make learning-curve
 ```
 
+## Preview the DOFBOT actuator diagnostic
+
+The local plan and the exact future remote matrix are inspectable without
+starting Brev:
+
+```bash
+make dofbot-actuator-calibration-dry-run
+make show-dofbot-actuator-calibration
+```
+
+The remote command intentionally runs three isolated headless cases and prints
+`[MATRIX_EXIT_CODE]`. The outer Brev transport exits successfully to prevent an
+automatic retry of this paid stateful experiment; operators must require
+`[MATRIX_EXIT_CODE] 0` and retrieve
+`artifacts/dofbot/actuator_calibration_contract.json`. No Viewer command exists
+for this diagnostic.
+
 ## Optional interactive learning
 
 If a human wants to explore the VM manually, the equivalent sequence is:

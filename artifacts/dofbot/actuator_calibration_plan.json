@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_actuator_diagnostic_plan",
+  "calibration_config": {
+    "path": "configs/dofbot/calibration/goal5_actuator_diagnostic.json",
+    "sha256": "e3be35ad14617c252151cdbf9d6090fd7655f9e96ba3600bb659cc9f577cf6f9",
+    "value": {
+      "schema_version": 1,
+      "name": "goal5_actuator_diagnostic",
+      "controlled_joint_names": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4"
+      ],
+      "safe_angle_min_deg": 60,
+      "safe_angle_max_deg": 120,
+      "poses": [
+        {
+          "name": "neutral_start",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "name": "mid_load",
+          "angles_deg": [
+            90,
+            78,
+            78,
+            78
+          ]
+        },
+        {
+          "name": "pregrasp_candidate",
+          "angles_deg": [
+            90,
+            66,
+            66,
+            66
+          ]
+        },
+        {
+          "name": "neutral_return",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "trajectory": {
+        "duration_ms": 2000,
+        "settle_velocity_threshold_deg_s": 0.1,
+        "settle_hold_ms": 500,
+        "settle_timeout_ms": 5000,
+        "sample_every_physics_step": true
+      },
+      "cases": [
+        {
+          "name": "gravity_on_effort_100",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0
+        },
+        {
+          "name": "gravity_off_effort_100",
+          "gravity_enabled": false,
+          "effort_limit_sim": 100.0
+        },
+        {
+          "name": "gravity_on_effort_250",
+          "gravity_enabled": true,
+          "effort_limit_sim": 250.0
+        }
+      ],
+      "acceptance": {
+        "maximum_target_buffer_error_deg": 0.05,
+        "maximum_settled_tracking_error_deg": 1.0,
+        "maximum_overshoot_deg": 2.0,
+        "maximum_contact_force_n": 0.5
+      }
+    }
+  },
+  "historical_tracking_failure": {
+    "path": "artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json",
+    "sha256": "c70065a6507d6fca37938a5da9486779acd28340fca3f3f23dfba5f65c1c5997",
+    "maximum_observed_command_error_deg": 4.640745750494929
+  },
+  "remote_case_order": [
+    "gravity_on_effort_100",
+    "gravity_off_effort_100",
+    "gravity_on_effort_250"
+  ],
+  "trajectory_extrema": {
+    "maximum_transition_delta_deg": 24.0,
+    "smoothstep_peak_velocity_deg_s": 18.0,
+    "smoothstep_peak_acceleration_deg_s2": 36.0
+  },
+  "per_physics_step_telemetry": [
+    "api_command_angles_deg",
+    "backend_interpolated_target_angles_deg",
+    "joint_pos_target_angles_deg",
+    "observed_joint_angles_deg",
+    "observed_joint_velocities_deg_s",
+    "joint_stiffness",
+    "joint_damping",
+    "joint_effort_limits",
+    "computed_torque_if_meaningful",
+    "applied_torque_if_meaningful",
+    "critical_contact_force_n",
+    "optional_physx_mass_inertia_and_dof_properties"
+  ],
+  "decision_order": [
+    "contact_or_self_collision_interference",
+    "settling_or_drive_stability_failure",
+    "backend_or_target_buffer_mismatch",
+    "instrumentation_or_runtime_compatibility_failure",
+    "baseline_tracking_identity_validated",
+    "effort_saturation_observed",
+    "gravity_load_sensitive_tracking",
+    "effort_limit_sensitive_tracking",
+    "drive_gain_axis_solver_or_model_mapping_failure"
+  ],
+  "checks": {
+    "historical_failure_reached_exact_api_endpoint": true,
+    "historical_failure_exceeds_tracking_gate": true,
+    "baseline_case_preserves_effort_100": true,
+    "gravity_control_changes_only_gravity": true,
+    "effort_control_preserves_gravity": true,
+    "records_actual_velocity_and_target_buffer": true,
+    "torque_telemetry_has_explicit_unavailable_state": true,
+    "no_table_cube_contact_or_viewer": true,
+    "real_hardware_disabled": true,
+    "pregrasp_remains_blocked": true,
+    "smoothstep_velocity_within_existing_limit": true,
+    "smoothstep_acceleration_within_existing_limit": true
+  },
+  "local_preparation_passed": true,
+  "paid_gpu_run_authorized": false,
+  "viewer_authorized": false,
+  "contact_or_grasp_authorized": false
+}

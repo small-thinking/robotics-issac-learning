@@ -173,6 +173,27 @@ steps. All 22 local provenance, trajectory, collision-proxy, no-contact, and
 scope checks pass. This is local regression evidence only; it does not claim
 Isaac machine or Viewer acceptance.
 
+`pregrasp_joint_tracking_failure_2026-07-29.json` records the corrected
+command-space remote retry at merged `main@54b25ed`. The API command reached
+the exact stopped `[90,66,66,66]°` candidate, but observed joints settled at
+approximately `[90.09,66.99,70.64,69.83]°`; the `4.64°` maximum tracking
+error left `0.03213 m` Cartesian error. The artifact now separates the measured
+failure from the unverified effort-clipping hypothesis: its historical payload
+did not record actual velocity, the Isaac target buffer, resolved drive
+parameters, or meaningful torque telemetry. The original effort-100 default
+and the independent `1°` tracking gate remain.
+
+`actuator_calibration_plan.json` is the deterministic GPU-free preparation for
+the next paid window. It SHA-binds that failure and configures three isolated
+cases: gravity-on/effort-100, gravity-off/effort-100, and
+gravity-on/effort-250. Each case runs neutral, mid-load, candidate, and
+neutral-return poses without a table, cube, camera, Viewer, policy, or hardware
+backend. The future case artifacts record the API request, interpolated
+backend target, Isaac `joint_pos_target`, actual `joint_pos` and `joint_vel`,
+resolved drive buffers, torque availability, terminal body positions, and
+contact every physics step. The local plan passes all preparation checks while
+keeping paid GPU, pre-grasp, Viewer, contact, and grasp authorization false.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

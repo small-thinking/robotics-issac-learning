@@ -864,6 +864,93 @@ machine pending / Viewer blocked pending machine pass**. This correction does
 not loosen the `0.025 m / 12°` Cartesian gates, authorize contact or grasp,
 or claim that local replay is Isaac proof.
 
+### Exact API endpoint passed; simulated joint tracking failed
+
+The command-space correction was remotely tested at merged
+`main@54b25ed98d325f5079daf5d34bec3ad1629ee136` with:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+```
+
+The earlier command-space defect is fixed: the controller reached and stopped
+at the exact `[90,66,66,66]°` Yahboom API candidate. Isaac nevertheless
+settled at observed joints `[90.093,66.987,70.641,69.828]°`, so the maximum
+observed/API tracking error was `4.641°`. The Cartesian endpoint improved
+`0.25660 -> 0.03213 m` but still missed the unchanged `0.025 m` gate.
+Approach and closing passed at `9.465° / 0.412°`; every collision,
+static-target, no-contact, API-count, command-margin, and neutral-reset gate
+passed with `0 N` contact. The Viewer was therefore not started.
+
+This failure is distinct from the previous one. The final API state is now
+correct, while the simulated articulation does not hold that target under
+load. The configured stiffness times the measured error is compatible with
+effort clipping, but the artifact recorded planned command velocity rather
+than actual `joint_vel` and omitted `joint_pos_target`, resolved drive
+buffers, and computed/applied torque. It therefore cannot distinguish effort
+clipping from target-path, settling, drive, solver, collision, axis, or
+mass/inertia causes.
+
+The local follow-up preserves the original effort-100 baseline and the
+independent
+`final_api_joint_tracking_within_tolerance <= 1°` pre-grasp gate. It adds:
+
+- `configs/dofbot/calibration/goal5_actuator_diagnostic.json`;
+- `make dofbot-actuator-calibration-dry-run`;
+- `make show-dofbot-actuator-calibration`;
+- the future separately approved
+  `make dofbot-actuator-calibration` machine matrix.
+
+The matrix uses the same neutral, mid-load, `[90,66,66,66]°` candidate, and
+neutral-return poses under three orthogonal cases:
+
+1. gravity on, effort limit 100;
+2. gravity off, effort limit 100;
+3. gravity on, effort limit 250.
+
+Each pose is dispatched once through sixteen total official API calls per
+case. The runner samples every physics step and records the API target, backend
+interpolated target, Isaac `joint_pos_target`, observed `joint_pos`, actual
+`joint_vel`, resolved stiffness/damping/effort limits, torque buffers when
+meaningful, optional PhysX mass/inertia/DOF properties, terminal body
+positions, and contact. Missing optional APIs are recorded as null instead of
+aborting. Settling requires actual velocity below `0.1°/s` for `0.5 s`; zero
+planned command velocity is not accepted as a proxy. The two-second smoothstep
+peaks at 18°/s and 36°/s² for the largest transition, preserving the existing
+20°/s and 60°/s² bounds.
+
+The matrix decision tree checks contact, settling, target-buffer agreement,
+and telemetry/runtime completeness before comparing gravity and effort.
+Implicit-actuator torque buffers that are zero or unavailable are explicitly
+marked non-evidence. When meaningful buffers are nonzero, applied effort at
+least 98% of the configured limit plus a computed/applied gap becomes direct
+saturation evidence. Tracking failure still writes a complete case artifact.
+The outer Brev transport exits zero and prints `[MATRIX_EXIT_CODE]` so a
+nonzero internal result cannot trigger an automatic paid retry.
+The local wrapper then parses that marker and returns nonzero to `make` if the
+internal matrix did not complete.
+
+The historical full 327,442-byte artifact remains bound by SHA-256
+`50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`
+in
+`artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`.
+The deterministic local preparation evidence is
+`artifacts/dofbot/actuator_calibration_plan.json`.
+All 171 repository tests pass, including synthetic decision branches and
+remote preview checks. Targeted Ruff, Python compilation, shell syntax,
+deterministic plan regeneration, JSON parsing, and `git diff --check` pass.
+`brev ls --json` remained `STOPPED`; no GPU or Isaac runtime was started.
+
+The paid window began at 22:42:05 PDT. Evidence was retrieved before stop,
+and `brev ls --json` explicitly returned `STOPPED` at 22:55:05 PDT. No
+instance or disk was created, resized, or deleted.
+
+Acceptance is **remote exact API endpoint passed / simulated joint tracking
+and Cartesian position failed / isolated actuator diagnostic prepared /
+diagnostic matrix and Viewer pending**. The next paid command is the diagnostic
+matrix, not pre-grasp. Contact, closing, grasping, lifting, and placing remain
+unauthorized.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

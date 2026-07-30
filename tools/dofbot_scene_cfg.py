@@ -15,6 +15,10 @@ ASSET_RELATIVE_PATH = "Robots/Yahboom/Dofbot/dofbot.usd"
 ASSET_USD_PATH = f"{ISAAC_NUCLEUS_DIR}/{ASSET_RELATIVE_PATH}"
 EXPECTED_JOINTS = 11
 EXPECTED_BODIES = 12
+# Preserve the original asset-control baseline.  Alternate effort limits belong
+# to the isolated actuator calibration matrix until remote evidence identifies
+# the lowest stable setting.
+CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 100.0
 
 
 DOFBOT_CFG = ArticulationCfg(
@@ -42,21 +46,21 @@ DOFBOT_CFG = ArticulationCfg(
     actuators={
         "front_joints": ImplicitActuatorCfg(
             joint_names_expr=["joint[1-2]"],
-            effort_limit_sim=100.0,
+            effort_limit_sim=CONTROLLED_JOINT_EFFORT_LIMIT_SIM,
             velocity_limit_sim=100.0,
             stiffness=10000.0,
             damping=100.0,
         ),
         "joint3_act": ImplicitActuatorCfg(
             joint_names_expr=["joint3"],
-            effort_limit_sim=100.0,
+            effort_limit_sim=CONTROLLED_JOINT_EFFORT_LIMIT_SIM,
             velocity_limit_sim=100.0,
             stiffness=10000.0,
             damping=100.0,
         ),
         "joint4_act": ImplicitActuatorCfg(
             joint_names_expr=["joint4"],
-            effort_limit_sim=100.0,
+            effort_limit_sim=CONTROLLED_JOINT_EFFORT_LIMIT_SIM,
             velocity_limit_sim=100.0,
             stiffness=10000.0,
             damping=100.0,

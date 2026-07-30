@@ -15,6 +15,7 @@ from tools.dofbot_pregrasp_pose import (
     direction_error_vector,
     evaluate_pregrasp_observation,
     load_pregrasp_pose_config,
+    maximum_joint_tracking_error_deg,
     next_pose_command,
     next_pregrasp_command,
     parse_pregrasp_pose_config,
@@ -44,6 +45,10 @@ ANGLED_SCENE_CONFIG_PATH = (
 COMMAND_SPACE_CONTRACT_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/pregrasp_command_space_contract.json"
+)
+TRACKING_FAILURE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json"
 )
 
 
@@ -153,6 +158,69 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             "Wrist_Twist_RevoluteJoint",
             self.config.solver.controlled_joint_names,
         )
+
+    def test_machine_tracking_error_uses_observed_and_api_joint_state(self) -> None:
+        self.assertAlmostEqual(
+            maximum_joint_tracking_error_deg(
+                observed_angles_deg=(90.092, 66.987, 70.641, 69.828),
+                command_angles_deg=(90.0, 66.0, 66.0, 66.0),
+            ),
+            4.641,
+        )
+        self.assertEqual(
+            self.config.acceptance.maximum_final_joint_tracking_error_deg,
+            1.0,
+        )
+
+    def test_machine_tracking_error_rejects_wrong_vector_shape(self) -> None:
+        with self.assertRaisesRegex(
+            PregraspPoseError,
+            "must contain four values",
+        ):
+            maximum_joint_tracking_error_deg(
+                observed_angles_deg=(90.0, 90.0, 90.0),
+                command_angles_deg=(90.0, 90.0, 90.0, 90.0),
+            )
+
+    def test_parser_rejects_loose_final_joint_tracking_gate(self) -> None:
+        loose = copy.deepcopy(self.raw)
+        loose["acceptance"]["maximum_final_joint_tracking_error_deg"] = 3.0
+        with self.assertRaisesRegex(
+            PregraspPoseError,
+            "must be in",
+        ):
+            parse_pregrasp_pose_config(loose)
+
+    def test_remote_tracking_failure_requires_discriminating_calibration(self) -> None:
+        evidence = json.loads(TRACKING_FAILURE_PATH.read_text(encoding="utf-8"))
+        control = evidence["control"]
+        follow_up = evidence["local_follow_up"]
+        self.assertAlmostEqual(
+            maximum_joint_tracking_error_deg(
+                observed_angles_deg=control["final_observed_angles_deg"],
+                command_angles_deg=control["final_api_command_angles_deg"],
+            ),
+            control["maximum_observed_command_error_deg"],
+        )
+        self.assertGreater(
+            control["maximum_observed_command_error_deg"],
+            follow_up["tracking_gate_retained_deg"],
+        )
+        self.assertEqual(
+            follow_up["default_controlled_joint_effort_limit_sim"],
+            100.0,
+        )
+        self.assertEqual(
+            follow_up["required_diagnostic_cases"],
+            [
+                "gravity_on_effort_100",
+                "gravity_off_effort_100",
+                "gravity_on_effort_250",
+            ],
+        )
+        self.assertFalse(follow_up["pregrasp_rerun_authorized"])
+        self.assertFalse(follow_up["candidate_isaac_machine_passed"])
+        self.assertFalse(follow_up["candidate_visual_passed"])
 
     def test_parser_rejects_fabricated_grasp_body_or_wrist_control(self) -> None:
         wrong_body = copy.deepcopy(self.raw)

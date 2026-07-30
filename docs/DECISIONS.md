@@ -185,3 +185,25 @@ previously machine-accepted `-Y` scripted poses are mirrored around the 90°
 neutral servo angle rather than rotating the complete robot asset. This is a
 simulation-frame correction only; it does not claim the physical-servo
 direction/offset mapping has been hardware-calibrated.
+
+## 2026-07-29 — Calibrate the actuator layer before tuning the task
+
+The offline pre-grasp model was fitted in observed-joint space, while the
+selected `[90,66,66,66]°` vector was later issued in API-command space. The
+corrected controller now reaches that exact API endpoint, but Isaac settles up
+to `4.64°` away. Moving the cube, loosening the Cartesian gate, or repeatedly
+changing the controller would hide this command-to-observation mismatch.
+
+Keep the default official-asset actuator configuration at effort 100 until an
+isolated diagnostic distinguishes causes. The next paid run removes the task
+scene and compares gravity-on/effort-100, gravity-off/effort-100, and
+gravity-on/effort-250 with identical poses and per-physics-step telemetry.
+Actual joint velocity defines settling. The Isaac target buffer must match the
+backend interpolated target before a drive-dynamics conclusion is allowed.
+
+Computed/applied torque is optional evidence for implicit actuators: present,
+nonzero buffers may support a saturation conclusion, while zero or unavailable
+buffers are explicitly inconclusive. Tracking failure is a valid calibration
+result and must still be written. Pre-grasp may resume only after the matrix
+selects a cause-specific correction and the chosen baseline passes the
+independent one-degree tracking gate.

@@ -1299,3 +1299,120 @@
 - Resource lifecycle: approved start at 21:40:39 PDT; evidence retrieved before
   stop; stale `STOPPING` list state was refreshed; explicit `STOPPED` verified
   at 21:55 PDT. No instance or disk was created, resized, or deleted.
+
+## 2026-07-29 — Exact pre-grasp API command exposed implicit-drive tracking error
+
+- Remote source: merged
+  `main@54b25ed98d325f5079daf5d34bec3ad1629ee136`; existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  quoted `$1.58784/hour`
+- Official command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Command result: the corrected controller reached the exact stopped
+  `[90,66,66,66]°` API endpoint. This passes the specific regression that
+  failed at `main@150fa5d`.
+- Observed result: joints settled at
+  `[90.093,66.987,70.641,69.828]°`; maximum observed/API error was `4.641°`.
+  Position improved `0.25660 -> 0.03213 m` but failed the unchanged
+  `0.025 m` gate. Approach and closing passed at `9.465° / 0.412°`.
+- Safety result: all joint-envelope, velocity, acceleration, table/cube
+  clearance, static-target, no-contact, API-count, command-margin, exact
+  command-endpoint, and reset gates passed. Maximum contact was `0 N`.
+  Viewer, gripper, contact, and grasp were not authorized.
+- Evidence: the retrieved full artifact was 327,442 bytes, SHA-256
+  `50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033`;
+  the promoted concise record is
+  `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`.
+- Diagnosis boundary: the stiffness-times-error values
+  `[16.15,172.28,809.96,668.14]` are compatible with effort clipping, but the
+  artifact recorded only planned command velocity. It omitted actual
+  `joint_vel`, `joint_pos_target`, resolved drive buffers, and torque
+  telemetry, so clipping is not yet distinguished from target-path, settling,
+  drive, axis, collision, solver, or mass/inertia causes.
+- Local branch:
+  `codex/dofbot-command-space-remote-validation`
+  - retain `maximum_final_joint_tracking_error_deg=1.0` and
+    `final_api_joint_tracking_within_tolerance`;
+  - preserve the default effort-100 scene until discriminating evidence exists;
+  - prepare an isolated gravity/effort calibration matrix before another
+    pre-grasp command.
+- Resource lifecycle: start approved at 22:42:05 PDT; stop requested after
+  evidence retrieval; terminal `STOPPED` verified at 22:55:05 PDT. The
+  existing instance and disk were preserved.
+- Current acceptance: **exact API endpoint passed remotely / joint tracking
+  and Cartesian position failed / diagnostic preparation pending local
+  completion / Viewer blocked**.
+
+## 2026-07-29 — Prepare an isolated actuator diagnostic before another paid pre-grasp
+
+- Scope: local code, schema, deterministic plan artifact, tests, and remote
+  command preview only. No Brev start, Isaac execution, Viewer, table, cube,
+  camera, policy, real hardware, contact, or grasp.
+- Historical input:
+  `artifacts/dofbot/pregrasp_joint_tracking_failure_2026-07-29.json`; exact API
+  endpoint `[90,66,66,66]°`, observed endpoint
+  `[90.093,66.987,70.641,69.828]°`, maximum tracking error `4.641°`.
+- Config:
+  `configs/dofbot/calibration/goal5_actuator_diagnostic.json`.
+- Fixed pose sequence: neutral start `[90,90,90,90]°`, mid-load
+  `[90,78,78,78]°`, failed candidate `[90,66,66,66]°`, and neutral return.
+- Orthogonal cases:
+  - gravity on / effort 100 preserves the historical baseline;
+  - gravity off / effort 100 isolates gravity/load;
+  - gravity on / effort 250 isolates the earlier effort hypothesis.
+- Per-physics-step telemetry: vendor-shaped API request, backend interpolated
+  target, Isaac `joint_pos_target`, actual `joint_pos` and `joint_vel`,
+  `joint_stiffness`, `joint_damping`, `joint_effort_limits`, computed/applied
+  torque when meaningful, optional PhysX mass/inertia/DOF properties, critical
+  contact force, and body positions. Optional PhysX probe failures retain the
+  accessor name and exception text instead of silently producing an unexplained
+  null.
+- Settling contract: actual velocity no greater than `0.1°/s` continuously for
+  `0.5 s`, with a bounded timeout. Planned command velocity is not used as a
+  stability proxy. A two-second smoothstep bounds the largest transition to
+  18°/s peak velocity and 36°/s² peak acceleration, below the existing
+  20°/s and 60°/s² limits.
+- Torque contract: computed/applied buffers are classified as measured only
+  when both are present and nonzero. Zero or unavailable implicit-actuator
+  buffers explicitly do not disprove saturation. With meaningful buffers,
+  applied effort at least 98% of the configured limit plus a nonzero
+  computed/applied gap is routed as observed saturation.
+- Failure routing order: contact/self-collision, actual-velocity settling,
+  target-buffer mismatch, telemetry/runtime compatibility, baseline identity,
+  directly observed effort saturation, gravity sensitivity, effort
+  sensitivity, then drive/axis/solver/model mapping.
+- Operational safety: each tracking failure still writes its case artifact.
+  The wrapper runs all three cases and summary, prints `[MATRIX_EXIT_CODE]`,
+  and returns outer success so Brev cannot automatically retry a paid
+  stateful experiment. The local wrapper parses the marker and fails `make`
+  when the matrix itself failed.
+- Local commands:
+
+  ```bash
+  make dofbot-actuator-calibration-dry-run
+  make show-dofbot-actuator-calibration
+  ```
+
+- Evidence: `artifacts/dofbot/actuator_calibration_plan.json`.
+- Local validation: 171/171 repository tests, targeted Ruff, Python
+  compilation, shell syntax, deterministic plan regeneration, JSON parsing,
+  remote-command preview, and `git diff --check` passed.
+- Infrastructure: read-only `brev ls --json` returned explicit `STOPPED`;
+  no GPU, Isaac process, Viewer, instance, disk, or hardware was started,
+  created, resized, or deleted.
+- Paid command remains unauthorized in this local record. After merge, a fresh
+  quote and explicit approval are required before:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-actuator-calibration
+  ```
+
+- Next gate: retrieve all three case artifacts and the matrix summary, require
+  `[MATRIX_EXIT_CODE] 0`, apply only the decision-specific correction, and
+  rerun calibration. Pre-grasp and Viewer remain blocked until the selected
+  actuator baseline passes the independent `1°` tracking gate.

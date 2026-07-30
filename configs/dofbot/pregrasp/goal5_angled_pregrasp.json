@@ -66,6 +66,7 @@
   },
   "acceptance": {
     "minimum_position_improvement_m": 0.03,
+    "maximum_final_joint_tracking_error_deg": 1.0,
     "maximum_neutral_reset_error_deg": 1.0,
     "viewer_connection_hold_seconds": 20,
     "viewer_success_hold_seconds": 3

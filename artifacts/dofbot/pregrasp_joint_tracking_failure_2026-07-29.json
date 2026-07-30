@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "status": "machine_failed",
+  "generated_at_utc": "2026-07-30T05:44:27.478362+00:00",
+  "git_commit": "54b25ed98d325f5079daf5d34bec3ad1629ee136",
+  "remote": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "L4",
+    "quoted_compute_usd_per_hour": 1.58784
+  },
+  "source_artifact": {
+    "sha256": "50efb65e1b31299e3e39fb517f024b4762ea68773d6c7a58e2a62df6e0d57033",
+    "size_bytes": 327442
+  },
+  "source_contracts": {
+    "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
+    "scene_config_sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949",
+    "pose_config_sha256": "156cd35e5ee5f8484fe44b8dc82ba4c4336cca47a7ca99fe3d550e79e5f9f08a"
+  },
+  "control": {
+    "mode": "validated_joint_candidate",
+    "selected_candidate_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_api_command_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_api_command_velocities_deg_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "selected_candidate_was_commanded_exactly_and_stopped": true,
+    "final_observed_angles_deg": [
+      90.09254436749862,
+      66.98708973325293,
+      70.64074575049493,
+      69.82815302229663
+    ],
+    "absolute_observed_command_errors_deg": [
+      0.09254436749861839,
+      0.9870897332529296,
+      4.640745750494929,
+      3.8281530222966325
+    ],
+    "maximum_observed_command_error_deg": 4.640745750494929
+  },
+  "machine": {
+    "passed": false,
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position"
+    ],
+    "initial_position_error_m": 0.2565964458227851,
+    "final_position_error_m": 0.03212848883969855,
+    "position_improvement_m": 0.22446795698308658,
+    "final_approach_error_deg": 9.464950332410833,
+    "final_closing_error_deg": 0.4121292031264766,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 248,
+    "expected_official_api_call_count": 248,
+    "maximum_neutral_reset_error_deg": 0.07020417275515456
+  },
+  "passed_checks": [
+    "approach_axis_matches_target_within_tolerance",
+    "fixed_closing_axis_is_acceptable_without_wrist_command",
+    "joint_angles_remain_within_safe_limits",
+    "joint_velocity_limit_respected",
+    "joint_acceleration_limit_respected",
+    "critical_body_centers_clear_table_proxy",
+    "nonfinger_body_centers_clear_target_proxy",
+    "terminal_finger_centers_remain_precontact",
+    "contact_reporter_force_remains_below_threshold",
+    "target_remains_static",
+    "contact_remains_unauthorized",
+    "physical_table_prim_present",
+    "static_target_cube_prim_present",
+    "pose_controller_improved_position",
+    "official_api_call_count_matches",
+    "api_commands_preserve_limit_margin",
+    "validated_joint_candidate_command_reached",
+    "returned_to_neutral"
+  ],
+  "diagnosis": {
+    "status": "hypothesis_requires_discriminating_calibration",
+    "facts": {
+      "implicit_actuator_stiffness": 10000.0,
+      "old_effort_limit_sim": 100.0,
+      "final_planned_command_velocity_was_zero": true,
+      "actual_joint_velocity_was_not_recorded": true,
+      "joint_position_target_buffer_was_not_recorded": true,
+      "computed_and_applied_torque_were_not_recorded": true,
+      "contact_force_n": 0.0,
+      "proportional_effort_demand_from_final_error": [
+        16.152039170265198,
+        172.27965857896177,
+        809.9629309407178,
+        668.1387450924813
+      ]
+    },
+    "inference": "The exact stopped API target still left joints 2-4 above their targets. The proportional-error calculation is compatible with solver effort clipping under gravity, but the artifact cannot distinguish clipping from a target-buffer mismatch, unresolved settling, implicit-drive semantics, joint-axis mapping, collision, solver settings, or mass/inertia effects because those signals were not recorded.",
+    "official_semantics": "Isaac Lab documents stiffness as the PD P gain and effort_limit_sim as the physics-solver effort clamp for implicit actuators. Some implicit-actuator versions expose zero or unavailable computed/applied torque buffers, so zero telemetry must not be interpreted as proof that clipping is absent.",
+    "official_reference": "https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.actuators.html"
+  },
+  "local_follow_up": {
+    "default_controlled_joint_effort_limit_sim": 100.0,
+    "unverified_effort_limit_sim_hypothesis": 250.0,
+    "tracking_gate_retained_deg": 1.0,
+    "required_diagnostic_cases": [
+      "gravity_on_effort_100",
+      "gravity_off_effort_100",
+      "gravity_on_effort_250"
+    ],
+    "required_per_physics_step_telemetry": [
+      "backend_interpolated_target",
+      "joint_pos_target",
+      "joint_pos",
+      "joint_vel",
+      "resolved_drive_parameters",
+      "computed_and_applied_torque_if_meaningful",
+      "critical_contact_force"
+    ],
+    "cartesian_position_tolerance_m_unchanged": 0.025,
+    "approach_tolerance_deg_unchanged": 12.0,
+    "actuator_calibration_machine_passed": false,
+    "pregrasp_rerun_authorized": false,
+    "contact_or_grasp_authorized": false,
+    "candidate_isaac_machine_passed": false,
+    "candidate_visual_passed": false
+  },
+  "viewer_started": false,
+  "visual_status": "not_run_machine_gate_failed",
+  "gpu_final_status": "STOPPED",
+  "conclusion": "The command-space correction worked, but the simulated joints did not track the exact stopped API target closely enough. The default effort limit remains 100 until an isolated gravity/effort calibration matrix records actual velocity, target buffers, drive settings, torque availability, and contact. Pre-grasp and Viewer remain blocked."
+}

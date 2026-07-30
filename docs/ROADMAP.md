@@ -127,12 +127,18 @@ The detailed first-stage contract lives in
    machine-validated angle envelopes, rejects the requested low table, and
    produces one residual-aware angled candidate at `[90,66,66,66]°` with a
    `0.26160 m` table top. Two remote attempts then separated Cartesian IK
-   branch drift from a direct-candidate command/observation state mix. The
-   latter is corrected locally with an exact stopped command-space endpoint
-   gate and a preflight braking-reserve check; the 22-check local trajectory
-   contract passes. Corrected Isaac headless and Viewer validation remain
-   pending. Wrist twist, gripper closing, target motion, contact, and grasp
-   success remain unauthorized.
+   branch drift from a direct-candidate command/observation state mix. A third
+   remote attempt proved the corrected command path reaches the exact stopped
+   `[90,66,66,66]°` API endpoint, but the implicit actuators settled as much
+   as `4.64°` away and left `0.03213 m` Cartesian error. The earlier artifact
+   did not record actual joint velocity, Isaac target buffers, resolved drive
+   parameters, or meaningful torque telemetry, so effort clipping remains one
+   hypothesis rather than a verified fix. A GPU-free three-case
+   gravity/effort calibration plan now preserves the original effort-100
+   baseline, samples every physics step, and routes the next result through an
+   explicit failure decision tree before another pre-grasp. The separate
+   `<=1°` tracking gate remains. Wrist twist, gripper closing, target motion,
+   contact, and grasp success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 
