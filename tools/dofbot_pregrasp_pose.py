@@ -878,8 +878,6 @@ def next_pose_command(
         )
         velocity = max(-maximum_velocity, min(maximum_velocity, velocity))
         command = max(command_min, min(command_max, angle + velocity * dt))
-        if abs(command - angle) > solver.maximum_joint_delta_deg + 1e-9:
-            raise PregraspPoseError(f"joint {index} command exceeds maximum delta")
         velocities.append(velocity)
         commands.append(command)
     return PoseCommand(
