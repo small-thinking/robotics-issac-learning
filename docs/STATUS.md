@@ -4,8 +4,8 @@
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther,
-  terminal-finger pose-aware pre-grasp remote candidate failed its pose gates
-  safely and requires local reachability recalibration
+  terminal-finger pose-aware pre-grasp candidate is now rejected by both its
+  remote pose gate and the exhaustive local calibrated reachability gate
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
   19:35 PDT after the failed pre-grasp machine candidate
@@ -211,11 +211,30 @@
 - Candidate acceptance: **local preparation passed / first Isaac machine
   candidate failed / Viewer blocked**. Goal 5 is not complete, and contact or
   grasp remains unauthorized.
-- Next free gate: keep Brev stopped and add a local reachable-pose search over
-  alternate joint-space posture branches. Reconcile the desired top-down pose,
-  table/cube geometry, and existing `[60,120]°` physical envelope without
-  weakening safety limits. Only a revised candidate that passes local
-  reachability checks may receive another freshly approved paid machine run.
+- Local reachability branch: `codex/dofbot-multistart-reachability`
+- Local calibration: twelve recorded Isaac observations from steps 0-11 fit a
+  planar three-pitch-chain model with `0.00203 m` maximum position residual,
+  `0.00136 m` RMS position residual, and `0.00246°` maximum approach residual.
+- Exhaustive result: all `226,981` integer-degree combinations in the
+  `[60,120]°` physical envelope and all `91,125` combinations in the
+  `[68,112]°` command-margin envelope were evaluated across nineteen visible
+  workspace-front posture branches. Neither search produced a candidate.
+- Global rejection: even ignoring position, the theoretical world-down
+  approach error is bounded below by `88.41°` over the physical envelope and
+  `112.41°` over the command-margin envelope, versus the `12°` tolerance. The
+  coupled world-down pose requires `0.35791 m` of proximal reach, while the
+  calibrated first two links provide only `0.19656 m`, a `-0.16134 m` margin
+  even before joint-angle bounds.
+- Evidence: `artifacts/dofbot/pregrasp_reachability.json`; all sixteen local
+  provenance, residual, exhaustive-search, rejection, and no-runtime-action
+  checks pass.
+- Candidate acceptance: **search contract passed / current target infeasible /
+  revised candidate absent / GPU and Viewer blocked**. This is a bounded
+  planar-model conclusion, not Isaac dynamics or collision acceptance.
+- Next design gate: choose between preserving the current safety envelope and
+  revising the approach/scene, or separately calibrating a wider envelope.
+  The current lower/farther world-down target must not receive another paid
+  run unchanged.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -574,10 +593,11 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Use the retrieved failure contract to design a
-local reachable-pose search that explores alternate posture branches instead
-of continuing to press against the lower command margin. Recalibrate the
-top-down terminal-finger pose and scene only from safety-preserving candidates.
-After a revised local gate passes, obtain a fresh quote and explicit approval,
-run headless first, and open the Viewer only if every machine gate passes.
-Contact, closing, grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped. The exhaustive local gate rejects the current
+world-down pose even before the established angle bounds, so another unchanged
+GPU run is not justified. Select a revised task contract: either preserve the
+current safety envelope and change the scene/approach pose, or separately
+calibrate a wider envelope and then search again. After a revised local gate
+passes, obtain a fresh quote and explicit approval, run headless first, and
+open the Viewer only if every machine gate passes. Contact, closing, grasping,
+lifting, and placing remain unauthorized.

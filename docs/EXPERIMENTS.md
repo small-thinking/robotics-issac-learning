@@ -1101,3 +1101,42 @@
 - Resource lifecycle: stop was requested immediately after evidence retrieval;
   terminal `STOPPED` was verified with `brev ls --json` at approximately
   19:35 PDT. The instance and persistent disk were retained.
+
+## 2026-07-29 — Exhaustive local reachability gate rejected the first pre-grasp pose
+
+- Branch: `codex/dofbot-multistart-reachability`
+- Scope: local pure Python only; no Brev start, GPU, Isaac runtime, policy,
+  real-hardware command, contact, or grasp authorization
+- Calibration source: steps 0-11 from the retrieved failed machine artifact
+  generated at commit `05ececc`, full artifact SHA-256
+  `bc0ff9942be17fb542c9b56dc8cd04aa9bf2af4093ec97be4488fb7c34c7b8e5`
+- Model: three serial pitch links with a fixed 90° base branch, fitted directly
+  from recorded terminal-finger midpoint positions and approach axes
+- Fit quality: maximum/RMS position residual
+  `0.00203 m / 0.00136 m`; maximum approach residual `0.00246°`
+- Command:
+
+  ```bash
+  make dofbot-pregrasp-reachability
+  ```
+
+- Search coverage: `226,981` physical-envelope combinations over
+  `[60,120]°` and `91,125` command-margin combinations over `[68,112]°`,
+  at 1° resolution; nineteen workspace-front posture branches retained ranked
+  candidates
+- Result: zero candidates met the `0.025 m` position and `12°` world-down
+  approach tolerances in either search
+- Orientation proof: the continuous lower bound on approach error is
+  `88.41°` over the physical envelope and `112.41°` over the command-margin
+  envelope, before applying the workspace-front constraint
+- Coupled geometry proof: the world-down target places the modeled wrist anchor
+  `0.35791 m` from the proximal base, while the first two fitted links can span
+  at most `0.19656 m`; the target misses even the unbounded-angle reach by
+  `0.16134 m`
+- Evidence: `artifacts/dofbot/pregrasp_reachability.json`; all sixteen
+  provenance, calibration, exhaustive-search, rejection, and no-runtime-action
+  checks pass
+- Decision: reject the current lower/farther world-down pose. This result is a
+  calibrated local model bound, not Isaac dynamics/collision acceptance. A
+  revised scene/approach contract or a separately calibrated wider safety
+  envelope is required before another paid run.
