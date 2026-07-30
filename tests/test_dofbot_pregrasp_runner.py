@@ -46,6 +46,16 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
     def test_contact_reporter_is_enabled_and_machine_gated(self) -> None:
         self.assertIn("activate_contact_sensors=True", self.scene_cfg)
         self.assertIn("ContactSensorCfg(", self.scene_cfg)
+        self.assertNotIn('prim_path="{ENV_REGEX_NS}/Dofbot/.*"', self.scene_cfg)
+        for expected_path in (
+            "{ENV_REGEX_NS}/Dofbot/link2",
+            "{ENV_REGEX_NS}/Dofbot/link5/Wrist_Twist",
+            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Left_01",
+            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Left_02/Finger_Left_02",
+            "{ENV_REGEX_NS}/Dofbot/link5/Finger_Right_03/Finger_Right_03",
+        ):
+            self.assertIn(expected_path, self.scene_cfg)
+        self.assertIn("CONTACT_SENSOR_KEYS_BY_BODY", self.runner)
         self.assertIn("net_forces_w", self.runner)
         self.assertIn(
             "contact_reporter_force_remains_below_threshold",
@@ -79,6 +89,14 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             self.assertIn(expected, self.runner + self.pose_module)
         self.assertIn('"status": "pending_user_confirmation"', self.runner)
         self.assertIn('"goal5_complete": False', self.runner)
+        self.assertIn(
+            "simulation app stopped before the headless pose",
+            self.runner,
+        )
+        self.assertIn(
+            "simulation app stopped before the headless neutral",
+            self.runner,
+        )
 
     def test_remote_wrappers_select_candidate_scene_and_pose_contract(self) -> None:
         for script in (self.run_script, self.view_script):

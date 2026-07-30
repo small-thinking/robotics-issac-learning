@@ -131,7 +131,10 @@ from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
 )
-from dofbot_pregrasp_scene_cfg import DofbotPregraspSceneCfg
+from dofbot_pregrasp_scene_cfg import (
+    CONTACT_SENSOR_KEYS_BY_BODY,
+    DofbotPregraspSceneCfg,
+)
 
 
 def _load_json_object(path: Path) -> dict[str, Any]:
@@ -372,18 +375,30 @@ def _maximum_critical_contact_force_n(
     scene: InteractiveScene,
     critical_body_names: tuple[str, ...],
 ) -> tuple[float, list[str]]:
-    sensor = scene["contact_forces"]
-    sensor_names = list(sensor.body_names)
-    missing = sorted(set(critical_body_names) - set(sensor_names))
+    missing = sorted(
+        set(critical_body_names) - set(CONTACT_SENSOR_KEYS_BY_BODY)
+    )
     if missing:
         raise PregraspPoseError(
-            f"contact reporter is missing critical bodies: {missing}"
+            f"contact reporter mapping is missing critical bodies: {missing}"
         )
-    forces = sensor.data.net_forces_w[0]
-    indexes = [sensor_names.index(name) for name in critical_body_names]
-    selected = forces[indexes]
-    maximum = float(torch.linalg.vector_norm(selected, dim=-1).max().item())
-    return maximum, sensor_names
+    maximum = 0.0
+    observed_names: list[str] = []
+    for expected_name in critical_body_names:
+        sensor = scene[CONTACT_SENSOR_KEYS_BY_BODY[expected_name]]
+        sensor_names = list(sensor.body_names)
+        if sensor_names != [expected_name]:
+            raise PregraspPoseError(
+                "contact reporter body mismatch: "
+                f"expected {[expected_name]}, got {sensor_names}"
+            )
+        forces = sensor.data.net_forces_w[0]
+        force = float(
+            torch.linalg.vector_norm(forces, dim=-1).max().item()
+        )
+        maximum = max(maximum, force)
+        observed_names.extend(sensor_names)
+    return maximum, observed_names
 
 
 def _issue_angles(
@@ -745,6 +760,11 @@ def main() -> None:
             render=render,
         )
         if controller_result is None:
+            if args_cli.cycles > 0:
+                raise PregraspPoseError(
+                    "simulation app stopped before the headless pose "
+                    "controller completed"
+                )
             break
         observations, controller_api_calls = controller_result
         if render and observations[-1]["evaluation"]["passed"]:
@@ -768,6 +788,11 @@ def main() -> None:
             render=render,
         )
         if reset_result is None:
+            if args_cli.cycles > 0:
+                raise PregraspPoseError(
+                    "simulation app stopped before the headless neutral "
+                    "reset completed"
+                )
             break
         reset_error, reset_api_calls = reset_result
         initial_position_error = observations[0]["evaluation"]["position_error_m"]
