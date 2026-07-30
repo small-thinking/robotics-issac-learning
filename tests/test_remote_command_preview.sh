@@ -241,8 +241,8 @@ dofbot_pregrasp_output="$(
 )"
 
 assert_contains "$dofbot_pregrasp_output" 'run_dofbot_pregrasp.py'
-assert_contains "$dofbot_pregrasp_output" 'goal4_pregrasp_scene_candidate.json'
-assert_contains "$dofbot_pregrasp_output" 'goal5_pose_aware_pregrasp.json'
+assert_contains "$dofbot_pregrasp_output" 'goal5_angled_pregrasp_scene_candidate.json'
+assert_contains "$dofbot_pregrasp_output" 'goal5_angled_pregrasp.json'
 assert_contains "$dofbot_pregrasp_output" 'pregrasp_machine_contract.json'
 assert_contains "$dofbot_pregrasp_output" '--cycles 1'
 assert_contains "$dofbot_pregrasp_output" '--viewer-connection-hold-seconds 0'

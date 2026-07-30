@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-30T03:30:35.431345+00:00",
+  "experiment": "goal5_taskspace_search",
+  "sources": {
+    "taskspace_config": "configs/dofbot/pregrasp/goal5_taskspace_search.json",
+    "taskspace_config_sha256": "b85809de5a970afa98e3989e9875b9aa1ffc283f40e79546cf38f5b7f2ba1695",
+    "reachability_config": "configs/dofbot/pregrasp/goal5_planar_reachability.json",
+    "reachability_config_sha256": "afc2c700dbdda912bea896d296f25ef1b98af8e1c48036bcb9f194a3023d5d21",
+    "rejected_reachability_artifact": "artifacts/dofbot/pregrasp_reachability.json",
+    "rejected_reachability_artifact_sha256": "03b00d4d0cb46247e1c90d945397eb6d791eb088aa600f2336dff0750a056e74",
+    "motion_config_contract": "artifacts/dofbot/motion_config_contract.json",
+    "motion_config_contract_sha256": "8a9da487d8eae33be56398f17616a1ffa1204ac809f3c6f51d64d68b2f929ea5",
+    "asset_contract": "artifacts/dofbot/asset_contract.json",
+    "asset_contract_sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2",
+    "candidate_scene_config": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
+    "candidate_scene_config_sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949",
+    "candidate_pose_config": "configs/dofbot/pregrasp/goal5_angled_pregrasp.json",
+    "candidate_pose_config_sha256": "5d9b9fd2f56f282fb1e44aed6a517fd76a574f4c3bb8debfa804e9b9360c0264"
+  },
+  "scope": {
+    "runtime": "local_pure_python",
+    "model_limit": "calibrated planar joint1=90 branch; not Isaac, dynamics, self-collision, contact, or command-tracking proof",
+    "policy_used": false,
+    "gpu_started": false,
+    "isaac_started": false,
+    "real_hardware_command_sent": false,
+    "contact_or_grasp_authorized": false
+  },
+  "fitted_model": {
+    "type": "planar_three_pitch_chain",
+    "x_offset_m": -0.0007122220316280922,
+    "y_offset_m": -0.0055355133465704864,
+    "z_offset_m": 0.07688601680855678,
+    "link_lengths_m": [
+      0.13678677391936134,
+      0.05977529354014399,
+      0.1324811283667286
+    ],
+    "approach_x": -0.005728349758157469,
+    "approach_angle_offset_deg": -1.5882676481759879,
+    "maximum_position_residual_m": 0.0020299711072919997,
+    "rms_position_residual_m": 0.0013578254528210942,
+    "maximum_approach_residual_deg": 0.0024547932919518666
+  },
+  "validated_pitch_command_bounds_deg": {
+    "joint2": [
+      62.0,
+      118.0
+    ],
+    "joint3": [
+      62.0,
+      118.0
+    ],
+    "joint4": [
+      62.0,
+      118.0
+    ]
+  },
+  "searches": {
+    "physical_envelope": {
+      "angle_bounds_deg": [
+        60,
+        120
+      ],
+      "evaluated_count": 226981,
+      "front_angled_approach_count": 2024,
+      "minimum_derived_table_top_m": 0.17945184067910003,
+      "minimum_table_top_angles_deg": [
+        90,
+        60,
+        60,
+        60
+      ],
+      "requested_low_table_top_max_m": 0.12,
+      "requested_low_table_feasible": false
+    },
+    "candidate_search": {
+      "angle_bounds_deg": [
+        64,
+        116
+      ],
+      "evaluated_count": 148877,
+      "passed_candidate_count": 1,
+      "ranked_candidates": [
+        {
+          "angles_deg": [
+            90,
+            66,
+            66,
+            66
+          ],
+          "target_pose": {
+            "origin_world_m": [
+              -0.0007122220316280922,
+              0.22051942039962125,
+              0.2827833512992581
+            ],
+            "predicted_approach_axis_world_unit": [
+              -0.005728349758157469,
+              0.94211066525424,
+              0.3352531587073584
+            ],
+            "approach_axis_world_unit": [
+              0.0,
+              0.9421261228400827,
+              0.33525865933979027
+            ],
+            "closing_axis_world_unit": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "approach_projection_error_deg": 0.3282120597233663
+          },
+          "scene": {
+            "cube_focus_world_m": [
+              -0.0007122220316280922,
+              0.29588951022682786,
+              0.3096040440464413
+            ],
+            "cube_center_world_m": [
+              -0.0007122220316280922,
+              0.29588951022682786,
+              0.2866040440464413
+            ],
+            "cube_size_m": [
+              0.05,
+              0.05,
+              0.05
+            ],
+            "table_center_world_m": [
+              -0.0007122220316280922,
+              0.35588951022682785,
+              0.24160404404644129
+            ],
+            "table_size_m": [
+              0.5,
+              0.3,
+              0.04
+            ],
+            "table_top_m": 0.2616040440464413,
+            "table_front_clearance_m": 0.20588951022682786,
+            "cube_edge_inset_m": 0.065
+          },
+          "margins": {
+            "physical_angle_margin_deg": 6,
+            "search_angle_margin_deg": 2,
+            "terminal_table_clearance_m": 0.021179307252816793,
+            "terminal_cube_clearance_m": 0.05037008982720661,
+            "robust_terminal_table_clearance_m": 0.019149336145524793,
+            "robust_terminal_cube_clearance_m": 0.04834011871991461,
+            "minimum_clearance_reserve_m": 0.004149336145524794
+          },
+          "checks": {
+            "physical_angle_margin_met": true,
+            "search_angle_margin_met": true,
+            "approach_points_into_workspace_front": true,
+            "approach_upward_component_in_band": true,
+            "approach_projection_error_bounded": true,
+            "table_top_in_candidate_band": true,
+            "table_outside_base_keepout": true,
+            "cube_footprint_has_edge_inset": true,
+            "terminal_table_clearance_robust_to_model_residual": true,
+            "terminal_cube_clearance_robust_to_model_residual": true,
+            "minimum_model_residual_reserve_met": true
+          },
+          "passed": true
+        }
+      ]
+    }
+  },
+  "selected_candidate": {
+    "angles_deg": [
+      90,
+      66,
+      66,
+      66
+    ],
+    "target_pose": {
+      "origin_world_m": [
+        -0.0007122220316280922,
+        0.22051942039962125,
+        0.2827833512992581
+      ],
+      "predicted_approach_axis_world_unit": [
+        -0.005728349758157469,
+        0.94211066525424,
+        0.3352531587073584
+      ],
+      "approach_axis_world_unit": [
+        0.0,
+        0.9421261228400827,
+        0.33525865933979027
+      ],
+      "closing_axis_world_unit": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "approach_projection_error_deg": 0.3282120597233663
+    },
+    "scene": {
+      "cube_focus_world_m": [
+        -0.0007122220316280922,
+        0.29588951022682786,
+        0.3096040440464413
+      ],
+      "cube_center_world_m": [
+        -0.0007122220316280922,
+        0.29588951022682786,
+        0.2866040440464413
+      ],
+      "cube_size_m": [
+        0.05,
+        0.05,
+        0.05
+      ],
+      "table_center_world_m": [
+        -0.0007122220316280922,
+        0.35588951022682785,
+        0.24160404404644129
+      ],
+      "table_size_m": [
+        0.5,
+        0.3,
+        0.04
+      ],
+      "table_top_m": 0.2616040440464413,
+      "table_front_clearance_m": 0.20588951022682786,
+      "cube_edge_inset_m": 0.065
+    },
+    "margins": {
+      "physical_angle_margin_deg": 6,
+      "search_angle_margin_deg": 2,
+      "terminal_table_clearance_m": 0.021179307252816793,
+      "terminal_cube_clearance_m": 0.05037008982720661,
+      "robust_terminal_table_clearance_m": 0.019149336145524793,
+      "robust_terminal_cube_clearance_m": 0.04834011871991461,
+      "minimum_clearance_reserve_m": 0.004149336145524794
+    },
+    "checks": {
+      "physical_angle_margin_met": true,
+      "search_angle_margin_met": true,
+      "approach_points_into_workspace_front": true,
+      "approach_upward_component_in_band": true,
+      "approach_projection_error_bounded": true,
+      "table_top_in_candidate_band": true,
+      "table_outside_base_keepout": true,
+      "cube_footprint_has_edge_inset": true,
+      "terminal_table_clearance_robust_to_model_residual": true,
+      "terminal_cube_clearance_robust_to_model_residual": true,
+      "minimum_model_residual_reserve_met": true
+    },
+    "passed": true
+  },
+  "acceptance": {
+    "checks": {
+      "asset_contract_sha256_matches": true,
+      "motion_config_contract_sha256_matches": true,
+      "reachability_config_sha256_matches": true,
+      "rejected_reachability_artifact_sha256_matches": true,
+      "asset_machine_contract_passed": true,
+      "world_down_rejection_contract_passed": true,
+      "motion_machine_contract_passed": true,
+      "motion_contract_did_not_command_hardware_or_policy": true,
+      "pitch_command_range_proves_search_envelope": true,
+      "physical_envelope_exhaustively_searched": true,
+      "candidate_envelope_exhaustively_searched": true,
+      "requested_low_table_rejected": true,
+      "strict_candidate_available": true,
+      "scene_hash_linked_from_pose": true,
+      "asset_hash_linked_from_pose": true,
+      "terminal_finger_midpoint_is_scene_end_effector": true,
+      "scene_approach_target_matches_selected_origin": true,
+      "pose_target_matches_selected_origin": true,
+      "pose_approach_axis_matches_selected_axis": true,
+      "pose_closing_axis_matches_selected_axis": true,
+      "preferred_angles_match_selected_candidate": true,
+      "scene_cube_matches_selected_candidate": true,
+      "scene_table_matches_selected_candidate": true,
+      "solver_margin_matches_search_envelope": true,
+      "candidate_clearance_reserve_met": true,
+      "contact_remains_unauthorized": true,
+      "gpu_not_started": true,
+      "isaac_not_started": true,
+      "real_hardware_command_not_sent": true,
+      "contact_or_grasp_not_authorized": true
+    },
+    "local_design_passed": true,
+    "revised_candidate_ready_for_isaac_machine_validation": true,
+    "paid_gpu_run_authorized": false,
+    "viewer_authorized": false,
+    "contact_or_grasp_authorized": false
+  },
+  "conclusion": "The requested <=0.12 m tabletop is outside the calibrated safe joint envelope for a meaningful front-side pre-grasp. The selected candidate raises the tabletop and uses an angled upper-side approach with residual-aware joint and clearance margins. It is ready for a future Isaac machine gate, but is not yet Isaac, collision, visual, contact, or grasp proof."
+}

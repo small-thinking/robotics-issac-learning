@@ -659,9 +659,9 @@ The headless run must pass live asset compatibility, physical prim/static
 target, pose, fixed closing-axis, joint margin, velocity, acceleration,
 collision proxy, contact reporter, improvement, exact API count, and neutral
 reset checks. Viewer acceptance then requires the user to see a smooth
-top-down approach in the lower/farther scene, with the gripper open, cube
-stationary, and no visible contact. Until both gates pass, candidate Isaac and
-visual status remain pending and Goal 5 is not complete.
+front/up angled approach toward the raised-table candidate, with the gripper
+open, cube stationary, and no visible contact. Until both gates pass,
+candidate Isaac and visual status remain pending and Goal 5 is not complete.
 
 The first remote candidate was run on 2026-07-29 at commit `05ececc` and
 failed closed before Viewer launch. It improved terminal-finger position error
@@ -702,6 +702,59 @@ The machine-readable result is
 the current pose rather than Goal 5 itself. The next design choice is either
 to preserve the current safety envelope and revise the scene/approach pose, or
 to establish a separately calibrated wider envelope before searching again.
+
+### Joint-first angled pre-grasp candidate
+
+The safety envelope is preserved. The free follow-up starts from every
+integer-degree pitch posture, predicts the terminal-finger midpoint and
+approach axis with the calibrated planar model, and derives a compatible cube
+and horizontal table from each posture. This avoids guessing another
+Cartesian target that the four commanded joints cannot realize.
+
+Run:
+
+```bash
+make dofbot-pregrasp-taskspace
+make dofbot-pregrasp-pose-dry-run
+make show-dofbot-pregrasp
+make show-dofbot-pregrasp-view
+```
+
+The search evaluates `61^3 = 226,981` physical-envelope postures and
+`53^3 = 148,877` candidate-envelope postures. It binds the accepted asset,
+machine-passed ActionChunk, rejected world-down result, and calibrated model
+by SHA-256. The physical scan proves that a meaningful front/up approach
+cannot retain the requested table top at or below `0.12 m`; its minimum is
+`0.17945 m` at the zero-margin `[90,60,60,60]°` boundary.
+
+Exactly one posture passes the strict residual-aware filters:
+
+- preferred joint pose: `[90,66,66,66]°`;
+- terminal-finger midpoint:
+  `(-0.00071,+0.22052,0.28278) m`;
+- approach/closing axes:
+  `(0,+0.94213,+0.33526)` and world `+X`;
+- cube center:
+  `(-0.00071,+0.29589,0.28660) m`;
+- horizontal table top: `z=0.26160 m`;
+- physical/candidate angle margins: `6° / 2°`;
+- minimum residual-aware clearance reserve: `0.00415 m`.
+
+The inputs are
+`configs/dofbot/pregrasp/goal5_taskspace_search.json`,
+`configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json`, and
+`configs/dofbot/pregrasp/goal5_angled_pregrasp.json`. The output
+`artifacts/dofbot/pregrasp_taskspace_candidate.json` passes all 30 local
+checks, and the generalized pose preview passes 21/21 checks. The remote
+wrappers now default to this candidate. All 154 repository tests, targeted
+Ruff, shell syntax, Git LFS attributes, remote command previews, and
+`git diff --check` pass.
+
+Acceptance is **local design passed / Isaac machine pending / Viewer
+pending**. This is a no-contact upper-side angled pre-grasp candidate, not
+grasp success. A later paid run must still prove live Isaac kinematics,
+self-collision/contact gates, command tracking, reset, and user-visible motion
+before Goal 5 can complete.
 
 ## Later milestones
 

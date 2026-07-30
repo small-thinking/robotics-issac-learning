@@ -138,3 +138,17 @@ observation steps, fits the planar three-pitch chain within 2.03 mm, and
 records exhaustive physical-envelope and command-margin searches. Its local
 search contract passes, but it rejects the current world-down pose and keeps
 remote, Viewer, contact, and grasp authorization false.
+
+`pregrasp_taskspace_candidate.json` is the next GPU-free design artifact. It
+binds the accepted asset and ActionChunk machine contracts plus the calibrated
+reachability evidence, searches the complete physical and candidate angle
+grids, and records why the requested low table is incompatible with a
+meaningful safe front/up approach. It selects the sole strict candidate
+`[90,66,66,66]°`, derives the checked-in angled scene and pose, and records
+residual-aware joint and clearance margins. All 30 local checks pass.
+
+This artifact explicitly keeps `gpu_started=false`,
+`isaac_started=false`, `paid_gpu_run_authorized=false`,
+`viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is
+local candidate evidence only; future reviewed remote artifacts must establish
+Isaac machine and human Viewer acceptance.

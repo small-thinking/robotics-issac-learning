@@ -58,8 +58,11 @@ lightweight VLA post-training, and optional real hardware.
 - The first lower/farther terminal-finger pre-grasp candidate failed its remote
   pose gates safely. A subsequent evidence-calibrated exhaustive local search
   proved that the strict world-down target is incompatible with the calibrated
-  chain geometry and established angle envelopes. No contact or grasp is
-  authorized.
+  chain geometry and established angle envelopes.
+- A joint-first task-space search now supplies a revised local candidate:
+  `[90,66,66,66]°`, a horizontal table top at `z=0.26160 m`, and an angled
+  front/up approach. It passes the residual-aware local design contract but
+  has not run in Isaac or the Viewer. No contact or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -82,34 +85,33 @@ The CartPole stage is complete. The canonical next-stage plan is
    machine, and visual gates through the same Yahboom API.
 6. Goal 5 first candidate: rejected — the terminal-finger frame, pose-aware
    controller, smoothness, collision, and contact gates worked fail-closed, but
-   the world-down pose failed remotely and is rejected by the local calibrated
-   all-branch search. Revise the task pose or scene before another paid run.
+   the world-down pose failed remotely and is rejected by the calibrated
+   all-branch search. A revised angled pre-grasp candidate now passes its local
+   design gate; Isaac machine and Viewer gates remain pending.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
 OmniIsaacGymEnvs DOFBOT Reacher project is a design reference only.
 
-The first pre-grasp calibration has a local candidate: table top
-`z=0.08 m`, nearest table edge `y=0.16 m`, cube center
-`(0.00,+0.25,0.105) m`, and `Wrist_Twist` approach waypoint
-`(0.00,+0.25,0.195) m`. It passed provenance-bounded geometry checks against
-the accepted Goal 4 Isaac artifact, but has not passed candidate-scene Isaac
-or Viewer gates.
+The first `z=0.08 m` tabletop plus strict world-down pre-grasp remains a
+historical rejected candidate. The revised candidate is derived from safe
+joint postures rather than a guessed Cartesian target. Exhaustive 1° searches
+show that a meaningful front/up approach cannot place the table top at or
+below `0.12 m`; the physical-envelope minimum is `0.17945 m` at a zero-margin
+boundary pose. The strict residual-aware filters admit one robust candidate:
+`[90,66,66,66]°`, terminal-finger midpoint
+`(-0.00071,+0.22052,0.28278) m`, cube center
+`(-0.00071,+0.29589,0.28660) m`, and table top `z=0.26160 m`.
 
-The pose-aware candidate now controls the midpoint of official terminal-finger
-bodies `Finger_Left_03` and `Finger_Right_03`, not `Wrist_Twist` alone. It
-targets world-down approach while monitoring the fixed closing axis, biases a
-preferred elbow posture, limits joint step/velocity/acceleration, and fails
-closed on body-center collision proxies or Isaac contact reports. Only
-`joint1`-`joint4` cross the Yahboom API; wrist twist and gripper remain
-uncommanded.
+The revised pose controls the midpoint of official terminal-finger bodies
+`Finger_Left_03` and `Finger_Right_03`, not `Wrist_Twist` alone. Its desired
+approach axis is `(0,+0.94213,+0.33526)`, closing remains monitor-only world
+`+X`, and only `joint1`-`joint4` cross the Yahboom API. Wrist twist and the
+gripper remain uncommanded.
 
-The exact next step is a task-design choice, not another GPU run. Preserve the
-current safety envelope and revise the scene/approach pose, or separately
-calibrate a wider envelope before revisiting the lower/farther task. Any
-revised candidate must first pass the local reachability contract. Only then
-may a freshly quoted and explicitly approved Isaac headless gate precede a
-human Viewer gate. Contact and grasping remain out of scope.
+The exact next step, after review and merge, is a freshly quoted and explicitly
+approved Isaac headless gate for this revised candidate. Open the Viewer only
+if every machine gate passes. Contact and grasping remain out of scope.
 
 ## Sources of truth
 

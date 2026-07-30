@@ -1140,3 +1140,48 @@
   calibrated local model bound, not Isaac dynamics/collision acceptance. A
   revised scene/approach contract or a separately calibrated wider safety
   envelope is required before another paid run.
+
+## 2026-07-29 — Joint-first task-space search produced one angled pre-grasp candidate
+
+- Branch: `codex/dofbot-taskspace-candidate-search`
+- Scope: local pure Python only; no Brev start, GPU, Isaac runtime, policy,
+  hardware command, wrist-twist/gripper command, contact, or grasp
+  authorization
+- Commands:
+
+  ```bash
+  make dofbot-pregrasp-taskspace
+  make dofbot-pregrasp-pose-dry-run
+  make show-dofbot-pregrasp
+  make show-dofbot-pregrasp-view
+  ```
+
+- Provenance: SHA-bound accepted Goal 1 asset contract, machine-passed
+  ActionChunk contract, calibrated reachability config, and immutable rejected
+  world-down reachability artifact
+- Search coverage: `226,981` `[60,120]°` physical-envelope postures and
+  `148,877` `[64,116]°` candidate-envelope postures at 1° resolution
+- Low-table result: minimum meaningful derived table top `0.17945 m` at
+  `[90,60,60,60]°`; the requested `<=0.12 m` table is infeasible without
+  leaving the calibrated contract
+- Selected candidate: the only strict pass is `[90,66,66,66]°`, with
+  terminal-finger midpoint `(-0.00071,+0.22052,0.28278) m`, approach axis
+  `(0,+0.94213,+0.33526)`, cube center
+  `(-0.00071,+0.29589,0.28660) m`, and table top `z=0.26160 m`
+- Safety margins: 6° physical, 2° candidate-envelope, `0.02118 m` raw
+  terminal/table clearance, `0.05037 m` raw terminal/cube clearance, and
+  `0.00415 m` minimum reserve after the 2.03 mm fitted-model residual and
+  clearance thresholds
+- Evidence: `artifacts/dofbot/pregrasp_taskspace_candidate.json`; all 30 local
+  provenance, search, linkage, margin, and no-runtime checks pass
+- Dry-run result: the generalized terminal-finger pose preview passes 21/21
+  checks for the new angled candidate while retaining the historical
+  world-down fixture as a passing local parser/controller regression case
+- Validation: all 154 repository tests, targeted Ruff, shell syntax, Git LFS
+  attributes, remote command previews, and `git diff --check` pass
+- Infrastructure: `brev ls --json` verified
+  `isaac-launchable-f150a5` (`92xbacz46`) remained `STOPPED` at 20:31 PDT;
+  no instance or disk was created, resized, started, or deleted
+- Decision: accept the revised candidate for future Isaac machine validation,
+  not as Isaac, visual, contact, or grasp success. A fresh quote and explicit
+  approval remain required before a paid headless run.

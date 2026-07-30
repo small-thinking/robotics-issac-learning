@@ -3,12 +3,12 @@
 - Updated: 2026-07-29 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
-  no-contact reaching passed all gates; the first lower/farther,
-  terminal-finger pose-aware pre-grasp candidate is now rejected by both its
-  remote pose gate and the exhaustive local calibrated reachability gate
+  no-contact reaching passed all gates; the first lower/farther world-down
+  pre-grasp is rejected, and a revised angled terminal-finger candidate now
+  passes its local task-space design gate
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, verified with `brev ls --json` at 2026-07-29
-  19:35 PDT after the failed pre-grasp machine candidate
+- Instance state: `STOPPED`, re-verified with `brev ls --json` at 2026-07-29
+  20:31 PDT during the local task-space design work
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -235,6 +235,56 @@
   revising the approach/scene, or separately calibrating a wider envelope.
   The current lower/farther world-down target must not receive another paid
   run unchanged.
+
+## DOFBOT revised angled pre-grasp local design gate
+
+- Branch: `codex/dofbot-taskspace-candidate-search`
+- Scope: local pure Python joint/scene/approach design only; no Brev start,
+  GPU, Isaac runtime, policy, real-hardware command, wrist-twist or gripper
+  command, contact, or grasp authorization
+- Command:
+
+  ```bash
+  make dofbot-pregrasp-taskspace
+  make dofbot-pregrasp-pose-dry-run
+  ```
+
+- Provenance: the search binds the accepted Goal 1 asset contract, the
+  machine-passed ActionChunk motion contract, the calibrated reachability
+  config, and the immutable first-pose rejection artifact by SHA-256.
+- Search coverage: all `226,981` physical-envelope combinations in
+  `[60,120]°` and all `148,877` candidate-envelope combinations in
+  `[64,116]°` were evaluated at 1° resolution. The latter stays two degrees
+  inside the machine-validated `[62,118]°` command span.
+- Low-table conclusion: among meaningful front/up approaches, the minimum
+  derived table top is `0.17945 m` at `[90,60,60,60]°`, a zero-margin
+  physical-boundary pose. Therefore the requested `<=0.12 m` table is
+  rejected without weakening a safety threshold.
+- Selected candidate: exactly one posture passes all strict filters:
+  `[90,66,66,66]°`; terminal-finger midpoint
+  `(-0.00071,+0.22052,0.28278) m`; approach axis
+  `(0,+0.94213,+0.33526)`; cube center
+  `(-0.00071,+0.29589,0.28660) m`; horizontal table top `z=0.26160 m`.
+- Margins: 6° from the physical envelope, 2° inside the candidate envelope,
+  2.12 cm raw terminal/table clearance, 5.04 cm raw terminal/cube clearance,
+  and 4.15 mm minimum reserve after subtracting the fitted model's 2.03 mm
+  maximum position residual and the configured clearance thresholds.
+- Configs:
+  `configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json`,
+  `configs/dofbot/pregrasp/goal5_angled_pregrasp.json`, and
+  `configs/dofbot/pregrasp/goal5_taskspace_search.json`
+- Evidence: `artifacts/dofbot/pregrasp_taskspace_candidate.json`; all 30
+  provenance, exhaustive-search, candidate-linkage, margin, and no-runtime
+  checks pass. The generalized pose dry-run also passes 21/21 checks for both
+  the new angled candidate and the historical world-down fixture.
+- Validation: all 154 repository tests, targeted Ruff, shell syntax, Git LFS
+  attributes, both remote command previews, and `git diff --check` pass.
+- Acceptance: **local design passed / Isaac machine pending / Viewer
+  pending**. The result is calibrated task-space evidence, not Isaac
+  kinematics, self-collision, dynamics, contact, grasp, or visual proof.
+- Infrastructure: `brev ls --json` re-verified
+  `isaac-launchable-f150a5` (`92xbacz46`) as `STOPPED` at 20:31 PDT. No
+  instance, disk, or hardware was created, resized, started, or deleted.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -593,11 +643,8 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. The exhaustive local gate rejects the current
-world-down pose even before the established angle bounds, so another unchanged
-GPU run is not justified. Select a revised task contract: either preserve the
-current safety envelope and change the scene/approach pose, or separately
-calibrate a wider envelope and then search again. After a revised local gate
-passes, obtain a fresh quote and explicit approval, run headless first, and
-open the Viewer only if every machine gate passes. Contact, closing, grasping,
-lifting, and placing remain unauthorized.
+Keep the Brev instance stopped until the revised angled-candidate PR is
+reviewed and merged. Then obtain a fresh quote and explicit approval, run
+`make dofbot-pregrasp` headless first, and open `make
+dofbot-pregrasp-view` only if every machine gate passes. Contact, closing,
+grasping, lifting, and placing remain unauthorized.

@@ -82,7 +82,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
     def test_runner_gates_pose_smoothness_collision_reset_and_api_count(self) -> None:
         for expected in (
             "grasp_origin_reached_pregrasp_position",
-            "approach_axis_points_down_within_tolerance",
+            "approach_axis_matches_target_within_tolerance",
             "fixed_closing_axis_is_acceptable_without_wrist_command",
             "joint_angles_remain_within_safe_limits",
             "joint_velocity_limit_respected",
@@ -123,8 +123,11 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
 
     def test_remote_wrappers_select_candidate_scene_and_pose_contract(self) -> None:
         for script in (self.run_script, self.view_script):
-            self.assertIn("goal4_pregrasp_scene_candidate.json", script)
-            self.assertIn("goal5_pose_aware_pregrasp.json", script)
+            self.assertIn(
+                "goal5_angled_pregrasp_scene_candidate.json",
+                script,
+            )
+            self.assertIn("goal5_angled_pregrasp.json", script)
             self.assertIn("run_dofbot_pregrasp.py", script)
         self.assertIn("--cycles 1", self.run_script)
         self.assertIn("--headless", self.run_script)

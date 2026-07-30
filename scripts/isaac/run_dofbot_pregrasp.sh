@@ -3,8 +3,8 @@ set -euo pipefail
 
 project_dir="${REMOTE_PROJECT_DIR:-/workspace/robotics-issac-learning}"
 asset_contract="${DOFBOT_ASSET_CONTRACT:-$project_dir/artifacts/dofbot/asset_contract.json}"
-scene_config="${DOFBOT_PREGRASP_SCENE_CONFIG:-${REACHING:-configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json}}"
-pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_pose_aware_pregrasp.json}}"
+scene_config="${DOFBOT_PREGRASP_SCENE_CONFIG:-${REACHING:-configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json}}"
+pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_angled_pregrasp.json}}"
 output="${DOFBOT_PREGRASP_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_machine_contract.json}"
 
 if [[ "$scene_config" != /* ]]; then
