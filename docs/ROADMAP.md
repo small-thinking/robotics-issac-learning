@@ -126,9 +126,13 @@ The detailed first-stage contract lives in
    A follow-up joint-first search preserves the established physical and
    machine-validated angle envelopes, rejects the requested low table, and
    produces one residual-aware angled candidate at `[90,66,66,66]°` with a
-   `0.26160 m` table top. Local design and dry-run gates pass; Isaac headless
-   and Viewer validation remain pending. Wrist twist, gripper closing, target
-   motion, contact, and grasp success remain unauthorized.
+   `0.26160 m` table top. Two remote attempts then separated Cartesian IK
+   branch drift from a direct-candidate command/observation state mix. The
+   latter is corrected locally with an exact stopped command-space endpoint
+   gate and a preflight braking-reserve check; the 22-check local trajectory
+   contract passes. Corrected Isaac headless and Viewer validation remain
+   pending. Wrist twist, gripper closing, target motion, contact, and grasp
+   success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

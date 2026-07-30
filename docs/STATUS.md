@@ -343,6 +343,52 @@
   cap and is recorded as an operational failure. The instance and disk were
   retained.
 
+## DOFBOT direct-candidate command-space correction
+
+- Remote source: merged `main@150fa5d`; approved existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4
+- Machine result: **failed closed only on position**. Final position error was
+  `0.03243 m` against `0.025 m`; approach and closing errors passed at
+  `10.397°` and `0.313°`. All safety/API/reset checks passed, including
+  `0 N` contact, a static cube, `248/248` official calls, and `0.0689°`
+  neutral reset. Viewer was not started.
+- Endpoint evidence: configured candidate `[90,66,66,66]°`; final API command
+  `[90,66,68,69]°`; final observed joints
+  `[89.980,66.328,70.529,71.535]°`
+- Diagnostic falsification: temporary preferred
+  `[90,66,64,64]°` produced final API `[90,66,70,67]°`, final observed
+  `[89.982,66.168,72.067,69.270]°`, and `0.03211 m` position error. Merely
+  lowering preferred angles does not control the old implementation's
+  endpoint.
+- Located root cause: direct-candidate deltas used observed joint angles while
+  quantized velocity/acceleration/braking used the previous API command. The
+  prior single-step regression did not prove the complete stopped command
+  sequence.
+- Fix branch: `codex/dofbot-command-space-tracking-fix`
+- Correction: direct candidates now advance exclusively in command space;
+  observations retain every physical/Cartesian/collision/contact gate; the
+  machine contract requires an exact stopped candidate endpoint; unreachable
+  boundary candidates are rejected before Kit launch. Cartesian IK behavior
+  remains separate.
+- Evidence:
+  `artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json`
+  and `artifacts/dofbot/pregrasp_command_space_contract.json`. The latter
+  injects the remote tracking-lag neighborhood and reaches exact stopped
+  `[90,66,66,66]°` in eight bounded steps with 22/22 local checks.
+- Validation: `make test` passes all 159 repository tests; targeted Ruff,
+  byte-identical artifact regeneration, both remote dry-run previews, JSON
+  parsing, and `git diff --check` pass. Full-repository Ruff has one
+  pre-existing unrelated line-length finding in
+  `tools/collect_environment_info.py:47`.
+- Acceptance: **local command-space correction passed / corrected Isaac
+  machine pending / Viewer blocked pending machine pass**. The position,
+  approach, collision, contact, command, reset, and no-grasp gates are not
+  loosened.
+- Compute lifecycle: the approved window started at 21:40:39 PDT; stop was
+  requested after evidence retrieval, `brev refresh` cleared stale list state,
+  and `brev ls --json` explicitly returned `STOPPED` at 21:55 PDT. The
+  instance and disk were retained.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`

@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_pose_aware_pregrasp_local_preparation",
+  "sources": {
+    "pose_config": {
+      "path": "configs/dofbot/pregrasp/goal5_angled_pregrasp.json",
+      "sha256": "156cd35e5ee5f8484fe44b8dc82ba4c4336cca47a7ca99fe3d550e79e5f9f08a"
+    },
+    "scene_config": {
+      "path": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
+      "sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949"
+    },
+    "asset_contract": {
+      "path": "artifacts/dofbot/asset_contract.json",
+      "sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2"
+    }
+  },
+  "grasp_frame": {
+    "origin_world_m": [
+      -0.000712222031628091,
+      0.22051942039962125,
+      0.2827833512992581
+    ],
+    "approach_axis_world_unit": [
+      -0.0,
+      0.9421261228400826,
+      0.3352586593397905
+    ],
+    "closing_axis_world_unit": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "lateral_axis_world_unit": [
+      0.0,
+      0.3352586593397905,
+      -0.9421261228400826
+    ],
+    "finger_separation_m": 0.05
+  },
+  "target_pose": {
+    "position_world_m": [
+      -0.0007122220316280922,
+      0.22051942039962125,
+      0.2827833512992581
+    ],
+    "approach_axis_world_unit": [
+      0.0,
+      0.9421261228400827,
+      0.33525865933979027
+    ],
+    "closing_axis_world_unit": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "closing_axis_control": "monitor_only_wrist_twist_uncontrolled"
+  },
+  "solver_probe": {
+    "algorithm": "validated_joint_candidate",
+    "pose_jacobian_shape": [
+      6,
+      4
+    ],
+    "preferred_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "synthetic_observed_tracking_lag_angles_deg": [
+      90.0,
+      66.3,
+      70.5,
+      71.5
+    ],
+    "command_trajectory": [
+      {
+        "angles_deg": [
+          90.0,
+          88.0,
+          88.0,
+          88.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -10.0,
+          -10.0,
+          -10.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -24.0,
+          -24.0,
+          -24.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          84.0,
+          84.0,
+          84.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -20.0,
+          -20.0,
+          -20.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -22.0,
+          -22.0,
+          -22.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          80.0,
+          80.0,
+          80.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -20.0,
+          -20.0,
+          -20.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -18.0,
+          -18.0,
+          -18.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          76.0,
+          76.0,
+          76.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -20.0,
+          -20.0,
+          -20.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -14.0,
+          -14.0,
+          -14.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          72.0,
+          72.0,
+          72.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -20.0,
+          -20.0,
+          -20.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -10.0,
+          -10.0,
+          -10.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          68.0,
+          68.0,
+          68.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -20.0,
+          -20.0,
+          -20.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -6.0,
+          -6.0,
+          -6.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          -10.0,
+          -10.0,
+          -10.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          -2.0,
+          -2.0,
+          -2.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angles_deg": [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ],
+        "velocities_deg_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "raw_delta_deg": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "position_error_m": [
+          -1.1926223897340549e-18,
+          0.018842522456801652,
+          0.00670517318679581
+        ],
+        "approach_error_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "command": {
+      "angles_deg": [
+        90.0,
+        66.0,
+        66.0,
+        66.0
+      ],
+      "velocities_deg_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_delta_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "position_error_m": [
+        -1.1926223897340549e-18,
+        0.018842522456801652,
+        0.00670517318679581
+      ],
+      "approach_error_rad": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "collision_probe": {
+    "mode": "body_center_signed_box_distance_proxy",
+    "safe_evaluation": {
+      "checks": {
+        "grasp_origin_reached_pregrasp_position": true,
+        "approach_axis_matches_target_within_tolerance": true,
+        "fixed_closing_axis_is_acceptable_without_wrist_command": true,
+        "joint_angles_remain_within_safe_limits": true,
+        "joint_velocity_limit_respected": true,
+        "joint_acceleration_limit_respected": true,
+        "critical_body_centers_clear_table_proxy": true,
+        "nonfinger_body_centers_clear_target_proxy": true,
+        "terminal_finger_centers_remain_precontact": true,
+        "contact_reporter_force_remains_below_threshold": true,
+        "target_remains_static": true,
+        "contact_remains_unauthorized": true
+      },
+      "passed": true,
+      "position_error_m": 1.1926223897340549e-18,
+      "approach_error_deg": 0.0,
+      "closing_error_deg": 0.0,
+      "minimum_body_center_table_distance_m": 0.015074702624480739,
+      "minimum_nonfinger_body_center_target_distance_m": 0.06921261228400827,
+      "minimum_terminal_finger_target_distance_m": 0.05037008982720661,
+      "maximum_contact_force_n": 0.0,
+      "body_center_table_distances_m": {
+        "link2": 0.16437405316682233,
+        "link3": 0.11726774702481821,
+        "link4": 0.07016144088281404,
+        "Wrist_Twist": 0.041911159884965445,
+        "Finger_Left_01": 0.02432891265675126,
+        "Finger_Right_01": 0.02432891265675126,
+        "Finger_Left_02": 0.015074702624480739,
+        "Finger_Right_02": 0.015074702624480739,
+        "Finger_Left_03": 0.021179307252816793,
+        "Finger_Right_03": 0.021179307252816793
+      },
+      "body_center_target_distances_m": {
+        "link2": 0.22938789386066574,
+        "link3": 0.1823586399414971,
+        "link4": 0.1354603507873574,
+        "Wrist_Twist": 0.10689765719761157,
+        "Finger_Left_01": 0.08805513474080992,
+        "Finger_Right_01": 0.08805513474080992,
+        "Finger_Left_02": 0.06921261228400827,
+        "Finger_Right_02": 0.06921261228400827,
+        "Finger_Left_03": 0.05037008982720661,
+        "Finger_Right_03": 0.05037008982720661
+      }
+    },
+    "deliberate_terminal_finger_collision_passed": false,
+    "reversed_closing_axis_passed": false,
+    "limitation": "Body-center distance is a local proxy. Isaac contact reports and full collision geometry remain required remotely."
+  },
+  "acceptance": {
+    "checks": {
+      "asset_contract_sha256_matches": true,
+      "asset_contract_passed": true,
+      "required_grasp_and_collision_bodies_present": true,
+      "scene_config_sha256_matches": true,
+      "target_position_matches_scene_waypoint": true,
+      "target_cube_is_static": true,
+      "grasp_origin_is_terminal_finger_midpoint": true,
+      "approach_axis_matches_target": true,
+      "closing_axis_matches_target": true,
+      "frame_axes_are_orthogonal": true,
+      "only_joint1_through_joint4_are_controlled": true,
+      "wrist_twist_closing_axis_is_monitor_only": true,
+      "synthetic_pose_command_preserves_joint_margin": true,
+      "synthetic_pose_command_respects_velocity_limit": true,
+      "synthetic_pose_command_respects_acceleration_ramp": true,
+      "validated_candidate_reaches_exact_stopped_api_target": true,
+      "safe_synthetic_pregrasp_observation_passed": true,
+      "collision_probe_rejected": true,
+      "reversed_fixed_closing_axis_rejected": true,
+      "contact_remains_unauthorized": true,
+      "real_hardware_not_commanded": true,
+      "gpu_not_started": true
+    },
+    "local_preparation_passed": true,
+    "candidate_isaac_machine_passed": false,
+    "candidate_visual_passed": false,
+    "contact_or_grasp_authorized": false
+  },
+  "scope": {
+    "gpu_started": false,
+    "isaac_started": false,
+    "real_hardware_commanded": false,
+    "wrist_twist_commanded": false,
+    "gripper_commanded": false,
+    "target_cube_moved": false,
+    "camera_used_as_controller_input": false,
+    "policy_or_checkpoint_loaded": false
+  }
+}

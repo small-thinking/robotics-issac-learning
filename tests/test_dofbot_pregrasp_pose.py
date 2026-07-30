@@ -16,9 +16,11 @@ from tools.dofbot_pregrasp_pose import (
     evaluate_pregrasp_observation,
     load_pregrasp_pose_config,
     next_pose_command,
+    next_pregrasp_command,
     parse_pregrasp_pose_config,
     quantize_pose_command,
     signed_point_box_distance,
+    validated_joint_candidate_command_reached,
     weighted_pose_delta,
 )
 from tools.dofbot_reaching import load_reaching_config
@@ -34,6 +36,14 @@ ANGLED_POSE_CONFIG_PATH = (
 SCENE_CONFIG_PATH = (
     PROJECT_DIR
     / "configs/dofbot/reaching/goal4_pregrasp_scene_candidate.json"
+)
+ANGLED_SCENE_CONFIG_PATH = (
+    PROJECT_DIR
+    / "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json"
+)
+COMMAND_SPACE_CONTRACT_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_command_space_contract.json"
 )
 
 
@@ -250,7 +260,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             )
         )
 
-    def test_angled_candidate_tracks_selected_joint_pose_without_ik_tradeoff(
+    def test_angled_candidate_reaches_exact_api_target_despite_tracking_lag(
         self,
     ) -> None:
         angled, _ = load_pregrasp_pose_config(ANGLED_POSE_CONFIG_PATH)
@@ -258,19 +268,104 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             angled.solver.control_mode,
             VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
         )
-        command = next_pose_command(
-            frame=self._frame(origin=(0.0, 0.20, 0.31)),
-            pose_jacobian=((0.0, 0.0, 0.0, 0.0),) * 6,
-            current_angles_deg=(90.0, 65.0, 68.0, 76.0),
-            previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
-            solver=angled.solver,
-            target=angled.target_pose,
+        remote_tracking_lag = (
+            89.98016199403266,
+            66.32828212931207,
+            70.52938976136163,
+            71.53466724868787,
         )
-        self.assertEqual(command.raw_delta_deg, (0.0, 0.4, -0.8, -4.0))
-        self.assertEqual(command.angles_deg[0], 90.0)
-        self.assertGreater(command.angles_deg[1], 65.0)
-        self.assertLess(command.angles_deg[2], 68.0)
-        self.assertLess(command.angles_deg[3], 76.0)
+        previous_command = (90.0, 90.0, 90.0, 90.0)
+        previous_velocity = (0.0, 0.0, 0.0, 0.0)
+        trajectory = []
+        for _ in range(angled.solver.maximum_steps):
+            command = next_pregrasp_command(
+                frame=self._frame(origin=(0.0, 0.20, 0.31)),
+                pose_jacobian=((0.0, 0.0, 0.0, 0.0),) * 6,
+                observed_angles_deg=remote_tracking_lag,
+                previous_command_angles_deg=previous_command,
+                previous_command_velocities_deg_s=previous_velocity,
+                solver=angled.solver,
+                target=angled.target_pose,
+            )
+            trajectory.append(command)
+            previous_command = command.angles_deg
+            previous_velocity = command.velocities_deg_s
+            if validated_joint_candidate_command_reached(
+                command_angles_deg=previous_command,
+                command_velocities_deg_s=previous_velocity,
+                solver=angled.solver,
+            ):
+                break
+        self.assertEqual(trajectory[0].angles_deg, (90.0, 88.0, 88.0, 88.0))
+        self.assertEqual(
+            trajectory[-1].angles_deg,
+            angled.solver.preferred_angles_deg,
+        )
+        self.assertEqual(
+            trajectory[-1].velocities_deg_s,
+            (0.0, 0.0, 0.0, 0.0),
+        )
+        self.assertNotEqual(
+            trajectory[-1].angles_deg,
+            (90.0, 66.0, 68.0, 69.0),
+        )
+        self.assertLess(len(trajectory), angled.solver.maximum_steps)
+
+    def test_lower_probe_boundary_target_fails_before_launch(self) -> None:
+        lower_probe = json.loads(
+            ANGLED_POSE_CONFIG_PATH.read_text(encoding="utf-8")
+        )
+        lower_probe["solver"]["preferred_angles_deg"] = [
+            90.0,
+            66.0,
+            64.0,
+            64.0,
+        ]
+        with self.assertRaisesRegex(PregraspPoseError, "braking reserve"):
+            parse_pregrasp_pose_config(lower_probe)
+
+    def test_direct_next_pose_command_rejects_candidate_mode(self) -> None:
+        angled, _ = load_pregrasp_pose_config(ANGLED_POSE_CONFIG_PATH)
+        with self.assertRaisesRegex(PregraspPoseError, "cartesian_pose_ik"):
+            next_pose_command(
+                frame=self._frame(origin=(0.0, 0.20, 0.31)),
+                pose_jacobian=((0.0, 0.0, 0.0, 0.0),) * 6,
+                current_angles_deg=(90.0, 66.0, 70.0, 72.0),
+                previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
+                solver=angled.solver,
+                target=angled.target_pose,
+            )
+
+    def test_candidate_observation_is_safety_input_not_command_state(self) -> None:
+        angled, _ = load_pregrasp_pose_config(ANGLED_POSE_CONFIG_PATH)
+        common = {
+            "frame": self._frame(origin=(0.0, 0.20, 0.31)),
+            "pose_jacobian": ((0.0, 0.0, 0.0, 0.0),) * 6,
+            "previous_command_angles_deg": (90.0, 72.0, 72.0, 72.0),
+            "previous_command_velocities_deg_s": (
+                0.0,
+                -20.0,
+                -20.0,
+                -20.0,
+            ),
+            "solver": angled.solver,
+            "target": angled.target_pose,
+        }
+        first = next_pregrasp_command(
+            observed_angles_deg=(90.0, 66.3, 70.5, 71.5),
+            **common,
+        )
+        second = next_pregrasp_command(
+            observed_angles_deg=(90.0, 72.0, 75.0, 78.0),
+            **common,
+        )
+        self.assertEqual(first.angles_deg, second.angles_deg)
+        self.assertEqual(first.velocities_deg_s, second.velocities_deg_s)
+        with self.assertRaisesRegex(PregraspPoseError, "safe envelope"):
+            next_pregrasp_command(
+                observed_angles_deg=(90.0, 59.9, 70.5, 71.5),
+                **common,
+            )
 
     def test_quantizer_brakes_before_api_command_limit(self) -> None:
         desired = PoseCommand(
@@ -394,7 +489,7 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             asset_contract_path=PROJECT_DIR / "artifacts/dofbot/asset_contract.json",
         )
         self.assertTrue(report["acceptance"]["local_preparation_passed"])
-        self.assertEqual(len(report["acceptance"]["checks"]), 21)
+        self.assertEqual(len(report["acceptance"]["checks"]), 22)
         self.assertTrue(all(report["acceptance"]["checks"].values()))
         self.assertFalse(report["acceptance"]["candidate_isaac_machine_passed"])
         self.assertFalse(report["acceptance"]["candidate_visual_passed"])
@@ -403,6 +498,40 @@ class DofbotPregraspPoseTest(unittest.TestCase):
         self.assertFalse(report["scope"]["isaac_started"])
         self.assertFalse(report["scope"]["wrist_twist_commanded"])
         self.assertFalse(report["scope"]["gripper_commanded"])
+
+    def test_angled_preview_reaches_exact_stopped_candidate(self) -> None:
+        report = build_preview(
+            pose_config_path=ANGLED_POSE_CONFIG_PATH,
+            scene_config_path=ANGLED_SCENE_CONFIG_PATH,
+            asset_contract_path=PROJECT_DIR / "artifacts/dofbot/asset_contract.json",
+        )
+        self.assertTrue(report["acceptance"]["local_preparation_passed"])
+        self.assertTrue(
+            report["acceptance"]["checks"][
+                "validated_candidate_reaches_exact_stopped_api_target"
+            ]
+        )
+        self.assertEqual(
+            report["solver_probe"]["command"]["angles_deg"],
+            [90.0, 66.0, 66.0, 66.0],
+        )
+        self.assertEqual(
+            report["solver_probe"]["command"]["velocities_deg_s"],
+            [0.0, 0.0, 0.0, 0.0],
+        )
+        self.assertLess(
+            len(report["solver_probe"]["command_trajectory"]),
+            60,
+        )
+        checked_in = json.loads(
+            COMMAND_SPACE_CONTRACT_PATH.read_text(encoding="utf-8")
+        )
+        normalized = copy.deepcopy(report)
+        for source in normalized["sources"].values():
+            source_path = Path(source["path"])
+            if source_path.is_absolute():
+                source["path"] = str(source_path.relative_to(PROJECT_DIR))
+        self.assertEqual(normalized, checked_in)
 
 
 if __name__ == "__main__":

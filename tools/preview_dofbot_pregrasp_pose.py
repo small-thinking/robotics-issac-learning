@@ -11,20 +11,22 @@ from typing import Any
 
 try:
     from .dofbot_pregrasp_pose import (
+        VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
         derive_grasp_frame,
         evaluate_pregrasp_observation,
         load_pregrasp_pose_config,
-        next_pose_command,
-        quantize_pose_command,
+        next_pregrasp_command,
+        validated_joint_candidate_command_reached,
     )
     from .dofbot_reaching import load_reaching_config
 except ImportError:
     from dofbot_pregrasp_pose import (
+        VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
         derive_grasp_frame,
         evaluate_pregrasp_observation,
         load_pregrasp_pose_config,
-        next_pose_command,
-        quantize_pose_command,
+        next_pregrasp_command,
+        validated_joint_candidate_command_reached,
     )
     from dofbot_reaching import load_reaching_config
 
@@ -174,20 +176,52 @@ def build_preview(
         ),
         config=pose.grasp_frame,
     )
-    float_command = next_pose_command(
-        frame=offset_frame,
-        pose_jacobian=pose_jacobian,
-        current_angles_deg=(90.0, 90.0, 90.0, 90.0),
-        previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
-        solver=pose.solver,
-        target=pose.target_pose,
+    zero = (0.0, 0.0, 0.0, 0.0)
+    previous_command = (90.0, 90.0, 90.0, 90.0)
+    previous_velocity = zero
+    synthetic_tracking_lag = tuple(
+        min(
+            pose.solver.safe_angle_max_deg,
+            max(
+                pose.solver.safe_angle_min_deg,
+                preferred + lag,
+            ),
+        )
+        for preferred, lag in zip(
+            pose.solver.preferred_angles_deg,
+            (0.0, 0.3, 4.5, 5.5),
+            strict=True,
+        )
     )
-    command = quantize_pose_command(
-        float_command,
-        previous_command_angles_deg=(90.0, 90.0, 90.0, 90.0),
-        previous_velocities_deg_s=(0.0, 0.0, 0.0, 0.0),
-        solver=pose.solver,
+    command_trajectory = []
+    trajectory_steps = (
+        pose.solver.maximum_steps
+        if (
+            pose.solver.control_mode
+            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
+        )
+        else 1
     )
+    for _ in range(trajectory_steps):
+        command = next_pregrasp_command(
+            frame=offset_frame,
+            pose_jacobian=pose_jacobian,
+            observed_angles_deg=synthetic_tracking_lag,
+            previous_command_angles_deg=previous_command,
+            previous_command_velocities_deg_s=previous_velocity,
+            solver=pose.solver,
+            target=pose.target_pose,
+        )
+        command_trajectory.append(command)
+        previous_command = command.angles_deg
+        previous_velocity = command.velocities_deg_s
+        if validated_joint_candidate_command_reached(
+            command_angles_deg=previous_command,
+            command_velocities_deg_s=previous_velocity,
+            solver=pose.solver,
+        ):
+            break
+    command = command_trajectory[-1]
     safe_evaluation = evaluate_pregrasp_observation(
         config=pose,
         frame=frame,
@@ -321,16 +355,41 @@ def build_preview(
             == "monitor_only_wrist_twist_uncontrolled"
         ),
         "synthetic_pose_command_preserves_joint_margin": all(
-            command_min <= value <= command_max for value in command.angles_deg
+            command_min <= value <= command_max
+            for trajectory_command in command_trajectory
+            for value in trajectory_command.angles_deg
         ),
         "synthetic_pose_command_respects_velocity_limit": all(
             abs(value) <= pose.solver.maximum_joint_velocity_deg_s
-            for value in command.velocities_deg_s
+            for trajectory_command in command_trajectory
+            for value in trajectory_command.velocities_deg_s
         ),
         "synthetic_pose_command_respects_acceleration_ramp": all(
-            abs(value) / pose.solver.control_dt_s
+            abs(after - before) / pose.solver.control_dt_s
             <= pose.solver.maximum_joint_acceleration_deg_s2 + 1e-9
-            for value in command.velocities_deg_s
+            for before_command, after_command in zip(
+                [zero, *[
+                    item.velocities_deg_s
+                    for item in command_trajectory[:-1]
+                ]],
+                [
+                    item.velocities_deg_s
+                    for item in command_trajectory
+                ],
+                strict=True,
+            )
+            for before, after in zip(
+                before_command,
+                after_command,
+                strict=True,
+            )
+        ),
+        "validated_candidate_reaches_exact_stopped_api_target": (
+            validated_joint_candidate_command_reached(
+                command_angles_deg=command.angles_deg,
+                command_velocities_deg_s=command.velocities_deg_s,
+                solver=pose.solver,
+            )
         ),
         "safe_synthetic_pregrasp_observation_passed": safe_evaluation["passed"],
         "collision_probe_rejected": (
@@ -387,6 +446,12 @@ def build_preview(
             "algorithm": pose.solver.control_mode,
             "pose_jacobian_shape": [6, 4],
             "preferred_angles_deg": list(pose.solver.preferred_angles_deg),
+            "synthetic_observed_tracking_lag_angles_deg": list(
+                synthetic_tracking_lag
+            ),
+            "command_trajectory": [
+                item.to_dict() for item in command_trajectory
+            ],
             "command": command.to_dict(),
         },
         "collision_probe": {

@@ -1237,3 +1237,65 @@
   stop, and `brev ls --json` later returned explicit `STOPPED`. The instance
   and disk were preserved. This overrun is an operational failure, not a
   successful short-window validation.
+
+## 2026-07-29 — Direct candidate exposed command/observation state mix
+
+- Remote source: merged `main@150fa5d`; existing
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  `$1.58784/hour`
+- Official command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Official result: **failed closed only on position**. Position improved
+  `0.25660 -> 0.03243 m` against the unchanged `0.025 m` gate. Approach and
+  closing passed at `10.397°` and `0.313°`. Every safety/API/reset check
+  passed with `0 N` contact, static cube, `248/248` official calls, and
+  `0.0689°` neutral reset. Viewer was not started.
+- Endpoint mismatch: configured `[90,66,66,66]°`; final API
+  `[90,66,68,69]°`; observed
+  `[89.980,66.328,70.529,71.535]°`
+- Diagnostic probe: temporary preferred `[90,66,64,64]°` produced final API
+  `[90,66,70,67]°`, observed `[89.982,66.168,72.067,69.270]°`,
+  `0.03211 m` position error, `9.510°` approach error, and `0 N` contact.
+  This falsified the assumption that the direct-candidate implementation
+  tracked its configured endpoint.
+- Root cause: the direct-candidate float delta was based on live observed
+  angles, while integer command velocity, acceleration, and braking were based
+  on the previous API command. Persistent Isaac drive lag therefore mixed two
+  state spaces. The prior test covered one float step, not the complete
+  quantized endpoint.
+- Promoted evidence:
+  `artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json`;
+  official full artifact SHA-256
+  `d1657332164f7ba9f3fb33d691041f29a2c43c81e838967a705d871924c07cfe`,
+  diagnostic SHA-256
+  `d2c61cc0331b2ed4cec4963379bdc68c2873f299820aeba4372d1482c6a61e1b`
+- Free correction branch:
+  `codex/dofbot-command-space-tracking-fix`
+- Correction:
+  - generate direct-candidate motion from previous API command state only;
+  - keep observed joints authoritative for physical, Cartesian, collision,
+    contact, and static-target gates;
+  - require the final API command to equal the selected integer candidate with
+    zero command velocity;
+  - reject command-margin boundary candidates without braking reserve before
+    launching Kit;
+  - preserve the historical Cartesian IK observation-feedback path.
+- Local evidence:
+  `artifacts/dofbot/pregrasp_command_space_contract.json`; the injected
+  tracking-lag observation `[90,66.3,70.5,71.5]°` does not alter the direct
+  command trajectory, which reaches stopped `[90,66,66,66]°` in eight steps.
+  All 22 local contract checks pass.
+- Validation: `make test` passes 159/159; targeted Ruff, byte-identical local
+  artifact regeneration, remote command previews, JSON parsing, and
+  `git diff --check` pass. Full-repository Ruff reports only the pre-existing
+  unrelated line-length finding at `tools/collect_environment_info.py:47`.
+- Current acceptance: **local command-space correction passed / corrected
+  Isaac machine pending / Viewer blocked pending machine pass**. No
+  Cartesian, safety, contact, reset, or no-grasp gate was loosened.
+- Resource lifecycle: approved start at 21:40:39 PDT; evidence retrieved before
+  stop; stale `STOPPING` list state was refreshed; explicit `STOPPED` verified
+  at 21:55 PDT. No instance or disk was created, resized, or deleted.

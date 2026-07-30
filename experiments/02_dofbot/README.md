@@ -800,6 +800,70 @@ The paid window ran approximately 20:02-21:17 PDT, exceeding its intended
 overrun, and `brev ls --json` later verified explicit `STOPPED`; no resource
 was deleted or resized.
 
+### Direct-candidate command-space regression and correction
+
+The corrected direct-candidate controller was remotely tested at merged
+`main@150fa5d`. It failed only the unchanged Cartesian position gate:
+`0.03243 m > 0.025 m`. Approach and closing errors were `10.397°` and
+`0.313°`; all remaining safety/API/reset gates passed with `0 N` contact,
+`248/248` official API calls, a static cube, and `0.0689°` neutral-reset
+error. The Viewer was not started.
+
+The failure located a more specific controller defect. The configured
+candidate was `[90,66,66,66]°`, but the final API command was
+`[90,66,68,69]°` and the final observed joints were
+`[89.980,66.328,70.529,71.535]°`. A bounded diagnostic that changed the
+preferred endpoint to `[90,66,64,64]°` instead stopped at API command
+`[90,66,70,67]°`. Lowering the configured target therefore did not
+consistently lower the command.
+
+The controller computed the direct-candidate delta from live observed joint
+angles while its integer quantizer computed velocity, acceleration, and
+braking from the previous API command. Isaac drive tracking lag therefore
+mixed observation space and command space. The prior regression checked only
+the direction of one float step; it never executed the full quantized sequence
+or asserted the final stopped API endpoint.
+
+The local correction on
+`codex/dofbot-command-space-tracking-fix` separates those roles:
+
+- direct-candidate motion advances only from the previous API command to the
+  configured integer-degree endpoint;
+- live observed joints remain authoritative for physical-envelope,
+  Cartesian, collision, contact, and target-static gates;
+- the machine contract independently requires
+  `validated_joint_candidate_command_reached`;
+- candidate configs at the command-margin boundary are rejected before Kit
+  launch because they cannot retain the existing one-degree braking reserve;
+- Cartesian IK retains its observation-feedback path and existing stall gate.
+
+Run the free regression gate with:
+
+```bash
+make dofbot-pregrasp-pose-dry-run
+make show-dofbot-pregrasp
+make show-dofbot-pregrasp-view
+```
+
+Evidence:
+`artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json`
+binds the two retrieved remote artifacts, while
+`artifacts/dofbot/pregrasp_command_space_contract.json` injects the failed
+run's tracking-lag neighborhood and reaches a stopped
+`[90,66,66,66]°` API endpoint in eight bounded steps. All 22 local contract
+checks pass.
+
+Validation: `make test` passes all 159 repository tests, targeted Ruff passes,
+the local artifact regenerates byte-identically, both remote wrappers pass
+dry-run preview, both new JSON artifacts parse, and `git diff --check` passes.
+Full-repository Ruff remains blocked only by the pre-existing unrelated
+`tools/collect_environment_info.py:47` line-length finding.
+
+Acceptance remains **local command-space correction passed / corrected Isaac
+machine pending / Viewer blocked pending machine pass**. This correction does
+not loosen the `0.025 m / 12°` Cartesian gates, authorize contact or grasp,
+or claim that local replay is Isaac proof.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to
