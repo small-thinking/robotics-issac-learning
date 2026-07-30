@@ -1014,3 +1014,45 @@
   candidate Viewer pending**. Contact and grasp remain unauthorized. The next
   free task is finger-frame and pose-aware controller design with orientation,
   preferred posture, collision clearance, and trajectory smoothness.
+
+## 2026-07-29 — Pose-aware terminal-finger pre-grasp passed local preparation
+
+- Branch: `codex/dofbot-pose-aware-pregrasp`
+- Scope: free local design, dry-run, tests, wrappers, and documentation only;
+  no Brev/GPU start, Isaac execution, real hardware, wrist-twist or gripper
+  command, target contact/motion, camera controller input, policy, checkpoint,
+  PPO, or VLA
+- Sources: Goal 1 asset contract SHA-256
+  `1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2`;
+  lower/farther scene config SHA-256
+  `ddfed9b2208c972cc97e5f32c21c8c519cac7e08aeb36e4571281178b4322119`
+- Frame contract: midpoint of `Finger_Left_03` and `Finger_Right_03`,
+  `Wrist_Twist`-to-midpoint approach axis, left-to-right closing axis
+- Target contract: origin `(0.00,+0.25,0.195) m`, world `-Z` approach,
+  world `+X` closing, `0.025 m` / `12°` / `20°` tolerances
+- Control contract: 5 Hz weighted damped-least-squares over the averaged
+  terminal-finger `6x4` link Jacobian; position plus approach error; preferred
+  `[90,78,78,90]°` posture; only `joint1`-`joint4` through
+  `Arm_serial_servo_write(id, angle, time)`
+- Safety contract: integer commands in `[68,112]°`, at most 4° per step,
+  20°/s, 60°/s²; body-center/table/target signed-distance proxies; Isaac
+  contact reporter threshold `0.5 N`; static target; contact unauthorized;
+  wrist twist and gripper uncommanded
+- Commands:
+
+  ```bash
+  make test
+  make dofbot-pregrasp-pose-dry-run
+  make show-dofbot-pregrasp
+  make show-dofbot-pregrasp-view
+  ```
+
+- Local result: **passed**. All 21 contract checks and all 139 repository
+  tests passed, including deliberate collision, excessive contact-force, and
+  reversed fixed-closing-axis rejection; targeted Ruff, shell syntax, Git LFS
+  checks, and remote command previews passed
+- Evidence: `artifacts/dofbot/pregrasp_pose_contract.json`
+- Acceptance: **local preparation passed / Isaac machine pending / Viewer
+  pending**. The report does not claim live kinematic reach, full collision
+  geometry, contact sensing, motion quality, or visual acceptance. Goal 5 is
+  not complete and contact/grasp remain unauthorized.

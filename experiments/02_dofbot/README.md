@@ -603,6 +603,66 @@ does not authorize contact or grasping. Pose-aware IK, finger grasp frame,
 collision clearance, preferred posture, and trajectory smoothness remain the
 next free local design work.
 
+### Pose-aware terminal-finger pre-grasp preparation
+
+The next free gate replaces the `Wrist_Twist`-only position target with a
+derived terminal-finger grasp frame. The official asset has no single grasp
+center body, so the contract uses:
+
+- origin: midpoint of `Finger_Left_03` and `Finger_Right_03`;
+- closing axis: left terminal finger to right terminal finger;
+- approach axis: `Wrist_Twist` to the terminal-finger midpoint,
+  orthogonalized against the closing axis.
+
+The desired pre-grasp origin is `(0.00,+0.25,0.195) m`, 6.5 cm above the
+5 cm cube's top. The desired approach axis is world `-Z`; the desired closing
+axis is world `+X`. Position, approach, and closing tolerances are `0.025 m`,
+`12°`, and `20°`.
+
+Only `joint1` through `joint4` are available through the accepted Yahboom API
+boundary. The runner therefore optimizes position plus approach direction
+using the averaged terminal-finger `6x4` link Jacobian and treats closing-axis
+alignment as a monitor-only gate. It does not silently command wrist twist,
+servo 5, or the gripper. If the fixed closing orientation is incompatible, the
+machine gate fails.
+
+The 5 Hz controller adds a preferred `[90,78,78,90]°` posture, `[68,112]°`
+command range inside the established `[60,120]°` safe envelope, integer-degree
+API quantization, maximum 4° step, 20°/s velocity, and 60°/s² acceleration.
+Local signed-distance proxies reject critical body centers approaching the
+table or cube. The remote scene enables Isaac contact reporting on all DOFBOT
+rigid bodies and rejects force above `0.5 N`.
+
+Run the free local gate with:
+
+```bash
+make dofbot-pregrasp-pose-dry-run
+make show-dofbot-pregrasp
+make show-dofbot-pregrasp-view
+```
+
+The first command produces
+`artifacts/dofbot/pregrasp_pose_contract.json`; the checked-in artifact passes
+21/21 local preparation checks. Deliberate terminal-finger collision, excess
+contact force, and reversed fixed-closing-axis probes all fail closed. All 139
+repository tests pass, including 27 focused pose/runner tests. The other two
+commands print the future remote commands without starting Isaac or Brev.
+
+After branch review and merge, the separately approved paid gate is:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp-view
+```
+
+The headless run must pass live asset compatibility, physical prim/static
+target, pose, fixed closing-axis, joint margin, velocity, acceleration,
+collision proxy, contact reporter, improvement, exact API count, and neutral
+reset checks. Viewer acceptance then requires the user to see a smooth
+top-down approach in the lower/farther scene, with the gripper open, cube
+stationary, and no visible contact. Until both gates pass, candidate Isaac and
+visual status remain pending and Goal 5 is not complete.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

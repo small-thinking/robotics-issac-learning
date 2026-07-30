@@ -234,4 +234,36 @@ assert_contains "$dofbot_reach_view_output" '--viz kit'
 assert_contains "$dofbot_reach_view_output" 'fixed-tabletop reaching repeats until the process or instance is stopped'
 assert_contains "$dofbot_reach_view_output" '[dry-run] Command displayed but not executed.'
 
+dofbot_pregrasp_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_pregrasp.sh
+)"
+
+assert_contains "$dofbot_pregrasp_output" 'run_dofbot_pregrasp.py'
+assert_contains "$dofbot_pregrasp_output" 'goal4_pregrasp_scene_candidate.json'
+assert_contains "$dofbot_pregrasp_output" 'goal5_pose_aware_pregrasp.json'
+assert_contains "$dofbot_pregrasp_output" 'pregrasp_machine_contract.json'
+assert_contains "$dofbot_pregrasp_output" '--cycles 1'
+assert_contains "$dofbot_pregrasp_output" '--viewer-connection-hold-seconds 0'
+assert_contains "$dofbot_pregrasp_output" '--device cpu'
+assert_contains "$dofbot_pregrasp_output" '--headless'
+assert_contains "$dofbot_pregrasp_output" '[dry-run] Command displayed but not executed.'
+
+dofbot_pregrasp_view_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/view_dofbot_pregrasp.sh
+)"
+
+assert_contains "$dofbot_pregrasp_view_output" 'run_dofbot_pregrasp.py'
+assert_contains "$dofbot_pregrasp_view_output" 'pregrasp_viewer_contract.json'
+assert_contains "$dofbot_pregrasp_view_output" 'pregrasp_viewer.log'
+assert_contains "$dofbot_pregrasp_view_output" '--cycles -1'
+assert_contains "$dofbot_pregrasp_view_output" '--viewer-connection-hold-seconds 20'
+assert_contains "$dofbot_pregrasp_view_output" '--livestream 2'
+assert_contains "$dofbot_pregrasp_view_output" '--viz kit'
+assert_contains "$dofbot_pregrasp_view_output" 'pose-aware pre-grasp repeats until the process or instance is stopped'
+assert_contains "$dofbot_pregrasp_view_output" '[dry-run] Command displayed but not executed.'
+
 printf 'remote command preview tests passed\n'
