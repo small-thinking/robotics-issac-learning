@@ -956,7 +956,10 @@ if __name__ == "__main__":
             )
         else:
             failure = error
-    finally:
+    try:
         simulation_app.close()
+    except SystemExit as error:
+        if failure is None and error.code not in (None, 0):
+            failure = error
     if failure is not None:
         raise failure

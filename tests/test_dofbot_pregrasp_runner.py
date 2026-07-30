@@ -104,6 +104,11 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "Isaac requested a zero-code exit before pre-grasp completion",
             self.runner,
         )
+        self.assertIn("except SystemExit as error:", self.runner)
+        self.assertIn(
+            "if failure is None and error.code not in (None, 0):",
+            self.runner,
+        )
 
     def test_remote_wrappers_select_candidate_scene_and_pose_contract(self) -> None:
         for script in (self.run_script, self.view_script):
