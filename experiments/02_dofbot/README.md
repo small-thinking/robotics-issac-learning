@@ -921,10 +921,10 @@ peaks at 18°/s and 36°/s² for the largest transition, preserving the existing
 
 The matrix decision tree checks contact, settling, target-buffer agreement,
 and telemetry/runtime completeness before comparing gravity and effort.
-Implicit-actuator torque buffers that are zero or unavailable are explicitly
-marked non-evidence. When meaningful buffers are nonzero, applied effort at
-least 98% of the configured limit plus a computed/applied gap becomes direct
-saturation evidence. Tracking failure still writes a complete case artifact.
+Implicit-actuator torque buffers are approximate PD estimates, not measured
+PhysX solver torque. A nonzero gap may show that the software-side estimate
+reached its configured clip, but it does not prove physical saturation.
+Tracking failure still writes a complete case artifact.
 The outer Brev transport exits zero and prints `[MATRIX_EXIT_CODE]` so a
 nonzero internal result cannot trigger an automatic paid retry.
 The local wrapper then parses that marker and returns nonzero to `make` if the
@@ -977,8 +977,8 @@ The repaired matrix completed with `[MATRIX_EXIT_CODE] 0`:
 | gravity on / effort 250 | `4.97619°` | `16.34411°/s` | `0.000001271°` | `0 N` | fail |
 
 The effort-250 case is not a configuration no-op: both the Isaac effort
-buffers and PhysX DOF maximum forces are `250`, and maximum applied torque
-changes from `100` to `250`. Nevertheless, the complete selected sequence of
+buffers and PhysX DOF maximum forces are `250`, and the implicit PD estimate
+reaches the corresponding software-side clip. Nevertheless, the complete selected sequence of
 API target, backend target, Isaac target, observed position, and reported
 velocity is identical to gravity-on effort-100. Increasing only
 `effort_limit_sim` is therefore falsified as a sufficient fix.
@@ -1081,6 +1081,64 @@ Acceptance is **machine matrix complete / velocity telemetry repair found /
 tracking unresolved / pre-grasp and Viewer blocked**. Before another paid
 window, audit the official asset's per-joint drive force, axes/transmission,
 mass, and inertia with particular attention to joint 3.
+
+### Official drive audit and force-drive diagnostic preparation
+
+The GPU-free audit downloaded NVIDIA's official Isaac 6.0
+`Robots/Yahboom/Dofbot/dofbot.usd` to temporary storage only. The source is
+104,922,919 bytes with SHA-256
+`52c524ebb26c38a3d164daee10f6cac0f15487fce5408a38c0c94199a37f1303`;
+it is not committed and does not need a Git LFS rule.
+
+The asset is meter-scaled and Z-up. Controlled joints 1-4 form the expected
+serial body chain, every joint uses axis X, and every angular drive is authored
+as `acceleration` with uniform stiffness `1048`, damping `53`, maximum force
+`5.2`, and zero joint friction. The runtime mass snapshot totals
+`1.03481 kg`. Therefore joint 3 remains the largest observed error, but it
+does not have a unique official axis, drive type, or tuning.
+
+The audit also corrects a diagnostic interpretation. Isaac Lab implicit
+actuator `computed_effort` and `applied_effort` are approximate PD
+calculations, not measured PhysX solver torque. The earlier effort comparison
+still proves that effort-limit and PhysX maximum-force writes changed and the
+trajectory did not; it does not prove actual torque saturation.
+
+The next five-case matrix treats force-drive semantics as a hypothesis:
+
+1. reproduce acceleration drive with current `10000/100/100` runtime tuning;
+2. switch only drive type to `force`;
+3. restore official stiffness `1048`;
+4. restore official damping `53`;
+5. restore official maximum force `5.2`.
+
+Every transition changes one field. Gravity, poses, trajectory, external-force
+iteration, and solver settings remain fixed. Before motion, the runner reads
+back the composed drive type, axis, connected bodies, gains, and maximum force
+for joints 1-4 and fails closed on a mismatch.
+
+```bash
+make dofbot-drive-model-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-drive-model
+```
+
+Evidence is `artifacts/dofbot/asset_drive_audit_2026-07-30.json` and
+`artifacts/dofbot/drive_model_diagnostic_plan.json`. Acceptance is
+**official-asset audit passed / five-case local plan passed / drive-type
+hypothesis unproven / GPU, pre-grasp, and Viewer blocked**. After review,
+merge, a fresh quote, and explicit approval, run only:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model
+```
+
+All `185` repository tests, targeted Ruff, Python compilation, shell syntax,
+JSON parsing, Git LFS checks, deterministic plan regeneration, and the
+headless remote-command preview pass.
+
+The matrix result must be reviewed before adopting a drive configuration. The
+selected configuration then has to pass gravity-on calibration and the
+headless pre-grasp machine gate. Only those two machine passes authorize the
+Viewer.
 
 ## Later milestones
 

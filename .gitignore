@@ -87,6 +87,8 @@ artifacts/dofbot/*
 !artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json
 !artifacts/dofbot/solver_drive_diagnostic_plan.json
 !artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json
+!artifacts/dofbot/asset_drive_audit_2026-07-30.json
+!artifacts/dofbot/drive_model_diagnostic_plan.json
 
 # macOS and editors
 .DS_Store

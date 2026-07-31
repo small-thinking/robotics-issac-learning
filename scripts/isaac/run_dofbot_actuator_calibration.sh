@@ -23,8 +23,19 @@ elif [[ "$matrix_profile" == "solver_drive" ]]; then
     velocity_iterations_2
     reduced_damping_50
   )
+elif [[ "$matrix_profile" == "drive_model" ]]; then
+  default_config="configs/dofbot/calibration/goal5_drive_model_diagnostic.json"
+  default_output_dir="$project_dir/artifacts/dofbot/drive_model_diagnostic_cases"
+  default_summary="$project_dir/artifacts/dofbot/drive_model_diagnostic_contract.json"
+  case_names=(
+    acceleration_runtime_tuning
+    force_runtime_tuning
+    force_stiffness_1048
+    force_damping_53
+    force_authored_tuning
+  )
 else
-  printf 'DOFBOT_ACTUATOR_MATRIX_PROFILE must be actuator or solver_drive\n' >&2
+  printf 'DOFBOT_ACTUATOR_MATRIX_PROFILE must be actuator, solver_drive, or drive_model\n' >&2
   exit 2
 fi
 calibration_config="${DOFBOT_ACTUATOR_CALIBRATION_CONFIG:-${ACTUATOR_CALIBRATION:-$default_config}}"

@@ -135,15 +135,21 @@ The detailed first-stage contract lives in
    telemetry every step. Gravity-off effort-100 passes with `0.0032°` maximum
    error; both gravity-on effort-100 and effort-250 follow an identical
    selected target/position/velocity sequence and miss by `4.976°`, even
-   though the applied-torque clamp changes from 100 to 250. This establishes
-   load dependence and falsifies effort 250 alone as a fix. Nearly stationary
+   though the effort-limit and PhysX maximum-force writes change from 100 to
+   250. The implicit actuator's applied-effort field is a PD estimate, not
+   measured solver torque. This establishes load dependence and falsifies
+   effort 250 alone as a fix. Nearly stationary
    final position samples disagree with raw TGS `joint_vel`. The GPU-free
    finite-difference velocity contract and focused four-stage solver/drive
    design passed. The remote matrix repairs the raw velocity mismatch when
    external-force iteration is enabled, but leaves `4.883°-5.041°` tracking
-   error across all tested solver/damping settings. Audit joint 3 drive,
-   mass/inertia, axis, and transmission semantics locally before another paid
-   matrix. The separate `<=1°` tracking gate remains. Pre-grasp, Viewer, wrist
+   error across all tested solver/damping settings. The completed official-USD
+   audit finds uniform X-axis acceleration drives with authored
+   `1048/53/5.2` tuning on joints 1-4, so joint 3 has no unique axis or drive
+   tuning. A locally prepared five-case matrix now tests acceleration versus
+   force semantics and restores the authored gains and force one factor at a
+   time with composed-drive readback. The separate `<=1°` tracking gate
+   remains. Pre-grasp, Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

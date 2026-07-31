@@ -68,7 +68,7 @@ import isaaclab.sim as sim_utils
 import omni.physx
 from isaaclab.scene import InteractiveScene
 from isaaclab_physx.physics import PhysxCfg
-from pxr import PhysicsSchemaTools
+from pxr import PhysicsSchemaTools, UsdPhysics
 
 from dofbot_contact_report import maximum_monitored_contact_force_n
 from dofbot_control_api import (
@@ -91,6 +91,12 @@ TERMINAL_BODY_NAMES = (
     "Finger_Left_03",
     "Finger_Right_03",
 )
+CONTROLLED_JOINT_PRIM_PATHS = {
+    "joint1": "/World/envs/env_0/Dofbot/base_link/joint1",
+    "joint2": "/World/envs/env_0/Dofbot/link1/joint2",
+    "joint3": "/World/envs/env_0/Dofbot/link2/joint3",
+    "joint4": "/World/envs/env_0/Dofbot/link3/joint4",
+}
 
 
 def _load_json_object(path: Path) -> tuple[dict[str, Any], str]:
@@ -312,6 +318,30 @@ def _optional_physx_view_tensor(
         return None
 
 
+def _controlled_joint_drive_snapshot() -> dict[str, dict[str, Any]]:
+    stage = sim_utils.get_current_stage()
+    snapshot: dict[str, dict[str, Any]] = {}
+    for name, path in CONTROLLED_JOINT_PRIM_PATHS.items():
+        prim = stage.GetPrimAtPath(path)
+        joint = UsdPhysics.RevoluteJoint(prim)
+        drive = UsdPhysics.DriveAPI.Get(prim, "angular")
+        if not prim.IsValid() or not joint or not drive:
+            raise ActuatorCalibrationError(
+                f"missing revolute joint or angular drive at {path}"
+            )
+        snapshot[name] = {
+            "prim_path": path,
+            "axis": str(joint.GetAxisAttr().Get()),
+            "body0": [str(value) for value in joint.GetBody0Rel().GetTargets()],
+            "body1": [str(value) for value in joint.GetBody1Rel().GetTargets()],
+            "drive_type": str(drive.GetTypeAttr().Get()),
+            "max_force": float(drive.GetMaxForceAttr().Get()),
+            "stiffness": float(drive.GetStiffnessAttr().Get()),
+            "damping": float(drive.GetDampingAttr().Get()),
+        }
+    return snapshot
+
+
 def _body_positions_world_m(
     scene: InteractiveScene,
     body_ids: dict[str, int],
@@ -526,8 +556,8 @@ def _torque_metrics(
     maximum_computed = max(computed_values, default=0.0)
     maximum_applied = max(applied_values, default=0.0)
     maximum_gap = max(gaps, default=0.0)
-    saturation_observed = (
-        interpretation == "measured_nonzero_buffers"
+    estimated_clip_reached = (
+        interpretation == "implicit_pd_estimate_not_measured_solver_torque"
         and maximum_applied >= 0.98 * effort_limit_sim
         and maximum_gap > 1.0e-6
     )
@@ -536,11 +566,12 @@ def _torque_metrics(
         "maximum_absolute_applied_torque": maximum_applied,
         "maximum_absolute_computed_applied_gap": maximum_gap,
         "configured_effort_limit_sim": effort_limit_sim,
-        "saturation_observed": saturation_observed,
+        "estimated_clip_reached": estimated_clip_reached,
+        "saturation_observed": False,
         "buffers_shape_match": buffers_shape_match,
         "criterion": (
-            "meaningful buffers and applied >= 98% of limit with "
-            "nonzero computed/applied gap"
+            "Isaac Lab implicit-actuator PD estimate reached 98% of the "
+            "configured limit; this is not measured PhysX solver torque"
         ),
     }
 
@@ -734,6 +765,12 @@ def main() -> None:
     scene_cfg.dofbot.spawn.articulation_props.solver_velocity_iteration_count = (
         case.solver_velocity_iteration_count
     )
+    if case.drive_type is not None:
+        scene_cfg.dofbot.spawn = scene_cfg.dofbot.spawn.replace(
+            joint_drive_props=sim_utils.JointDrivePropertiesCfg(
+                drive_type=case.drive_type,
+            )
+        )
     for actuator in scene_cfg.dofbot.actuators.values():
         actuator.effort_limit_sim = case.effort_limit_sim
         actuator.stiffness = case.stiffness
@@ -756,6 +793,14 @@ def main() -> None:
         recorded_contract,
         _live_asset_contract(scene),
     )
+    controlled_drive_snapshot = _controlled_joint_drive_snapshot()
+    if case.drive_type is not None and any(
+        value["drive_type"] != case.drive_type
+        for value in controlled_drive_snapshot.values()
+    ):
+        raise ActuatorCalibrationError(
+            "composed USD drive type does not match the requested case"
+        )
 
     controlled_joint_ids = _controlled_joint_ids(scene)
     body_ids = _terminal_body_ids(scene)
@@ -836,7 +881,7 @@ def main() -> None:
         for sample in all_samples
     )
     torque_interpretation = (
-        "measured_nonzero_buffers"
+        "implicit_pd_estimate_not_measured_solver_torque"
         if (
             computed_available
             and applied_available
@@ -896,6 +941,11 @@ def main() -> None:
             "enable_external_forces_every_iteration": (
                 case.enable_external_forces_every_iteration
             ),
+            "requested_drive_type": case.drive_type,
+            "composed_controlled_drive_types": {
+                name: value["drive_type"]
+                for name, value in controlled_drive_snapshot.items()
+            },
             "position_velocity_window_ms": (
                 config.trajectory.position_velocity_window_ms
             ),
@@ -909,6 +959,7 @@ def main() -> None:
         "physics_snapshot": {
             "joint_names": list(scene["dofbot"].joint_names),
             "body_names": list(scene["dofbot"].body_names),
+            "controlled_joint_drives": controlled_drive_snapshot,
             "masses": _optional_physx_view_tensor(
                 scene,
                 "get_masses",
@@ -952,6 +1003,7 @@ def main() -> None:
             "applied_torque_buffer_available": applied_available,
             "torque_interpretation": torque_interpretation,
             "torque_metrics": torque_metrics,
+            "implicit_torque_buffers_are_pd_estimates_not_solver_measurements": True,
             "zero_or_missing_implicit_torque_does_not_disprove_saturation": True,
         },
         "measurement": {

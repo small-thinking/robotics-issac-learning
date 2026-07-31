@@ -108,7 +108,6 @@ def build_preview(
             "position_derived_settling_failure",
             "instrumentation_or_runtime_compatibility_failure",
             "baseline_tracking_identity_validated",
-            "effort_saturation_observed",
             "gravity_load_sensitive_tracking",
             "effort_limit_sensitive_tracking",
             "drive_gain_axis_solver_or_model_mapping_failure",

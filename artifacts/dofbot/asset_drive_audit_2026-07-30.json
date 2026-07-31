@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_official_asset_drive_audit",
+  "reviewed_at_utc": "2026-07-31T02:22:00Z",
+  "source_asset": {
+    "url": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/dofbot.usd",
+    "bytes": 104922919,
+    "sha256": "52c524ebb26c38a3d164daee10f6cac0f15487fce5408a38c0c94199a37f1303",
+    "meters_per_unit": 1,
+    "up_axis": "Z",
+    "committed_to_repository": false
+  },
+  "source_schema_layer": {
+    "relative_path": "configuration/dofbot_robot_schema.usd",
+    "url": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Robots/Yahboom/Dofbot/configuration/dofbot_robot_schema.usd",
+    "bytes": 3498,
+    "sha256": "bf0766c53212be22dfdef92a4bba30c7d2a9f89ffd8c4814a7e44f5e6bac5aab",
+    "committed_to_repository": false
+  },
+  "extraction": {
+    "tool": "/usr/bin/usdcat",
+    "command": "usdcat --flatten --mask /arm/base_link/joint1,/arm/link1/joint2,/arm/link2/joint3,/arm/link3/joint4 dofbot.usd -o dofbot-joints.usda",
+    "temporary_files_only": true
+  },
+  "controlled_joint_drives": [
+    {
+      "name": "joint1",
+      "prim_path": "/arm/base_link/joint1",
+      "body0": "/arm/base_link",
+      "body1": "/arm/link1",
+      "axis": "X",
+      "drive_type": "acceleration",
+      "stiffness": 1048,
+      "damping": 53,
+      "max_force": 5.2,
+      "target_position_deg": 0,
+      "joint_friction": 0,
+      "lower_limit_deg": -90.000206,
+      "upper_limit_deg": 90.000206
+    },
+    {
+      "name": "joint2",
+      "prim_path": "/arm/link1/joint2",
+      "body0": "/arm/link1",
+      "body1": "/arm/link2",
+      "axis": "X",
+      "drive_type": "acceleration",
+      "stiffness": 1048,
+      "damping": 53,
+      "max_force": 5.2,
+      "target_position_deg": 0,
+      "joint_friction": 0,
+      "lower_limit_deg": -90.000206,
+      "upper_limit_deg": 90.000206
+    },
+    {
+      "name": "joint3",
+      "prim_path": "/arm/link2/joint3",
+      "body0": "/arm/link2",
+      "body1": "/arm/link3",
+      "axis": "X",
+      "drive_type": "acceleration",
+      "stiffness": 1048,
+      "damping": 53,
+      "max_force": 5.2,
+      "target_position_deg": -60,
+      "joint_friction": 0,
+      "lower_limit_deg": -90.000206,
+      "upper_limit_deg": 90.000206
+    },
+    {
+      "name": "joint4",
+      "prim_path": "/arm/link3/joint4",
+      "body0": "/arm/link3",
+      "body1": "/arm/link4",
+      "axis": "X",
+      "drive_type": "acceleration",
+      "stiffness": 1048,
+      "damping": 53,
+      "max_force": 5.2,
+      "target_position_deg": -60,
+      "joint_friction": 0,
+      "lower_limit_deg": -90.000206,
+      "upper_limit_deg": 90.000206
+    }
+  ],
+  "runtime_mass_snapshot_kg": {
+    "body_names": [
+      "base_link",
+      "link1",
+      "link2",
+      "link3",
+      "link4",
+      "Wrist_Twist",
+      "Finger_Left_01",
+      "Finger_Right_01",
+      "Finger_Left_02",
+      "Finger_Right_02",
+      "Finger_Left_03",
+      "Finger_Right_03"
+    ],
+    "masses": [
+      0.5,
+      0.10000000149011612,
+      0.10000000149011612,
+      0.10000000149011612,
+      0.10000000149011612,
+      0.07999999821186066,
+      0.019999999552965164,
+      0.019999999552965164,
+      0.0032200943678617477,
+      0.0031173466704785824,
+      0.0032697226852178574,
+      0.005202690605074167
+    ],
+    "total_mass_kg": 1.0348098576068878
+  },
+  "current_runtime_override": {
+    "stiffness": 10000,
+    "damping": 100,
+    "effort_limit_sim": 100,
+    "drive_type_override_present": false,
+    "composed_drive_type_expected_from_asset": "acceleration"
+  },
+  "torque_evidence_correction": {
+    "previous_fields": [
+      "computed_torque",
+      "applied_torque"
+    ],
+    "correct_interpretation": "Isaac Lab implicit-actuator PD estimates, not measured PhysX solver torque",
+    "physical_saturation_proven": false,
+    "effort_limit_write_proven": true,
+    "effort_100_to_250_trajectory_change_proven": false
+  },
+  "evidence": {
+    "established": [
+      "the official controlled joints form the expected joint1-to-joint4 chain and all use the X axis",
+      "all four official controlled joints author acceleration drives with identical 1048 stiffness, 53 damping, and 5.2 max force",
+      "the current Isaac Lab configuration overrides gains and max force but does not override the authored acceleration drive type",
+      "the downloaded official asset uses meter scale and the runtime body masses total approximately 1.035 kg",
+      "the previous implicit torque buffers cannot prove actual solver torque saturation"
+    ],
+    "hypothesis_not_yet_validated": [
+      "the acceleration-drive versus force-drive mapping causes or materially contributes to the gravity-on tracking error"
+    ],
+    "falsified": [
+      "joint3 has a unique axis or uniquely different authored drive tuning",
+      "the asset is authored in centimeter stage units",
+      "the previous computed_torque and applied_torque buffers are measured solver torque"
+    ]
+  },
+  "next_matrix": {
+    "config": "configs/dofbot/calibration/goal5_drive_model_diagnostic.json",
+    "single_factor_order": [
+      "acceleration_runtime_tuning",
+      "force_runtime_tuning",
+      "force_stiffness_1048",
+      "force_damping_53",
+      "force_authored_tuning"
+    ],
+    "tracking_gate_deg": 1,
+    "pregrasp_authorized": false,
+    "viewer_authorized": false
+  }
+}

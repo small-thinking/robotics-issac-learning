@@ -202,11 +202,14 @@ authorization false.
 
 `actuator_calibration_result_2026-07-30.json` is the reviewed concise promotion
 of that paid run. It records exact per-case tracking, velocity, target-buffer,
-contact, and torque metrics; proves that the gravity-on effort-100 and
-effort-250 selected sequences are identical despite the changed force clamp;
+contact, and implicit-actuator PD-estimate metrics; proves that the gravity-on
+effort-100 and effort-250 selected sequences are identical despite the changed
+effort-limit and PhysX maximum-force writes;
 and binds every ignored multi-megabyte JSON/log payload by size and SHA-256.
 It distinguishes machine facts from the inference that the raw TGS velocity
-buffer is incompatible with nearly stationary position samples.
+buffer is incompatible with nearly stationary position samples. Its historical
+torque fields are not measured PhysX solver torque and cannot prove physical
+saturation.
 
 `actuator_velocity_reanalysis_2026-07-30.json` is a GPU-free replay of those
 exact ignored case payloads. It verifies their promoted SHA-256 and byte-size
@@ -230,6 +233,18 @@ worst case by only 0.09079 degrees. It binds the ignored machine-generated
 four case JSON files, four logs, and
 `solver_drive_diagnostic_contract.json` by exact byte size and SHA-256.
 Pre-grasp, Viewer, contact, and grasp authorization remain false.
+
+`asset_drive_audit_2026-07-30.json` records the GPU-free inspection of the
+official NVIDIA Isaac 6.0 DOFBOT USD. It SHA-binds the temporary source asset
+and schema layer, records the exact joint1-to-joint4 body chain, X axes,
+uniform acceleration-drive tuning, runtime masses, and the implicit-torque
+evidence correction. The 100 MB source USD is not committed.
+
+`drive_model_diagnostic_plan.json` binds that asset audit, the completed
+solver/drive result, and the five-case acceleration/force diagnostic config.
+It verifies that every stage changes exactly one field, requires composed-USD
+drive readback at runtime, and keeps paid GPU, pre-grasp, Viewer, contact,
+grasp, hardware, policy, and checkpoint authorization false.
 
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,

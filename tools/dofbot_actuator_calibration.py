@@ -31,6 +31,13 @@ SOLVER_DRIVE_CASE_NAMES = (
     "velocity_iterations_2",
     "reduced_damping_50",
 )
+DRIVE_MODEL_CASE_NAMES = (
+    "acceleration_runtime_tuning",
+    "force_runtime_tuning",
+    "force_stiffness_1048",
+    "force_damping_53",
+    "force_authored_tuning",
+)
 REQUIRED_POSE_NAMES = (
     "neutral_start",
     "mid_load",
@@ -65,9 +72,10 @@ class CalibrationCase:
     solver_position_iteration_count: int = 8
     solver_velocity_iteration_count: int = 0
     enable_external_forces_every_iteration: bool = False
+    drive_type: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        value = {
             "name": self.name,
             "gravity_enabled": self.gravity_enabled,
             "effort_limit_sim": self.effort_limit_sim,
@@ -83,6 +91,9 @@ class CalibrationCase:
                 self.enable_external_forces_every_iteration
             ),
         }
+        if self.drive_type is not None:
+            value["drive_type"] = self.drive_type
+        return value
 
 
 @dataclass(frozen=True)
@@ -236,6 +247,27 @@ def _validate_solver_drive_case_ladder(
         raise ActuatorCalibrationError(
             "solver/drive cases must change external-force iteration, then "
             "velocity iterations, then damping while holding other controls fixed"
+        )
+
+
+def _validate_drive_model_case_ladder(
+    cases: list[CalibrationCase],
+) -> None:
+    expected = (
+        (True, 100.0, 10000.0, 100.0, 8, 0, True, "acceleration"),
+        (True, 100.0, 10000.0, 100.0, 8, 0, True, "force"),
+        (True, 100.0, 1048.0, 100.0, 8, 0, True, "force"),
+        (True, 100.0, 1048.0, 53.0, 8, 0, True, "force"),
+        (True, 5.2, 1048.0, 53.0, 8, 0, True, "force"),
+    )
+    actual = tuple(
+        (*_case_control_values(case), case.drive_type)
+        for case in cases
+    )
+    if actual != expected:
+        raise ActuatorCalibrationError(
+            "drive-model cases must change drive type, then stiffness, then "
+            "damping, then max force while holding other controls fixed"
         )
 
 
@@ -432,11 +464,17 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
         item.get("name") if isinstance(item, dict) else None
         for item in cases_raw
     )
-    if case_names not in {REQUIRED_CASE_NAMES, SOLVER_DRIVE_CASE_NAMES}:
+    if case_names not in {
+        REQUIRED_CASE_NAMES,
+        SOLVER_DRIVE_CASE_NAMES,
+        DRIVE_MODEL_CASE_NAMES,
+    }:
         raise ActuatorCalibrationError(
-            "cases must match the actuator or solver/drive diagnostic order"
+            "cases must match an actuator, solver/drive, or drive-model "
+            "diagnostic order"
         )
     solver_drive_contract = case_names == SOLVER_DRIVE_CASE_NAMES
+    drive_model_contract = case_names == DRIVE_MODEL_CASE_NAMES
     legacy_case_keys = {"name", "gravity_enabled", "effort_limit_sim"}
     solver_drive_case_keys = legacy_case_keys | {
         "stiffness",
@@ -445,14 +483,19 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
         "solver_velocity_iteration_count",
         "enable_external_forces_every_iteration",
     }
+    drive_model_case_keys = solver_drive_case_keys | {"drive_type"}
     cases: list[CalibrationCase] = []
     for index, item in enumerate(cases_raw):
         case_raw = _strict_object(
             item,
             (
-                solver_drive_case_keys
-                if solver_drive_contract
-                else legacy_case_keys
+                drive_model_case_keys
+                if drive_model_contract
+                else (
+                    solver_drive_case_keys
+                    if solver_drive_contract
+                    else legacy_case_keys
+                )
             ),
             f"cases[{index}]",
         )
@@ -466,8 +509,11 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
             case_raw["effort_limit_sim"],
             f"cases[{index}].effort_limit_sim",
         )
-        if not 50.0 <= effort <= 300.0:
-            raise ActuatorCalibrationError("effort_limit_sim must be in [50, 300]")
+        minimum_effort = 5.0 if drive_model_contract else 50.0
+        if not minimum_effort <= effort <= 300.0:
+            raise ActuatorCalibrationError(
+                f"effort_limit_sim must be in [{minimum_effort:g}, 300]"
+            )
         stiffness = _number(
             case_raw.get("stiffness", 10000.0),
             f"cases[{index}].stiffness",
@@ -488,6 +534,18 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
             "enable_external_forces_every_iteration",
             False,
         )
+        drive_type = case_raw.get("drive_type")
+        if drive_model_contract and drive_type not in {
+            "acceleration",
+            "force",
+        }:
+            raise ActuatorCalibrationError(
+                "drive-model case drive_type must be acceleration or force"
+            )
+        if not drive_model_contract and drive_type is not None:
+            raise ActuatorCalibrationError(
+                "drive_type is only valid in the drive-model diagnostic"
+            )
         if not 1000.0 <= stiffness <= 20_000.0:
             raise ActuatorCalibrationError("stiffness must be in [1000, 20000]")
         if not 10.0 <= damping <= 500.0:
@@ -516,10 +574,13 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
                 enable_external_forces_every_iteration=(
                     external_forces_every_iteration
                 ),
+                drive_type=drive_type,
             )
         )
     if solver_drive_contract:
         _validate_solver_drive_case_ladder(cases)
+    elif drive_model_contract:
+        _validate_drive_model_case_ladder(cases)
     else:
         expected_case_values = (
             (True, 100.0),
@@ -747,7 +808,7 @@ def evaluate_calibration_case(
             "position_derived_velocity_available must be boolean"
         )
     if torque_interpretation not in {
-        "measured_nonzero_buffers",
+        "implicit_pd_estimate_not_measured_solver_torque",
         "implicit_zero_or_unavailable_do_not_infer",
     }:
         raise ActuatorCalibrationError("torque interpretation is not explicit")
@@ -755,12 +816,9 @@ def evaluate_calibration_case(
         raise ActuatorCalibrationError(
             "torque_saturation_observed must be boolean"
         )
-    if (
-        torque_saturation_observed
-        and torque_interpretation != "measured_nonzero_buffers"
-    ):
+    if torque_saturation_observed:
         raise ActuatorCalibrationError(
-            "torque saturation requires meaningful nonzero torque buffers"
+            "implicit actuator torque buffers cannot prove solver saturation"
         )
 
     normalized: list[dict[str, Any]] = []
@@ -957,6 +1015,8 @@ def classify_calibration_matrix(
 
     if config.case_names == SOLVER_DRIVE_CASE_NAMES:
         return _classify_solver_drive_matrix(cases)
+    if config.case_names == DRIVE_MODEL_CASE_NAMES:
+        return _classify_drive_model_matrix(cases)
 
     if any(
         not bool(value.get("checks", {}).get("contact_force_below_threshold"))
@@ -1004,9 +1064,6 @@ def classify_calibration_matrix(
         if bool(baseline.get("tracking_gate_passed")):
             decision = "baseline_tracking_identity_validated"
             next_action = "keep effort 100 and investigate task-scene-only differences"
-        elif bool(baseline.get("torque_saturation_observed")):
-            decision = "effort_saturation_observed"
-            next_action = "tune the lowest stable effort using the measured clamp evidence"
         elif bool(gravity_off.get("tracking_gate_passed")):
             decision = "gravity_load_sensitive_tracking"
             next_action = "tune the lowest stable effort or gain using measured load evidence"
@@ -1109,6 +1166,79 @@ def _classify_solver_drive_matrix(
         "tracking_identity_validated": (
             decision == "baseline_tracking_identity_validated"
         ),
+        "next_action": next_action,
+        "unchanged_pregrasp_gates": {
+            "maximum_position_error_m": 0.025,
+            "maximum_approach_error_deg": 12.0,
+        },
+    }
+
+
+def _classify_drive_model_matrix(
+    cases: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    def check(case: dict[str, Any], name: str) -> bool:
+        return bool(case.get("checks", {}).get(name))
+
+    ordered = [cases[name] for name in DRIVE_MODEL_CASE_NAMES]
+    if any(not check(case, "contact_force_below_threshold") for case in ordered):
+        decision = "contact_or_self_collision_interference"
+        next_action = "inspect contact actors before interpreting drive changes"
+    elif any(
+        not check(case, "target_buffer_telemetry_available")
+        or not check(case, "target_buffer_matches_backend_target")
+        for case in ordered
+    ):
+        decision = "backend_or_target_buffer_mismatch"
+        next_action = "repair the target path before interpreting drive changes"
+    elif any(
+        not check(case, "position_derived_velocity_available")
+        or not check(case, "all_poses_settled_by_position_derived_velocity")
+        for case in ordered
+    ):
+        decision = "position_velocity_instrumentation_incomplete"
+        next_action = "repair position-derived settling before another paid run"
+    else:
+        (
+            acceleration_runtime,
+            force_runtime,
+            force_stiffness,
+            force_damping,
+            force_authored,
+        ) = ordered
+        if bool(acceleration_runtime.get("tracking_gate_passed")):
+            decision = "acceleration_runtime_tracking_validated"
+            next_action = "retain the acceleration drive and rerun pre-grasp"
+        elif bool(force_runtime.get("tracking_gate_passed")):
+            decision = "force_drive_resolves_tracking"
+            next_action = "retain the force drive and rerun calibration"
+        elif bool(force_stiffness.get("tracking_gate_passed")):
+            decision = "force_stiffness_1048_resolves_tracking"
+            next_action = "retain force drive with stiffness 1048 and rerun calibration"
+        elif bool(force_damping.get("tracking_gate_passed")):
+            decision = "force_damping_53_resolves_tracking"
+            next_action = "retain force drive with 1048/53 gains and rerun calibration"
+        elif bool(force_authored.get("tracking_gate_passed")):
+            decision = "force_authored_tuning_resolves_tracking"
+            next_action = "retain the fully authored force tuning and rerun calibration"
+        else:
+            decision = "drive_model_ladder_no_resolution"
+            next_action = (
+                "inspect gravity generalized forces, runtime joint frames, "
+                "and explicit actuator alternatives"
+            )
+
+    return {
+        "decision": decision,
+        "pregrasp_authorized": False,
+        "tracking_identity_validated": decision
+        in {
+            "acceleration_runtime_tracking_validated",
+            "force_drive_resolves_tracking",
+            "force_stiffness_1048_resolves_tracking",
+            "force_damping_53_resolves_tracking",
+            "force_authored_tuning_resolves_tracking",
+        },
         "next_action": next_action,
         "unchanged_pregrasp_gates": {
             "maximum_position_error_m": 0.025,
