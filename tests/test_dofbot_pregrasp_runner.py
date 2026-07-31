@@ -10,6 +10,9 @@ BASE_SCENE_CFG_PATH = PROJECT_DIR / "tools/dofbot_scene_cfg.py"
 POSE_MODULE_PATH = PROJECT_DIR / "tools/dofbot_pregrasp_pose.py"
 RUN_SCRIPT_PATH = PROJECT_DIR / "scripts/isaac/run_dofbot_pregrasp.sh"
 VIEW_SCRIPT_PATH = PROJECT_DIR / "scripts/isaac/view_dofbot_pregrasp.sh"
+GRAVITY_RUNTIME_PATH = (
+    PROJECT_DIR / "tools/dofbot_gravity_feed_forward_runtime.py"
+)
 
 
 class DofbotPregraspRunnerTest(unittest.TestCase):
@@ -21,6 +24,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         cls.pose_module = POSE_MODULE_PATH.read_text(encoding="utf-8")
         cls.run_script = RUN_SCRIPT_PATH.read_text(encoding="utf-8")
         cls.view_script = VIEW_SCRIPT_PATH.read_text(encoding="utf-8")
+        cls.gravity_runtime = GRAVITY_RUNTIME_PATH.read_text(encoding="utf-8")
 
     def test_preflight_contracts_run_before_kit_launch(self) -> None:
         self.assertLess(
@@ -30,6 +34,14 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertLess(
             self.runner.index("preflight_asset_sha256"),
             self.runner.index("app_launcher = AppLauncher(args_cli)"),
+        )
+        self.assertLess(
+            self.runner.index("preflight_actuator_runtime ="),
+            self.runner.index("app_launcher = AppLauncher(args_cli)"),
+        )
+        self.assertIn(
+            "load_accepted_gravity_feed_forward_runtime(",
+            self.runner,
         )
         self.assertIn(
             "pose target does not match the scene approach waypoint",
@@ -125,6 +137,62 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("else:\n        simulation_app.close()", self.runner)
         self.assertNotIn("finally:\n        simulation_app.close()", self.runner)
 
+    def test_runner_reuses_machine_validated_actuator_runtime(self) -> None:
+        for expected in (
+            "goal5_gravity_feed_forward_diagnostic.json",
+            "gravity_feed_forward_result_2026-07-31.json",
+            "actuator_runtime.stiffness",
+            "actuator_runtime.damping",
+            "actuator_runtime.effort_limit_sim",
+            "solver_position_iteration_count",
+            "solver_velocity_iteration_count",
+            "enable_external_forces_every_iteration",
+            "JointDrivePropertiesCfg(",
+            "BoundedGravityFeedForward(",
+            "controlled_joint_drive_snapshot()",
+            "drive_snapshot_matches_runtime(",
+            "evaluate_gravity_feed_forward_telemetry(",
+            '"accepted_actuator_machine_evidence_bound": True',
+            '"live_actuator_drive_matches_selected_contract"',
+            '"gravity_feed_forward_samples": gravity_samples',
+        ):
+            self.assertIn(expected, self.runner)
+        self.assertLess(
+            self.runner.index("gravity_feed_forward = BoundedGravityFeedForward("),
+            self.runner.index("initialization_api_calls = _issue_angles("),
+        )
+        self.assertLess(
+            self.runner.index("scene.write_data_to_sim()"),
+            self.runner.index("gravity_sample = gravity_feed_forward.apply_before_step()"),
+        )
+        self.assertLess(
+            self.runner.index("gravity_sample = gravity_feed_forward.apply_before_step()"),
+            self.runner.index("sim.step(render=render)"),
+        )
+        self.assertIn("dtype=wp.float32", self.gravity_runtime)
+        self.assertIn("dtype=wp.int32", self.gravity_runtime)
+
+    def test_machine_result_classifies_failed_gate_for_next_iteration(self) -> None:
+        self.assertIn('"failed_checks": failed_checks', self.runner)
+        for decision in (
+            "actuator_runtime_or_telemetry_failed",
+            "joint_tracking_failed",
+            "contact_safety_failed",
+            "yahboom_api_accounting_failed",
+            "neutral_reset_failed",
+            "task_space_pregrasp_failed",
+        ):
+            self.assertIn(decision, self.runner)
+        self.assertIn("def _write_runtime_failure(", self.runner)
+        self.assertIn("actuator_runtime_exception", self.runner)
+        self.assertIn("pregrasp_runtime_exception", self.runner)
+        self.assertIn(
+            "dofbot_goal5_angled_pregrasp_runtime_failure",
+            self.runner,
+        )
+        self.assertIn('"error_type": type(error).__name__', self.runner)
+        self.assertIn('"message": str(error)', self.runner)
+
     def test_default_scene_preserves_original_effort_baseline(self) -> None:
         self.assertIn(
             "CONTROLLED_JOINT_EFFORT_LIMIT_SIM = 100.0",
@@ -144,6 +212,16 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
                 script,
             )
             self.assertIn("goal5_angled_pregrasp.json", script)
+            self.assertIn(
+                "goal5_gravity_feed_forward_diagnostic.json",
+                script,
+            )
+            self.assertIn(
+                "gravity_feed_forward_result_2026-07-31.json",
+                script,
+            )
+            self.assertIn("--actuator-config", script)
+            self.assertIn("--actuator-result", script)
             self.assertIn("run_dofbot_pregrasp.py", script)
         self.assertIn("--cycles 1", self.run_script)
         self.assertIn("--headless", self.run_script)

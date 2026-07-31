@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -13,9 +15,12 @@ from tools.dofbot_actuator_calibration import (
     parse_actuator_calibration_config,
 )
 from tools.dofbot_gravity_feed_forward import (
+    ACCEPTED_GRAVITY_FEED_FORWARD_CONFIG_SHA256,
+    ACCEPTED_GRAVITY_FEED_FORWARD_RESULT_SHA256,
     REQUIRED_GRAVITY_RUNTIME_APIS,
     GravityFeedForwardError,
     evaluate_gravity_feed_forward_telemetry,
+    load_accepted_gravity_feed_forward_runtime,
     prepare_bounded_gravity_feed_forward,
 )
 from tools.preview_dofbot_gravity_feed_forward import (
@@ -33,6 +38,12 @@ AUDIT_PATH = (
     / "artifacts/dofbot/residual_force_audit_2026-07-30.json"
 )
 RUNNER_PATH = PROJECT_DIR / "tools/run_dofbot_actuator_calibration.py"
+PREGRASP_RUNNER_PATH = PROJECT_DIR / "tools/run_dofbot_pregrasp.py"
+RUNTIME_PATH = PROJECT_DIR / "tools/dofbot_gravity_feed_forward_runtime.py"
+MACHINE_RESULT_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json"
+)
 RUN_SCRIPT_PATH = (
     PROJECT_DIR
     / "scripts/isaac/run_dofbot_actuator_calibration.sh"
@@ -277,8 +288,68 @@ class DofbotGravityFeedForwardTest(unittest.TestCase):
         self.assertFalse(result["pregrasp_authorized"])
         self.assertFalse(result["viewer_authorized"])
 
+    def test_accepted_machine_result_selects_exact_pregrasp_runtime(self) -> None:
+        runtime = load_accepted_gravity_feed_forward_runtime(
+            calibration_config_path=CONFIG_PATH,
+            machine_result_path=MACHINE_RESULT_PATH,
+        )
+        self.assertEqual(runtime.selected_case_name, "bounded_gravity_feed_forward")
+        self.assertEqual(runtime.drive_type, "force")
+        self.assertEqual(runtime.stiffness, 1048.0)
+        self.assertEqual(runtime.damping, 53.0)
+        self.assertEqual(runtime.effort_limit_sim, 100.0)
+        self.assertEqual(runtime.solver_position_iteration_count, 8)
+        self.assertEqual(runtime.solver_velocity_iteration_count, 0)
+        self.assertTrue(runtime.enable_external_forces_every_iteration)
+        self.assertTrue(runtime.gravity_compensation_feed_forward)
+        self.assertEqual(runtime.gravity_compensation_effort_limit, 5.2)
+        self.assertEqual(runtime.calibration_config_sha256, self.config_sha256)
+        self.assertEqual(
+            runtime.calibration_config_sha256,
+            ACCEPTED_GRAVITY_FEED_FORWARD_CONFIG_SHA256,
+        )
+        self.assertEqual(
+            runtime.machine_result_sha256,
+            hashlib.sha256(MACHINE_RESULT_PATH.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(
+            runtime.machine_result_sha256,
+            ACCEPTED_GRAVITY_FEED_FORWARD_RESULT_SHA256,
+        )
+
+    def test_machine_result_tampering_fails_closed(self) -> None:
+        result = json.loads(MACHINE_RESULT_PATH.read_text(encoding="utf-8"))
+        mutations = (
+            ("matrix", "matrix_complete", False),
+            (
+                "cases",
+                "bounded_gravity_feed_forward",
+                {
+                    **result["cases"]["bounded_gravity_feed_forward"],
+                    "maximum_settled_tracking_error_deg": 1.01,
+                },
+            ),
+            (
+                "shared_runtime_contract",
+                "stiffness",
+                10000.0,
+            ),
+        )
+        for section, key, value in mutations:
+            tampered = copy.deepcopy(result)
+            tampered[section][key] = value
+            with self.subTest(section=section, key=key), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "machine-result.json"
+                path.write_text(json.dumps(tampered), encoding="utf-8")
+                with self.assertRaises(GravityFeedForwardError):
+                    load_accepted_gravity_feed_forward_runtime(
+                        calibration_config_path=CONFIG_PATH,
+                        machine_result_path=path,
+                    )
+
     def test_runner_probes_then_applies_after_pd_write(self) -> None:
         runner = RUNNER_PATH.read_text(encoding="utf-8")
+        runtime = RUNTIME_PATH.read_text(encoding="utf-8")
         run_script = RUN_SCRIPT_PATH.read_text(encoding="utf-8")
         for value in (
             "get_gravity_compensation_forces",
@@ -288,7 +359,7 @@ class DofbotGravityFeedForwardTest(unittest.TestCase):
             "controlled_incoming_joint_forces",
             "evaluate_gravity_feed_forward_telemetry",
         ):
-            self.assertIn(value, runner)
+            self.assertIn(value, runner + runtime)
         self.assertLess(
             runner.index("scene.write_data_to_sim()"),
             runner.index("gravity_feed_forward.apply_before_step()"),
@@ -306,15 +377,25 @@ class DofbotGravityFeedForwardTest(unittest.TestCase):
 
     def test_runner_uses_native_warp_arrays_for_raw_physx_setter(self) -> None:
         runner = RUNNER_PATH.read_text(encoding="utf-8")
-        self.assertIn("import warp as wp", runner)
-        self.assertIn('getattr(self._robot, "root_view", None)', runner)
-        self.assertIn("self._indices = wp.array(", runner)
-        self.assertIn("dtype=wp.int32", runner)
-        self.assertIn("def _write_actuation_forces(", runner)
-        self.assertIn("dtype=wp.float32", runner)
+        pregrasp_runner = PREGRASP_RUNNER_PATH.read_text(encoding="utf-8")
+        runtime = RUNTIME_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "from dofbot_gravity_feed_forward_runtime import (",
+            runner,
+        )
+        self.assertIn(
+            "from dofbot_gravity_feed_forward_runtime import (",
+            pregrasp_runner,
+        )
+        self.assertIn("import warp as wp", runtime)
+        self.assertIn('getattr(self._robot, "root_view", None)', runtime)
+        self.assertIn("self._indices = wp.array(", runtime)
+        self.assertIn("dtype=wp.int32", runtime)
+        self.assertIn("def _write_actuation_forces(", runtime)
+        self.assertIn("dtype=wp.float32", runtime)
         self.assertNotIn(
             'getattr(self._robot, "root_physx_view", None)',
-            runner,
+            runtime,
         )
 
 

@@ -32,6 +32,11 @@ from dofbot_pregrasp_pose import (
     next_pregrasp_command,
     validated_joint_candidate_command_reached,
 )
+from dofbot_gravity_feed_forward import (
+    GravityFeedForwardError,
+    evaluate_gravity_feed_forward_telemetry,
+    load_accepted_gravity_feed_forward_runtime,
+)
 from dofbot_reaching import DofbotReachingConfig, load_reaching_config
 
 parser = argparse.ArgumentParser(
@@ -58,6 +63,22 @@ parser.add_argument(
     default=Path(
         "/workspace/robotics-issac-learning/configs/dofbot/pregrasp/"
         "goal5_angled_pregrasp.json"
+    ),
+)
+parser.add_argument(
+    "--actuator-config",
+    type=Path,
+    default=Path(
+        "/workspace/robotics-issac-learning/configs/dofbot/calibration/"
+        "goal5_gravity_feed_forward_diagnostic.json"
+    ),
+)
+parser.add_argument(
+    "--actuator-result",
+    type=Path,
+    default=Path(
+        "/workspace/robotics-issac-learning/artifacts/dofbot/"
+        "gravity_feed_forward_result_2026-07-31.json"
     ),
 )
 parser.add_argument(
@@ -91,6 +112,10 @@ preflight_scene, preflight_scene_sha256 = load_reaching_config(
 preflight_pose, preflight_pose_sha256 = load_pregrasp_pose_config(
     args_cli.pose_config
 )
+preflight_actuator_runtime = load_accepted_gravity_feed_forward_runtime(
+    calibration_config_path=args_cli.actuator_config,
+    machine_result_path=args_cli.actuator_result,
+)
 preflight_asset_sha256 = hashlib.sha256(args_cli.asset_contract.read_bytes()).hexdigest()
 if preflight_scene_sha256 != preflight_pose.source_contracts.scene_config_sha256:
     raise PregraspPoseError("pose config does not match the candidate scene config")
@@ -122,6 +147,7 @@ from pxr import PhysicsSchemaTools, UsdPhysics
 import isaaclab.sim as sim_utils
 import omni.physx
 from isaaclab.scene import InteractiveScene
+from isaaclab_physx.physics import PhysxCfg
 
 from dofbot_control_api import (
     CONTROLLED_JOINT_NAMES,
@@ -134,6 +160,11 @@ from dofbot_motion_config import NEUTRAL_ANGLES_DEG
 from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
+)
+from dofbot_gravity_feed_forward_runtime import (
+    BoundedGravityFeedForward,
+    controlled_joint_drive_snapshot,
+    drive_snapshot_matches_runtime,
 )
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_NAMES,
@@ -277,6 +308,8 @@ def _step_simulation(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
     backend: _IsaacJointPositionBackend,
+    gravity_feed_forward: BoundedGravityFeedForward,
+    gravity_samples: list[dict[str, Any]],
     physics_steps: int,
     render: bool,
 ) -> bool:
@@ -286,10 +319,15 @@ def _step_simulation(
         try:
             backend.advance(sim.get_physics_dt())
             scene.write_data_to_sim()
+            gravity_sample = gravity_feed_forward.apply_before_step()
             sim.step(render=render)
         except SystemExit as error:
             raise RuntimeError("Isaac requested process exit during pre-grasp") from error
         scene.update(sim.get_physics_dt())
+        gravity_sample["controlled_incoming_joint_forces"] = (
+            gravity_feed_forward.read_controlled_incoming_joint_forces()
+        )
+        gravity_samples.append(gravity_sample)
     return True
 
 
@@ -299,6 +337,8 @@ def _hold(
     scene: InteractiveScene,
     sim: sim_utils.SimulationContext,
     backend: _IsaacJointPositionBackend,
+    gravity_feed_forward: BoundedGravityFeedForward,
+    gravity_samples: list[dict[str, Any]],
     render: bool,
 ) -> bool:
     if seconds <= 0.0:
@@ -307,6 +347,8 @@ def _hold(
         scene=scene,
         sim=sim,
         backend=backend,
+        gravity_feed_forward=gravity_feed_forward,
+        gravity_samples=gravity_samples,
         physics_steps=max(1, round(seconds / sim.get_physics_dt())),
         render=render,
     )
@@ -514,6 +556,8 @@ def _run_pose_controller(
     arm: DofbotArm,
     yahboom_api: YahboomServoApiAdapter,
     backend: _IsaacJointPositionBackend,
+    gravity_feed_forward: BoundedGravityFeedForward,
+    gravity_samples: list[dict[str, Any]],
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
@@ -628,6 +672,8 @@ def _run_pose_controller(
             scene=scene,
             sim=sim,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
+            gravity_samples=gravity_samples,
             physics_steps=physics_steps,
             render=render,
         ):
@@ -668,6 +714,8 @@ def _reset_to_neutral(
     arm: DofbotArm,
     yahboom_api: YahboomServoApiAdapter,
     backend: _IsaacJointPositionBackend,
+    gravity_feed_forward: BoundedGravityFeedForward,
+    gravity_samples: list[dict[str, Any]],
     scene_config: DofbotReachingConfig,
     render: bool,
 ) -> tuple[float, int] | None:
@@ -681,6 +729,8 @@ def _reset_to_neutral(
         scene=scene,
         sim=sim,
         backend=backend,
+        gravity_feed_forward=gravity_feed_forward,
+        gravity_samples=gravity_samples,
         physics_steps=max(
             1,
             round(
@@ -712,21 +762,130 @@ def _write_result(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def _failure_decision(failed_checks: list[str]) -> str:
+    if not failed_checks:
+        return "pregrasp_machine_passed"
+    actuator_checks = {
+        "accepted_actuator_machine_evidence_bound",
+        "live_actuator_drive_matches_selected_contract",
+        "gravity_compensation_runtime_apis_available",
+        "gravity_compensation_values_finite",
+        "incoming_joint_force_values_finite",
+        "feed_forward_effort_bounded",
+        "only_controlled_joints_receive_feed_forward",
+        "baseline_case_applies_zero_feed_forward",
+    }
+    if any(name in actuator_checks for name in failed_checks):
+        return "actuator_runtime_or_telemetry_failed"
+    if "final_api_joint_tracking_within_tolerance" in failed_checks:
+        return "joint_tracking_failed"
+    if any("contact" in name for name in failed_checks):
+        return "contact_safety_failed"
+    if "official_api_call_count_matches" in failed_checks:
+        return "yahboom_api_accounting_failed"
+    if "returned_to_neutral" in failed_checks:
+        return "neutral_reset_failed"
+    return "task_space_pregrasp_failed"
+
+
+def _write_runtime_failure(error: BaseException) -> None:
+    decision = (
+        "actuator_runtime_exception"
+        if isinstance(error, GravityFeedForwardError)
+        else "pregrasp_runtime_exception"
+    )
+    _write_result(
+        args_cli.output,
+        {
+            "schema_version": 1,
+            "experiment": "dofbot_goal5_angled_pregrasp_runtime_failure",
+            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "git_commit": args_cli.git_commit,
+            "sources": {
+                "asset_contract": {
+                    "path": str(args_cli.asset_contract),
+                    "sha256": preflight_asset_sha256,
+                },
+                "scene_config": {
+                    "path": str(args_cli.scene_config),
+                    "sha256": preflight_scene_sha256,
+                },
+                "pose_config": {
+                    "path": str(args_cli.pose_config),
+                    "sha256": preflight_pose_sha256,
+                },
+                "actuator_config": {
+                    "path": str(args_cli.actuator_config),
+                    "sha256": (
+                        preflight_actuator_runtime.calibration_config_sha256
+                    ),
+                },
+                "actuator_machine_result": {
+                    "path": str(args_cli.actuator_result),
+                    "sha256": (
+                        preflight_actuator_runtime.machine_result_sha256
+                    ),
+                },
+            },
+            "failure": {
+                "decision": decision,
+                "error_type": type(error).__name__,
+                "message": str(error),
+                "machine_passed": False,
+                "viewer_authorized": False,
+            },
+            "scope": {
+                "real_hardware_commanded": False,
+                "camera_used_as_controller_input": False,
+                "wrist_twist_commanded": False,
+                "gripper_commanded": False,
+                "contact_authorized": False,
+                "policy_or_checkpoint_loaded": False,
+            },
+        },
+    )
+
+
 def main() -> None:
     recorded_contract = _load_json_object(args_cli.asset_contract)
     validate_recorded_asset_contract(recorded_contract)
     pose = preflight_pose
     scene_config = preflight_scene
+    actuator_runtime = preflight_actuator_runtime
+    scene_cfg = DofbotPregraspSceneCfg(num_envs=1, env_spacing=2.0)
+    scene_cfg.dofbot.spawn.rigid_props.disable_gravity = (
+        not actuator_runtime.gravity_enabled
+    )
+    scene_cfg.dofbot.spawn.articulation_props.solver_position_iteration_count = (
+        actuator_runtime.solver_position_iteration_count
+    )
+    scene_cfg.dofbot.spawn.articulation_props.solver_velocity_iteration_count = (
+        actuator_runtime.solver_velocity_iteration_count
+    )
+    scene_cfg.dofbot.spawn = scene_cfg.dofbot.spawn.replace(
+        joint_drive_props=sim_utils.JointDrivePropertiesCfg(
+            drive_type=actuator_runtime.drive_type,
+        )
+    )
+    for actuator in scene_cfg.dofbot.actuators.values():
+        actuator.effort_limit_sim = actuator_runtime.effort_limit_sim
+        actuator.stiffness = actuator_runtime.stiffness
+        actuator.damping = actuator_runtime.damping
     sim = sim_utils.SimulationContext(
-        sim_utils.SimulationCfg(device=args_cli.device)
+        sim_utils.SimulationCfg(
+            device=args_cli.device,
+            physics=PhysxCfg(
+                enable_external_forces_every_iteration=(
+                    actuator_runtime.enable_external_forces_every_iteration
+                )
+            ),
+        )
     )
     sim.set_camera_view(
         eye=[0.55, -0.55, 0.38],
         target=[0.0, 0.25, 0.17],
     )
-    scene = InteractiveScene(
-        DofbotPregraspSceneCfg(num_envs=1, env_spacing=2.0)
-    )
+    scene = InteractiveScene(scene_cfg)
     _spawn_scene_boxes(scene_config)
     stage = sim_utils.get_current_stage()
     table_prim = stage.GetPrimAtPath(scene_config.table.prim_path)
@@ -743,6 +902,18 @@ def main() -> None:
         recorded_contract,
         _live_asset_contract(scene),
     )
+    drive_snapshot = controlled_joint_drive_snapshot()
+    live_actuator_drive_matches = drive_snapshot_matches_runtime(
+        drive_snapshot,
+        drive_type=actuator_runtime.drive_type,
+        stiffness=actuator_runtime.stiffness,
+        damping=actuator_runtime.damping,
+        effort_limit_sim=actuator_runtime.effort_limit_sim,
+    )
+    if not live_actuator_drive_matches:
+        raise PregraspPoseError(
+            "composed USD drives do not match the accepted actuator runtime"
+        )
     required_bodies = {
         pose.grasp_frame.wrist_body_name,
         pose.grasp_frame.left_tip_body_name,
@@ -758,6 +929,16 @@ def main() -> None:
     )
     arm = DofbotArm(backend)
     yahboom_api = YahboomServoApiAdapter(arm)
+    gravity_feed_forward = BoundedGravityFeedForward(
+        scene=scene,
+        controlled_joint_ids=controlled_joint_ids,
+        enabled=actuator_runtime.gravity_compensation_feed_forward,
+        maximum_effort=(
+            actuator_runtime.gravity_compensation_effort_limit
+        ),
+        device=args_cli.device,
+    )
+    gravity_samples: list[dict[str, Any]] = []
     render = args_cli.cycles < 0
 
     neutral_step = scene_config.scripted_baseline.steps[-1]
@@ -771,6 +952,8 @@ def main() -> None:
         scene=scene,
         sim=sim,
         backend=backend,
+        gravity_feed_forward=gravity_feed_forward,
+        gravity_samples=gravity_samples,
         render=render,
     ):
         if args_cli.cycles > 0:
@@ -790,6 +973,8 @@ def main() -> None:
             scene=scene,
             sim=sim,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
+            gravity_samples=gravity_samples,
             render=render,
         ):
             return
@@ -804,6 +989,8 @@ def main() -> None:
             arm=arm,
             yahboom_api=yahboom_api,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
+            gravity_samples=gravity_samples,
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
@@ -829,6 +1016,8 @@ def main() -> None:
                 scene=scene,
                 sim=sim,
                 backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
+                gravity_samples=gravity_samples,
                 render=render,
             ):
                 break
@@ -838,6 +1027,8 @@ def main() -> None:
             arm=arm,
             yahboom_api=yahboom_api,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
+            gravity_samples=gravity_samples,
             scene_config=scene_config,
             render=render,
         )
@@ -891,8 +1082,24 @@ def main() -> None:
             pose.solver.safe_angle_max_deg
             - pose.solver.command_limit_margin_deg
         )
+        gravity_telemetry = evaluate_gravity_feed_forward_telemetry(
+            samples=gravity_samples,
+            runtime_api_availability=gravity_feed_forward.api_availability,
+            controlled_joint_ids=controlled_joint_ids,
+            feed_forward_enabled=(
+                actuator_runtime.gravity_compensation_feed_forward
+            ),
+            maximum_effort=(
+                actuator_runtime.gravity_compensation_effort_limit
+            ),
+        )
         checks = {
             **final_evaluation["checks"],
+            **gravity_telemetry["checks"],
+            "accepted_actuator_machine_evidence_bound": True,
+            "live_actuator_drive_matches_selected_contract": (
+                live_actuator_drive_matches
+            ),
             "physical_table_prim_present": table_present,
             "static_target_cube_prim_present": (
                 target_present and target_is_static
@@ -921,9 +1128,14 @@ def main() -> None:
                 <= pose.acceptance.maximum_neutral_reset_error_deg
             ),
         }
+        failed_checks = [
+            name for name, passed in checks.items() if passed is not True
+        ]
         machine = {
             "checks": checks,
             "machine_passed": all(checks.values()),
+            "decision": _failure_decision(failed_checks),
+            "failed_checks": failed_checks,
             "initial_position_error_m": initial_position_error,
             "final_position_error_m": final_position_error,
             "position_improvement_m": improvement,
@@ -966,6 +1178,16 @@ def main() -> None:
                     "path": str(args_cli.pose_config),
                     "sha256": preflight_pose_sha256,
                 },
+                "actuator_config": {
+                    "path": str(args_cli.actuator_config),
+                    "sha256": (
+                        actuator_runtime.calibration_config_sha256
+                    ),
+                },
+                "actuator_machine_result": {
+                    "path": str(args_cli.actuator_result),
+                    "sha256": actuator_runtime.machine_result_sha256,
+                },
             },
             "scene": {
                 "robot_frame": scene_config.robot_frame.to_dict(),
@@ -997,11 +1219,15 @@ def main() -> None:
                     pose.target_pose.closing_axis_control
                 ),
                 "policy_free": True,
+                "actuator_runtime": actuator_runtime.to_dict(),
+                "live_controlled_joint_drive_snapshot": drive_snapshot,
             },
             "measurement": {
                 "cycle_index": cycle_index,
                 "physics_dt_s": sim.get_physics_dt(),
                 "observations": observations,
+                "gravity_feed_forward": gravity_telemetry,
+                "gravity_feed_forward_samples": gravity_samples,
             },
             "acceptance": {
                 "machine": machine,
@@ -1035,13 +1261,11 @@ def main() -> None:
             flush=True,
         )
         if not machine["machine_passed"]:
-            failed = [
-                name for name, passed in checks.items() if passed is not True
-            ]
             raise RuntimeError(
                 "DOFBOT pre-grasp machine acceptance failed: "
-                + ", ".join(failed)
+                + ", ".join(failed_checks)
             )
+        gravity_samples.clear()
         cycle_index += 1
 
 
@@ -1049,10 +1273,21 @@ if __name__ == "__main__":
     try:
         main()
     except BaseException as error:
+        reported_error = error
         if isinstance(error, SystemExit) and error.code in (None, 0):
-            raise RuntimeError(
+            reported_error = RuntimeError(
                 "Isaac requested a zero-code exit before pre-grasp completion"
-            ) from error
+            )
+        try:
+            _write_runtime_failure(reported_error)
+        except Exception as write_error:
+            print(
+                "[ERROR] unable to write pre-grasp runtime failure artifact: "
+                f"{type(write_error).__name__}: {write_error}",
+                flush=True,
+            )
+        if reported_error is not error:
+            raise reported_error from error
         raise
     else:
         simulation_app.close()

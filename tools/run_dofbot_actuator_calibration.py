@@ -31,10 +31,7 @@ from dofbot_actuator_calibration import (
     velocity_signal_mismatch_deg_s,
 )
 from dofbot_gravity_feed_forward import (
-    REQUIRED_GRAVITY_RUNTIME_APIS,
-    GravityFeedForwardError,
     evaluate_gravity_feed_forward_telemetry,
-    prepare_bounded_gravity_feed_forward,
 )
 
 parser = argparse.ArgumentParser(
@@ -70,13 +67,12 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 import torch
-import warp as wp
 
 import isaaclab.sim as sim_utils
 import omni.physx
 from isaaclab.scene import InteractiveScene
 from isaaclab_physx.physics import PhysxCfg
-from pxr import PhysicsSchemaTools, UsdPhysics
+from pxr import PhysicsSchemaTools
 
 from dofbot_contact_report import maximum_monitored_contact_force_n
 from dofbot_control_api import (
@@ -89,6 +85,10 @@ from dofbot_motion_plan import (
     assert_compatible_asset_contracts,
     validate_recorded_asset_contract,
 )
+from dofbot_gravity_feed_forward_runtime import (
+    BoundedGravityFeedForward,
+    controlled_joint_drive_snapshot,
+)
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_PATHS,
     DofbotPregraspSceneCfg,
@@ -99,15 +99,6 @@ TERMINAL_BODY_NAMES = (
     "Finger_Left_03",
     "Finger_Right_03",
 )
-CONTROLLED_JOINT_PRIM_PATHS = {
-    "joint1": "/World/envs/env_0/Dofbot/base_link/joint1",
-    "joint2": "/World/envs/env_0/Dofbot/link1/joint2",
-    "joint3": "/World/envs/env_0/Dofbot/link2/joint3",
-    "joint4": "/World/envs/env_0/Dofbot/link3/joint4",
-}
-CONTROLLED_CHILD_BODY_NAMES = ("link1", "link2", "link3", "link4")
-
-
 def _load_json_object(path: Path) -> tuple[dict[str, Any], str]:
     raw = path.read_bytes()
     value = json.loads(raw)
@@ -156,19 +147,6 @@ def _terminal_body_ids(scene: InteractiveScene) -> dict[str, int]:
             f"live articulation is missing terminal bodies: {missing}"
         )
     return {name: name_to_index[name] for name in TERMINAL_BODY_NAMES}
-
-
-def _controlled_child_body_ids(scene: InteractiveScene) -> list[int]:
-    names = list(scene["dofbot"].body_names)
-    name_to_index = {name: index for index, name in enumerate(names)}
-    missing = [
-        name for name in CONTROLLED_CHILD_BODY_NAMES if name not in name_to_index
-    ]
-    if missing:
-        raise ActuatorCalibrationError(
-            f"live articulation is missing controlled child bodies: {missing}"
-        )
-    return [name_to_index[name] for name in CONTROLLED_CHILD_BODY_NAMES]
 
 
 class _IsaacJointPositionBackend:
@@ -250,165 +228,6 @@ class _IsaacJointPositionBackend:
             .tolist()
         )
         return dict(zip(CONTROLLED_JOINT_NAMES, values, strict=True))
-
-
-class _BoundedGravityFeedForward:
-    """Apply bounded generalized-gravity effort after Isaac writes PD targets."""
-
-    def __init__(
-        self,
-        *,
-        scene: InteractiveScene,
-        controlled_joint_ids: list[int],
-        controlled_child_body_ids: list[int],
-        enabled: bool,
-        maximum_effort: float,
-        device: str,
-    ) -> None:
-        self._robot = scene["dofbot"]
-        self._view = getattr(self._robot, "root_view", None)
-        if self._view is None:
-            raise GravityFeedForwardError(
-                "root_view is unavailable"
-            )
-        self._controlled_joint_ids = controlled_joint_ids
-        self._controlled_child_body_ids = controlled_child_body_ids
-        self._enabled = enabled
-        self._maximum_effort = maximum_effort
-        self._device = device
-        self._dof_count = len(self._robot.joint_names)
-        self._body_count = len(self._robot.body_names)
-        self.api_availability = {
-            name: callable(getattr(self._view, name, None))
-            for name in REQUIRED_GRAVITY_RUNTIME_APIS
-        }
-        if not all(self.api_availability.values()):
-            missing = [
-                name
-                for name, available in self.api_availability.items()
-                if not available
-            ]
-            raise GravityFeedForwardError(
-                f"required gravity runtime APIs are unavailable: {missing}"
-            )
-        # Isaac Lab 3.0's PhysX articulation view is backed by the Warp
-        # frontend even though the public articulation state is exposed as
-        # Torch tensors.  Raw view setters therefore require native Warp
-        # arrays for both data and indices.
-        self._indices = wp.array(
-            [0],
-            device=self._device,
-            dtype=wp.int32,
-        )
-        # Probe every required API and write a zero vector before any API pose
-        # command. This fails closed on incompatible Isaac/PhysX releases.
-        self._gravity_matrix()
-        self._incoming_joint_force_matrix()
-        self._write_actuation_forces([0.0] * self._dof_count)
-
-    def _write_actuation_forces(self, efforts: list[float]) -> None:
-        if len(efforts) != self._dof_count:
-            raise GravityFeedForwardError(
-                "actuation force width does not match the articulation"
-            )
-        self._view.set_dof_actuation_forces(
-            wp.array(
-                [efforts],
-                device=self._device,
-                dtype=wp.float32,
-            ),
-            self._indices,
-        )
-
-    def _tensor(
-        self,
-        value: Any,
-        *,
-        label: str,
-        shape: tuple[int, ...],
-    ) -> torch.Tensor:
-        try:
-            if hasattr(value, "detach"):
-                tensor = value.detach().to(
-                    device=self._device,
-                    dtype=torch.float32,
-                )
-            elif hasattr(value, "numpy"):
-                tensor = torch.as_tensor(
-                    value.numpy(),
-                    device=self._device,
-                    dtype=torch.float32,
-                )
-            elif hasattr(value, "tolist"):
-                tensor = torch.tensor(
-                    value.tolist(),
-                    device=self._device,
-                    dtype=torch.float32,
-                )
-            else:
-                tensor = torch.tensor(
-                    value,
-                    device=self._device,
-                    dtype=torch.float32,
-                )
-            if tensor.numel() != math.prod(shape):
-                raise GravityFeedForwardError(
-                    f"{label} has {tensor.numel()} values, expected "
-                    f"{math.prod(shape)}"
-                )
-            tensor = tensor.reshape(shape)
-            if not bool(torch.isfinite(tensor).all()):
-                raise GravityFeedForwardError(
-                    f"{label} contains non-finite values"
-                )
-            return tensor
-        except GravityFeedForwardError:
-            raise
-        except Exception as error:
-            raise GravityFeedForwardError(
-                f"{label} cannot be converted to a finite tensor: "
-                f"{type(error).__name__}: {error}"
-            ) from error
-
-    def _gravity_matrix(self) -> torch.Tensor:
-        value = self._view.get_gravity_compensation_forces()
-        return self._tensor(
-            value,
-            label="gravity compensation forces",
-            shape=(1, self._dof_count),
-        )
-
-    def _incoming_joint_force_matrix(self) -> torch.Tensor:
-        value = self._view.get_link_incoming_joint_force()
-        return self._tensor(
-            value,
-            label="incoming joint forces",
-            shape=(1, self._body_count, 6),
-        )
-
-    def apply_before_step(self) -> dict[str, Any]:
-        gravity = self._gravity_matrix()[0].detach().cpu().tolist()
-        prepared = prepare_bounded_gravity_feed_forward(
-            gravity_compensation_efforts=gravity,
-            dof_count=self._dof_count,
-            controlled_joint_ids=self._controlled_joint_ids,
-            enabled=self._enabled,
-            maximum_effort=self._maximum_effort,
-        )
-        self._write_actuation_forces(
-            prepared["applied_all_dof_efforts"]
-        )
-        return prepared
-
-    def read_controlled_incoming_joint_forces(self) -> list[list[float]]:
-        incoming = self._incoming_joint_force_matrix()[0]
-        return [
-            [
-                float(value)
-                for value in incoming[body_id].detach().cpu().tolist()
-            ]
-            for body_id in self._controlled_child_body_ids
-        ]
 
 
 class _CriticalContactReporter:
@@ -497,30 +316,6 @@ def _optional_physx_view_tensor(
     except Exception as error:
         probe_errors[method_name] = f"{type(error).__name__}: {error}"
         return None
-
-
-def _controlled_joint_drive_snapshot() -> dict[str, dict[str, Any]]:
-    stage = sim_utils.get_current_stage()
-    snapshot: dict[str, dict[str, Any]] = {}
-    for name, path in CONTROLLED_JOINT_PRIM_PATHS.items():
-        prim = stage.GetPrimAtPath(path)
-        joint = UsdPhysics.RevoluteJoint(prim)
-        drive = UsdPhysics.DriveAPI.Get(prim, "angular")
-        if not prim.IsValid() or not joint or not drive:
-            raise ActuatorCalibrationError(
-                f"missing revolute joint or angular drive at {path}"
-            )
-        snapshot[name] = {
-            "prim_path": path,
-            "axis": str(joint.GetAxisAttr().Get()),
-            "body0": [str(value) for value in joint.GetBody0Rel().GetTargets()],
-            "body1": [str(value) for value in joint.GetBody1Rel().GetTargets()],
-            "drive_type": str(drive.GetTypeAttr().Get()),
-            "max_force": float(drive.GetMaxForceAttr().Get()),
-            "stiffness": float(drive.GetStiffnessAttr().Get()),
-            "damping": float(drive.GetDampingAttr().Get()),
-        }
-    return snapshot
 
 
 def _body_positions_world_m(
@@ -776,7 +571,7 @@ def _run_pose(
     settle_timeout_ms: int,
     position_velocity_window_ms: int,
     maximum_velocity_signal_mismatch_deg_s: float,
-    gravity_feed_forward: _BoundedGravityFeedForward | None,
+    gravity_feed_forward: BoundedGravityFeedForward | None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], int]:
     robot = scene["dofbot"]
     start_angles_deg = _angles_deg_from_rad(
@@ -987,7 +782,7 @@ def main() -> None:
         recorded_contract,
         _live_asset_contract(scene),
     )
-    controlled_drive_snapshot = _controlled_joint_drive_snapshot()
+    controlled_drive_snapshot = controlled_joint_drive_snapshot()
     if case.drive_type is not None and any(
         value["drive_type"] != case.drive_type
         for value in controlled_drive_snapshot.values()
@@ -998,7 +793,6 @@ def main() -> None:
 
     controlled_joint_ids = _controlled_joint_ids(scene)
     body_ids = _terminal_body_ids(scene)
-    controlled_child_body_ids = _controlled_child_body_ids(scene)
     backend = _IsaacJointPositionBackend(
         scene=scene,
         controlled_joint_ids=controlled_joint_ids,
@@ -1007,7 +801,7 @@ def main() -> None:
     arm = DofbotArm(backend)
     yahboom_api = YahboomServoApiAdapter(arm)
     contact_reporter = _CriticalContactReporter(sim.get_physics_dt())
-    gravity_feed_forward: _BoundedGravityFeedForward | None = None
+    gravity_feed_forward: BoundedGravityFeedForward | None = None
     if config.case_names == GRAVITY_FEED_FORWARD_CASE_NAMES:
         if case.gravity_compensation_feed_forward is None:
             raise ActuatorCalibrationError(
@@ -1017,10 +811,9 @@ def main() -> None:
             raise ActuatorCalibrationError(
                 "gravity feed-forward case is missing its effort limit"
             )
-        gravity_feed_forward = _BoundedGravityFeedForward(
+        gravity_feed_forward = BoundedGravityFeedForward(
             scene=scene,
             controlled_joint_ids=controlled_joint_ids,
-            controlled_child_body_ids=controlled_child_body_ids,
             enabled=case.gravity_compensation_feed_forward,
             maximum_effort=case.gravity_compensation_effort_limit,
             device=args_cli.device,

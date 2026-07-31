@@ -58,6 +58,9 @@ def build_gravity_feed_forward_preview(
     selected = audit["selected_next_machine_experiment"]
     cases = [case.to_dict() for case in config.cases]
     runner = runner_path.read_text(encoding="utf-8")
+    runtime_path = runner_path.parent / "dofbot_gravity_feed_forward_runtime.py"
+    runtime = runtime_path.read_text(encoding="utf-8")
+    implementation = runner + runtime
     required_api_names = [
         value.rsplit(".", 1)[-1] for value in selected["required_runtime_apis"]
     ]
@@ -112,13 +115,13 @@ def build_gravity_feed_forward_preview(
             required_api_names == list(REQUIRED_GRAVITY_RUNTIME_APIS)
         ),
         "runner_probes_every_required_api": all(
-            name in runner for name in REQUIRED_GRAVITY_RUNTIME_APIS
+            name in implementation for name in REQUIRED_GRAVITY_RUNTIME_APIS
         ),
         "runner_applies_after_pd_write_before_step": (
             -1 < write_index < apply_index < step_index
         ),
         "runner_records_gravity_and_incoming_force": all(
-            value in runner
+            value in implementation
             for value in (
                 "prepare_bounded_gravity_feed_forward",
                 "evaluate_gravity_feed_forward_telemetry",
@@ -155,6 +158,10 @@ def build_gravity_feed_forward_preview(
         "runner": {
             "path": str(runner_path),
             "sha256": hashlib.sha256(runner.encode()).hexdigest(),
+        },
+        "shared_runtime": {
+            "path": str(runtime_path),
+            "sha256": hashlib.sha256(runtime.encode()).hexdigest(),
         },
         "single_factor_comparison": {
             "baseline_case": cases[0],

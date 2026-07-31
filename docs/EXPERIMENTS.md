@@ -1840,3 +1840,45 @@
   GPU-free: reuse this exact runtime contract inside the pre-grasp runner and
   fail closed on its API and effort-isolation telemetry. Only after review,
   merge, fresh quote, and approval should the separate headless pre-grasp run.
+
+## 2026-07-31 — Pre-grasp actuator runtime passed GPU-free integration
+
+- Scope: local integration and deterministic validation only. No Brev start,
+  remote Isaac execution, Viewer, contact, gripper, hardware, policy, or
+  checkpoint ran.
+- Evidence binding: before AppLauncher, the runner parses the accepted
+  calibration config and promoted machine result, requires the successful
+  matrix decision and passing treatment metrics, cross-checks the exact force
+  `1048/53/100` settings, and retains both SHA-256 values.
+- Compatibility reuse: the isolated calibration and pre-grasp runners now
+  import the same native-Warp feed-forward implementation. It probes all three
+  required APIs and writes zero actuation before the first Yahboom pose.
+- Runtime order: each physics step writes the interpolated PD target, applies
+  bounded gravity effort only to joints 1-4, steps PhysX, and reads incoming
+  6D joint forces. Live USD drive readback, the `5.2` bound, zero uncontrolled
+  DOF actuation, and per-step telemetry are machine gates.
+- Failure evidence: the machine artifact records exact failed checks and maps
+  them to actuator/runtime telemetry, tracking, contact, API accounting,
+  neutral reset, or task-space failure.
+- Commands:
+
+  ```bash
+  make dofbot-pregrasp-pose-dry-run
+  BREV_INSTANCE_NAME=preview-only make show-dofbot-pregrasp
+  ```
+
+- Evidence: `artifacts/dofbot/pregrasp_command_space_contract.json`, with
+  `27/27` local checks passed.
+- Validation: `205/205` repository tests, changed-file Ruff, Python
+  compilation, shell syntax, deterministic JSON, Git LFS checks,
+  remote-command previews, and `git diff --check` pass. Full-repository Ruff
+  reports only the pre-existing unrelated line-length issue at
+  `tools/collect_environment_info.py:47`.
+- Resource state: `brev ls --json` re-verified the retained `g6.4xlarge` L4
+  instance as explicit `STOPPED` at 11:21 PDT; no resource was started,
+  created, resized, stopped, or deleted.
+- Acceptance: **local pre-grasp actuator integration passed / headless
+  pre-grasp machine pending / Viewer blocked**. No static/GPU-free integration
+  bug remains known; runtime-only defects cannot be counted before the actual
+  machine gate. After review, merge, fresh quote, and approval, run the
+  headless gate only. Viewer remains subsequent.

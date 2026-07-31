@@ -248,17 +248,21 @@ class DofbotDriveModelDiagnosticTest(unittest.TestCase):
 
     def test_runner_reads_back_drive_type_and_downgrades_torque_claim(self) -> None:
         runner = RUNNER_PATH.read_text(encoding="utf-8")
+        runtime = (
+            PROJECT_DIR
+            / "tools/dofbot_gravity_feed_forward_runtime.py"
+        ).read_text(encoding="utf-8")
         run_script = RUN_SCRIPT_PATH.read_text(encoding="utf-8")
         for value in (
             "JointDrivePropertiesCfg",
-            "_controlled_joint_drive_snapshot",
+            "controlled_joint_drive_snapshot",
             "UsdPhysics.DriveAPI.Get",
             "requested_drive_type",
             "composed_controlled_drive_types",
             "implicit_pd_estimate_not_measured_solver_torque",
             "implicit_torque_buffers_are_pd_estimates_not_solver_measurements",
         ):
-            self.assertIn(value, runner)
+            self.assertIn(value, runner + runtime)
         for case_name in DRIVE_MODEL_CASE_NAMES:
             self.assertIn(case_name, run_script)
         self.assertIn('matrix_profile" == "drive_model"', run_script)
