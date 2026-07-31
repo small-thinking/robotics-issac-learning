@@ -191,6 +191,11 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         ):
             self.assertIn(decision, self.runner)
         self.assertIn("def _write_runtime_failure(", self.runner)
+        self.assertIn("class PregraspMachineAcceptanceError(", self.runner)
+        self.assertIn(
+            "if not isinstance(reported_error, PregraspMachineAcceptanceError):",
+            self.runner,
+        )
         self.assertIn("actuator_runtime_exception", self.runner)
         self.assertIn("pregrasp_runtime_exception", self.runner)
         self.assertIn(

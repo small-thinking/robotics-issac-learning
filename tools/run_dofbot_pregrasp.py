@@ -39,6 +39,11 @@ from dofbot_gravity_feed_forward import (
 )
 from dofbot_reaching import DofbotReachingConfig, load_reaching_config
 
+
+class PregraspMachineAcceptanceError(RuntimeError):
+    """Raised after a complete machine-failure artifact has been written."""
+
+
 parser = argparse.ArgumentParser(
     description="Run fail-closed pose-aware DOFBOT pre-grasp validation."
 )
@@ -1289,7 +1294,7 @@ def main() -> None:
             flush=True,
         )
         if not machine["machine_passed"]:
-            raise RuntimeError(
+            raise PregraspMachineAcceptanceError(
                 "DOFBOT pre-grasp machine acceptance failed: "
                 + ", ".join(failed_checks)
             )
@@ -1306,14 +1311,15 @@ if __name__ == "__main__":
             reported_error = RuntimeError(
                 "Isaac requested a zero-code exit before pre-grasp completion"
             )
-        try:
-            _write_runtime_failure(reported_error)
-        except Exception as write_error:
-            print(
-                "[ERROR] unable to write pre-grasp runtime failure artifact: "
-                f"{type(write_error).__name__}: {write_error}",
-                flush=True,
-            )
+        if not isinstance(reported_error, PregraspMachineAcceptanceError):
+            try:
+                _write_runtime_failure(reported_error)
+            except Exception as write_error:
+                print(
+                    "[ERROR] unable to write pre-grasp runtime failure artifact: "
+                    f"{type(write_error).__name__}: {write_error}",
+                    flush=True,
+                )
         if reported_error is not error:
             raise reported_error from error
         raise
