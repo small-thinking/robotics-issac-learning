@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_drive_model_diagnostic_remote_result",
+  "reviewed_at_utc": "2026-07-31T03:05:30Z",
+  "machine_commit": "d2abb247a188c23889778cfdd1f211f2bc8dd1a1",
+  "calibration_config_sha256": "7644ca7f88f0fbcda2b041fc4eb5fd79f4aa21560dbf054c6da4e453f118bddd",
+  "remote": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "provider_instance_type": "AWS g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "quoted_compute_usd_per_hour": 1.58784,
+    "persistent_disk_usd_per_hour_approx": 0.04,
+    "approved_start_utc": "2026-07-31T02:51:11Z",
+    "matrix_command_started_utc": "2026-07-31T02:52:44Z",
+    "matrix_generated_at_utc": "2026-07-31T02:54:41.846093+00:00",
+    "stop_verified_utc": "2026-07-31T03:05:30Z",
+    "stop_status": "STOPPED",
+    "approved_window_seconds": 859,
+    "estimated_compute_cost_usd": 0.37887626666666663,
+    "instance_or_disk_created_resized_or_deleted": false
+  },
+  "matrix": {
+    "matrix_complete": true,
+    "matrix_exit_code": 0,
+    "machine_decision": "position_velocity_instrumentation_incomplete",
+    "reviewed_decision": "drive_model_ladder_no_resolution",
+    "machine_decision_corrected": true,
+    "decision_correction_reason": "force_runtime_tuning had real unbounded drive dynamics with available position-derived velocity, not missing instrumentation; later stable cases must still participate in the ladder decision",
+    "unstable_case_names": [
+      "force_runtime_tuning"
+    ],
+    "tracking_identity_validated": false,
+    "pregrasp_authorized": false,
+    "viewer_authorized": false,
+    "contact_or_grasp_authorized": false,
+    "unchanged_maximum_joint_tracking_error_deg": 1.0
+  },
+  "cases": {
+    "acceleration_runtime_tuning": {
+      "drive_type": "acceleration",
+      "stiffness": 10000.0,
+      "damping": 100.0,
+      "effort_limit_sim": 100.0,
+      "physx_controlled_dof_max_forces": [
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_tracking_error_deg": 5.040646124384409,
+      "maximum_overshoot_deg": 5.114190186272516,
+      "maximum_position_derived_velocity_deg_s": 0.042586229475034695,
+      "maximum_target_buffer_error_deg": 0.0000016483523239685383,
+      "maximum_contact_force_n": 0.0,
+      "candidate_terminal_observed_angles_deg": [
+        89.99976301332678,
+        64.05348421114473,
+        60.95935387561559,
+        63.9474882129626
+      ],
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false
+    },
+    "force_runtime_tuning": {
+      "drive_type": "force",
+      "stiffness": 10000.0,
+      "damping": 100.0,
+      "effort_limit_sim": 100.0,
+      "physx_controlled_dof_max_forces": [
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "all_poses_settled_by_position_derived_velocity": false,
+      "maximum_tracking_error_deg": 221160.352062438,
+      "maximum_overshoot_deg": 227242.75507396559,
+      "maximum_position_derived_velocity_deg_s": 102145.53367905442,
+      "maximum_target_buffer_error_deg": 0.0069933953491272405,
+      "maximum_contact_force_n": 0.0,
+      "candidate_terminal_observed_angles_deg": [
+        94743.96363133063,
+        -13156.24725034454,
+        207855.33739068714,
+        47249.71758628844
+      ],
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false,
+      "rejected_as_unstable": true
+    },
+    "force_stiffness_1048": {
+      "drive_type": "force",
+      "stiffness": 1048.0,
+      "damping": 100.0,
+      "effort_limit_sim": 100.0,
+      "physx_controlled_dof_max_forces": [
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_tracking_error_deg": 3.228987965910008,
+      "maximum_overshoot_deg": 3.230335220723788,
+      "maximum_position_derived_velocity_deg_s": 0.0006340999382814539,
+      "maximum_target_buffer_error_deg": 8.535404418807957e-7,
+      "maximum_contact_force_n": 0.0,
+      "candidate_terminal_observed_angles_deg": [
+        89.99797884326274,
+        62.77101203408999,
+        62.95740618899235,
+        65.99214802968822
+      ],
+      "diagnostic_complete": false,
+      "tracking_gate_passed": false
+    },
+    "force_damping_53": {
+      "drive_type": "force",
+      "stiffness": 1048.0,
+      "damping": 53.0,
+      "effort_limit_sim": 100.0,
+      "physx_controlled_dof_max_forces": [
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_tracking_error_deg": 1.739357858876076,
+      "maximum_overshoot_deg": 1.7480783028988895,
+      "maximum_position_derived_velocity_deg_s": 0.00011972841363672202,
+      "maximum_target_buffer_error_deg": 8.537378448636446e-7,
+      "maximum_contact_force_n": 0.0,
+      "candidate_terminal_observed_angles_deg": [
+        89.99876109502333,
+        64.26064214112392,
+        64.36067026151876,
+        65.99294545427382
+      ],
+      "diagnostic_complete": true,
+      "tracking_gate_passed": false
+    },
+    "force_authored_tuning": {
+      "drive_type": "force",
+      "stiffness": 1048.0,
+      "damping": 53.0,
+      "effort_limit_sim": 5.2,
+      "physx_controlled_dof_max_forces": [
+        5.199999809265137,
+        5.199999809265137,
+        5.199999809265137,
+        5.199999809265137
+      ],
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_tracking_error_deg": 1.739357858876076,
+      "maximum_overshoot_deg": 1.7480783028988895,
+      "maximum_position_derived_velocity_deg_s": 0.00011972841363672202,
+      "maximum_target_buffer_error_deg": 8.537378448636446e-7,
+      "maximum_contact_force_n": 0.0,
+      "candidate_terminal_observed_angles_deg": [
+        89.99876109502333,
+        64.26064214112392,
+        64.36067026151876,
+        65.99294545427382
+      ],
+      "diagnostic_complete": true,
+      "tracking_gate_passed": false
+    }
+  },
+  "comparisons": {
+    "force_runtime_high_gain_is_unstable": true,
+    "force_stiffness_1048_stabilizes_dynamics": true,
+    "force_damping_53_best_tracking_error_deg": 1.739357858876076,
+    "force_damping_53_improvement_vs_acceleration_deg": 3.301288265508333,
+    "force_damping_53_improvement_vs_acceleration_percent": 65.49335509862844,
+    "force_damping_53_improvement_vs_force_stiffness_1048_deg": 1.489630107033932,
+    "force_damping_53_passes_one_degree_gate": false,
+    "force_authored_max_force_changes_physx_limit": true,
+    "force_authored_and_force_damping_53_physical_samples_identical": true,
+    "force_authored_max_force_repairs_tracking": false,
+    "no_case_passes_tracking_gate": true,
+    "every_case_has_zero_monitored_contact": true,
+    "every_case_matches_backend_target_buffer": true,
+    "every_case_composed_drive_type_matches_request": true
+  },
+  "evidence_interpretation": {
+    "established": [
+      "force-drive semantics with official-scale stiffness and damping reduce worst-case tracking error from 5.04065 degrees to 1.73936 degrees",
+      "force drive with the previous 10000 stiffness and 100 damping is dynamically unstable and must be rejected",
+      "restoring stiffness 1048 stabilizes the drive but leaves 3.22899 degrees of tracking error",
+      "restoring damping 53 reduces the stable residual to 1.73936 degrees and passes the two-degree overshoot diagnostic",
+      "changing the controlled PhysX maximum forces from 100 to 5.2 leaves all 647 selected physical samples and pose summaries identical",
+      "all five cases read back the requested drive type, match the target buffer, and record zero monitored contact"
+    ],
+    "falsified": [
+      "switching only from acceleration to force with the existing high gains is safe or sufficient",
+      "the complete authored force-drive tuning passes the one-degree tracking gate",
+      "lowering maximum force from 100 to 5.2 changes or repairs the physical trajectory in this runtime",
+      "the unstable force-runtime case is a missing position-derived-velocity instrumentation problem"
+    ],
+    "unresolved": [
+      "why force drive with official stiffness and damping retains 1.73936 degrees of gravity-on tracking error",
+      "why controlled PhysX maximum-force changes from 100 to 5.2 do not change the physical trajectory",
+      "whether residual error requires an explicit actuator, gravity compensation, or a runtime joint-frame and drive-limit-semantics correction"
+    ],
+    "next_local_action": "keep Viewer and pre-grasp blocked; perform a GPU-free residual-force semantics audit before choosing an explicit actuator or gravity-compensation experiment"
+  },
+  "source_artifacts": {
+    "matrix_contract": {
+      "bytes": 6825,
+      "sha256": "12bd737c7ec55b3202f6d95fc16eaec4686c24049e6492132770b689fb44f99a"
+    },
+    "acceleration_runtime_tuning_json": {
+      "bytes": 2537786,
+      "sha256": "6d63c58fb1917fd93b62a508ffc4f7870b84960b9732d177bf1a7cd60f87d288"
+    },
+    "acceleration_runtime_tuning_log": {
+      "bytes": 20239,
+      "sha256": "7f557dbb985c1039b18178bc6c9ef3aa1b9852e98a4efd366b00e7b4d856acad"
+    },
+    "force_runtime_tuning_json": {
+      "bytes": 4036557,
+      "sha256": "be74ae59d6a523a53c710c9b5968894c913d662e7f168181edb8dc4c28369a8f"
+    },
+    "force_runtime_tuning_log": {
+      "bytes": 20231,
+      "sha256": "6f519ee7984c15f137bfcf39053e4ac55c69eaa1518065a83e00206891020583"
+    },
+    "force_stiffness_1048_json": {
+      "bytes": 1706958,
+      "sha256": "39e57dd6bfb99e3be9acbe0cb21556b3ddade099766ca5de64dcc0efac40bb8d"
+    },
+    "force_stiffness_1048_log": {
+      "bytes": 20173,
+      "sha256": "689a148c44d06f4d43229f09031d5c77eea22a4516d75d29faa905a3e8ab30a3"
+    },
+    "force_damping_53_json": {
+      "bytes": 1634207,
+      "sha256": "36e8d9bfcfb344b5ec7d31063cb35d68c99f344e498eaaba98d05fb937c33b81"
+    },
+    "force_damping_53_log": {
+      "bytes": 20148,
+      "sha256": "65acf9d09d705953bd8ccba28beaaf021d0a2b0c80f9ceaf3c1357e2e3289f7f"
+    },
+    "force_authored_tuning_json": {
+      "bytes": 1664995,
+      "sha256": "4f7daf0ff07e28aacb5b79d7b6e2ae6ed40727112fa3c0c7762382761fa3ee86"
+    },
+    "force_authored_tuning_log": {
+      "bytes": 20217,
+      "sha256": "cff9e23324d8849383efd681bfb4c73dbb8a3bb5f77d37ec7a29eeba8e226e5f"
+    }
+  }
+}

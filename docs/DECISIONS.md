@@ -294,3 +294,28 @@ configuration must first pass the unchanged one-degree gravity-on calibration
 and then the headless pre-grasp machine gate. If no drive case passes, inspect
 gravity generalized forces, runtime joint frames, and explicit actuator
 alternatives rather than moving the scene or loosening acceptance gates.
+
+## 2026-07-30 — Keep the force-drive direction, reject every tested configuration
+
+The five-case machine matrix shows that force-drive semantics with
+official-scale stiffness and damping reduce the stable tracking error from
+`5.04065°` to `1.73936°`. This is meaningful evidence about the model, not a
+passing controller: the unchanged gate remains one degree.
+
+Reject force drive with the previous `10000/100` gains because it produces
+unbounded dynamics. Do not label this as missing position-derived telemetry;
+the telemetry was available and recorded the divergence. A failed unstable
+case must be reported separately without preventing later stable cases from
+participating in the matrix decision.
+
+Do not select maximum force `5.2` over `100` as a physical correction. PhysX
+readback and implicit PD-estimate clips changed, but the complete selected
+target, position, velocity, contact, and pose-summary sequences were identical.
+This preserves the evidence boundary: the configuration write is proven, its
+physical effect is falsified in this runtime, and solver torque is still not
+measured.
+
+Before another paid matrix, audit drive-limit semantics, gravity generalized
+forces, runtime joint frames, and explicit-actuator or gravity-compensation
+alternatives locally. Do not spend another window on a broad gain sweep, move
+the scene, loosen the one-degree gate, or open pre-grasp Viewer.

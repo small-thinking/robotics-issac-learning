@@ -1635,3 +1635,62 @@
   After review, merge, a fresh quote, and explicit approval, the next paid
   command is
   `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.
+
+## 2026-07-30 — Drive-model matrix improved tracking but selected no passing configuration
+
+- Scope: one approved headless window on the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4.
+  The fresh quote remained `$1.58784/hour`; no Viewer, table, cube, pre-grasp,
+  gripper, contact task, hardware, policy, or checkpoint ran.
+- Provenance: merged
+  `main@d2abb247a188c23889778cfdd1f211f2bc8dd1a1`; config SHA-256
+  `7644ca7f88f0fbcda2b041fc4eb5fd79f4aa21560dbf054c6da4e453f118bddd`.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model
+  ```
+
+- Result: all five case artifacts and logs plus the matrix contract were
+  generated with `[MATRIX_EXIT_CODE] 0` and `matrix_complete=true`.
+
+  | Case | Tracking error | Settled | Overshoot gate | Tracking gate |
+  | --- | ---: | --- | --- | --- |
+  | acceleration / 10000 / 100 / 100 | `5.04065°` | yes | fail | fail |
+  | force / 10000 / 100 / 100 | `221160.35°` | no | fail | fail |
+  | force / 1048 / 100 / 100 | `3.22899°` | yes | fail | fail |
+  | force / 1048 / 53 / 100 | `1.73936°` | yes | pass | fail |
+  | force / 1048 / 53 / 5.2 | `1.73936°` | yes | pass | fail |
+
+- Established: the unchanged high-gain force drive is genuinely unstable and
+  rejected. Restoring stiffness `1048` stabilizes it; restoring damping `53`
+  reduces the stable error by another `1.48963°`. The best force-drive result
+  improves on acceleration by `3.30129°` or `65.49%`, but no case passes the
+  independent one-degree gate.
+- Every case matched its requested composed drive type, the backend and Isaac
+  targets agreed, and monitored contact remained `0 N`.
+- Runtime-force comparison: the final two cases read back controlled PhysX
+  maximum forces of `100` and `5.2` respectively. Nevertheless, all 647 API,
+  backend-target, Isaac-target, observed-position, raw/derived-velocity, and
+  contact samples plus all pose summaries are identical. A lower maximum force
+  is falsified as a correction in this runtime.
+- Machine-summary correction: `force_runtime_tuning` supplied position-derived
+  telemetry but never settled because its drive state diverged. Therefore
+  `position_velocity_instrumentation_incomplete` is not the correct matrix
+  interpretation. The classifier now records the unstable case separately and
+  continues evaluating later cases; the reviewed decision is
+  `drive_model_ladder_no_resolution`.
+- Evidence:
+  `artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json`, which
+  binds the ignored 11 raw files by exact byte size and SHA-256.
+- Resource lifecycle: start at `19:51:11 PDT`, matrix summary at
+  `19:54:41 PDT`, explicit `STOPPED` at `20:05:30 PDT`. The
+  14-minute-19-second window cost approximately `$0.379` at the quoted rate.
+  No instance or disk was created, resized, or deleted.
+- Validation: `187/187` repository tests, 23 focused drive/actuator/solver
+  tests, targeted Ruff, JSON parsing, all raw source byte/SHA bindings, Git LFS
+  checks, remote-command previews, and `git diff --check` pass.
+- Acceptance: **machine matrix complete / stable tracking materially improved /
+  no passing drive configuration / pre-grasp and Viewer blocked**. The next
+  work is a GPU-free residual-force-semantics audit, not another broad paid
+  sweep.

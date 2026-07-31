@@ -146,10 +146,13 @@ The detailed first-stage contract lives in
    error across all tested solver/damping settings. The completed official-USD
    audit finds uniform X-axis acceleration drives with authored
    `1048/53/5.2` tuning on joints 1-4, so joint 3 has no unique axis or drive
-   tuning. A locally prepared five-case matrix now tests acceleration versus
-   force semantics and restores the authored gains and force one factor at a
-   time with composed-drive readback. The separate `<=1°` tracking gate
-   remains. Pre-grasp, Viewer, wrist
+   tuning. The completed five-case matrix rejects the old high-gain force drive
+   as unstable and shows that official-scale stiffness/damping reduce the best
+   stable error from `5.04065°` to `1.73936°`. Changing runtime maximum force
+   from `100` to `5.2` leaves all selected physical samples identical. No case
+   passes; the next gate is a GPU-free residual-force-semantics audit covering
+   explicit actuators, gravity compensation, and runtime joint frames. The
+   separate `<=1°` tracking gate remains. Pre-grasp, Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

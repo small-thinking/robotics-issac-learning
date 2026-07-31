@@ -1140,6 +1140,52 @@ selected configuration then has to pass gravity-on calibration and the
 headless pre-grasp machine gate. Only those two machine passes authorize the
 Viewer.
 
+### Drive-model remote result
+
+The approved headless matrix ran on merged
+`main@d2abb247a188c23889778cfdd1f211f2bc8dd1a1` and completed all five
+cases with `[MATRIX_EXIT_CODE] 0`.
+
+| Case | Tracking error | Interpretation |
+| --- | ---: | --- |
+| acceleration / 10000 / 100 / 100 | `5.04065°` | baseline failure |
+| force / 10000 / 100 / 100 | `221160.35°` | unstable; rejected |
+| force / 1048 / 100 / 100 | `3.22899°` | stable but outside gates |
+| force / 1048 / 53 / 100 | `1.73936°` | best stable; tracking fail |
+| force / 1048 / 53 / 5.2 | `1.73936°` | identical physical result; fail |
+
+Force semantics with official-scale stiffness and damping therefore explain a
+material part of the gravity-on error: the best stable case improves by
+`3.30129°` or `65.49%`. It still misses the independent one-degree gate by
+`0.73936°`, so it is not adopted for pre-grasp.
+
+The high-gain force case did not suffer missing telemetry; its positions and
+position-derived velocities diverged without settling. The machine classifier
+incorrectly routed this as `position_velocity_instrumentation_incomplete`.
+The local decision now rejects unstable cases separately while continuing the
+ladder, yielding `drive_model_ladder_no_resolution`.
+
+The final maximum-force comparison is also decisive. Runtime PhysX values
+change from `100` to `5.2`, but all 647 selected physical samples and every
+pose summary are identical. That parameter change does not repair tracking in
+this runtime.
+
+Reviewed evidence is
+`artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json`; the raw
+11.7 MB JSON/log set remains ignored and is bound by size and SHA-256. Brev
+reached explicit `STOPPED` at `20:05:30 PDT`; no resource was created,
+resized, or deleted.
+
+All `187` repository tests, 23 focused tests, targeted Ruff, JSON parsing,
+source byte/SHA verification, Git LFS checks, remote-command previews, and
+`git diff --check` pass.
+
+Acceptance is **remote matrix complete / force-drive direction materially
+improves tracking / no case passes / pre-grasp and Viewer blocked**. The next
+work is GPU-free: explain the maximum-force invariance and compare explicit
+actuator, gravity-compensation, and runtime joint-frame semantics before
+designing another paid run.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

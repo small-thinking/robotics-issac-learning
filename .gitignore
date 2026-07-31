@@ -89,6 +89,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json
 !artifacts/dofbot/asset_drive_audit_2026-07-30.json
 !artifacts/dofbot/drive_model_diagnostic_plan.json
+!artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json
 
 # macOS and editors
 .DS_Store

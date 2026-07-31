@@ -106,8 +106,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    tracking. The completed official-asset audit found uniform X-axis
    acceleration drives on joints 1-4 and corrected the earlier interpretation
    of implicit-actuator torque buffers: they are PD estimates, not measured
-   PhysX solver torque. A five-case acceleration/force drive-model matrix is
-   now prepared locally; pre-grasp and Viewer remain blocked.
+   PhysX solver torque. The completed five-case acceleration/force matrix then
+   rejected the prior high-gain force drive as unstable and reduced the best
+   stable error from `5.04065°` to `1.73936°` with official-scale stiffness
+   and damping. No case passed the unchanged one-degree gate, so pre-grasp and
+   Viewer remain blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -129,16 +132,15 @@ approach axis is `(0,+0.94213,+0.33526)`, closing remains monitor-only world
 `+X`, and only `joint1`-`joint4` cross the Yahboom API. Wrist twist and the
 gripper remain uncommanded.
 
-The exact next paid step, after review, merge, a fresh quote, and explicit
-approval, is `make dofbot-drive-model`. It runs the same neutral, mid-load,
-candidate, and neutral-return poses in five single-factor stages: reproduce the
-current acceleration drive, switch only to force drive, then restore the
-official stiffness, damping, and maximum force in order. The runner reads back
-the composed USD drive for every controlled joint and preserves target,
-position-derived settling, contact, and one-degree tracking gates. Do not
-rerun pre-grasp or open the Viewer until the matrix selects a correction and
-that correction passes calibration plus the headless pre-grasp machine gate.
-Contact and grasping remain out of scope.
+The exact next step is GPU-free. Preserve the stable force-drive evidence but
+do not adopt it as a passing correction. Audit why PhysX maximum-force values
+`100` and `5.2` produced identical physical samples and whether the residual
+requires explicit-actuator semantics, gravity compensation, or a runtime
+joint-frame correction. Do not rerun pre-grasp or open the Viewer until a
+selected correction passes the one-degree gravity-on calibration plus the
+headless pre-grasp machine gate. Any further paid run still requires review,
+merge, a fresh quote, and explicit approval. Contact and grasping remain out
+of scope.
 
 ## Sources of truth
 

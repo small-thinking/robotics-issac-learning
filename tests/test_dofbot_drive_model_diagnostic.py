@@ -28,6 +28,10 @@ SOLVER_RESULT_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json"
 )
+DRIVE_MODEL_RESULT_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json"
+)
 RUNNER_PATH = PROJECT_DIR / "tools/run_dofbot_actuator_calibration.py"
 RUN_SCRIPT_PATH = (
     PROJECT_DIR / "scripts/isaac/run_dofbot_actuator_calibration.sh"
@@ -53,6 +57,9 @@ class DofbotDriveModelDiagnosticTest(unittest.TestCase):
         cls.raw = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
         cls.config, _ = load_actuator_calibration_config(CONFIG_PATH)
         cls.audit = json.loads(ASSET_AUDIT_PATH.read_text(encoding="utf-8"))
+        cls.result = json.loads(
+            DRIVE_MODEL_RESULT_PATH.read_text(encoding="utf-8")
+        )
 
     def test_official_asset_drive_audit_is_uniform_and_meter_scaled(self) -> None:
         self.assertEqual(self.audit["source_asset"]["meters_per_unit"], 1)
@@ -158,6 +165,86 @@ class DofbotDriveModelDiagnosticTest(unittest.TestCase):
         self.assertEqual(result["decision"], "force_drive_resolves_tracking")
         self.assertTrue(result["tracking_identity_validated"])
         self.assertFalse(result["pregrasp_authorized"])
+
+    def test_unstable_force_case_does_not_mask_later_drive_results(self) -> None:
+        evaluations = {
+            name: _evaluation() for name in DRIVE_MODEL_CASE_NAMES
+        }
+        evaluations["force_runtime_tuning"]["checks"][
+            "all_poses_settled_by_position_derived_velocity"
+        ] = False
+
+        no_resolution = classify_calibration_matrix(
+            self.config,
+            evaluations,
+        )
+        self.assertEqual(
+            no_resolution["decision"],
+            "drive_model_ladder_no_resolution",
+        )
+        self.assertEqual(
+            no_resolution["unstable_case_names"],
+            ["force_runtime_tuning"],
+        )
+
+        evaluations["force_damping_53"]["tracking_gate_passed"] = True
+        later_pass = classify_calibration_matrix(self.config, evaluations)
+        self.assertEqual(
+            later_pass["decision"],
+            "force_damping_53_resolves_tracking",
+        )
+        self.assertEqual(
+            later_pass["unstable_case_names"],
+            ["force_runtime_tuning"],
+        )
+
+    def test_remote_result_promotes_fail_closed_reviewed_decision(self) -> None:
+        matrix = self.result["matrix"]
+        cases = self.result["cases"]
+        comparisons = self.result["comparisons"]
+        self.assertTrue(matrix["matrix_complete"])
+        self.assertEqual(matrix["matrix_exit_code"], 0)
+        self.assertEqual(
+            matrix["machine_decision"],
+            "position_velocity_instrumentation_incomplete",
+        )
+        self.assertEqual(
+            matrix["reviewed_decision"],
+            "drive_model_ladder_no_resolution",
+        )
+        self.assertEqual(
+            matrix["unstable_case_names"],
+            ["force_runtime_tuning"],
+        )
+        self.assertFalse(matrix["tracking_identity_validated"])
+        self.assertFalse(matrix["pregrasp_authorized"])
+        self.assertFalse(matrix["viewer_authorized"])
+        self.assertEqual(set(cases), set(DRIVE_MODEL_CASE_NAMES))
+        self.assertTrue(cases["force_runtime_tuning"]["rejected_as_unstable"])
+        self.assertAlmostEqual(
+            cases["force_damping_53"]["maximum_tracking_error_deg"],
+            1.739357858876076,
+        )
+        self.assertTrue(comparisons["no_case_passes_tracking_gate"])
+        self.assertTrue(
+            comparisons[
+                "force_authored_and_force_damping_53_physical_samples_identical"
+            ]
+        )
+        self.assertEqual(self.result["remote"]["stop_status"], "STOPPED")
+        self.assertFalse(
+            self.result["remote"][
+                "instance_or_disk_created_resized_or_deleted"
+            ]
+        )
+        expected_sources = {"matrix_contract"}
+        for case_name in DRIVE_MODEL_CASE_NAMES:
+            expected_sources.add(f"{case_name}_json")
+            expected_sources.add(f"{case_name}_log")
+        self.assertEqual(
+            set(self.result["source_artifacts"]),
+            expected_sources,
+        )
 
     def test_runner_reads_back_drive_type_and_downgrades_torque_claim(self) -> None:
         runner = RUNNER_PATH.read_text(encoding="utf-8")
