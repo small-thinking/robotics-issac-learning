@@ -304,6 +304,19 @@ class DofbotGravityFeedForwardTest(unittest.TestCase):
         for case_name in GRAVITY_FEED_FORWARD_CASE_NAMES:
             self.assertIn(case_name, run_script)
 
+    def test_runner_uses_native_warp_arrays_for_raw_physx_setter(self) -> None:
+        runner = RUNNER_PATH.read_text(encoding="utf-8")
+        self.assertIn("import warp as wp", runner)
+        self.assertIn('getattr(self._robot, "root_view", None)', runner)
+        self.assertIn("self._indices = wp.array(", runner)
+        self.assertIn("dtype=wp.int32", runner)
+        self.assertIn("def _write_actuation_forces(", runner)
+        self.assertIn("dtype=wp.float32", runner)
+        self.assertNotIn(
+            'getattr(self._robot, "root_physx_view", None)',
+            runner,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

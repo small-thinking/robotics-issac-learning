@@ -267,6 +267,22 @@ selects bounded gravity-compensation feed-forward on force `1048/53/100` as
 the next single-factor machine hypothesis and keeps paid GPU, pre-grasp,
 Viewer, contact, and grasp authorization false.
 
+`gravity_feed_forward_runtime_failure_2026-07-31.json` records the first
+machine attempt's fail-closed runtime boundary. Both cases stopped before any
+pose command because a Torch tensor reached the installed Warp-backed raw
+PhysX articulation setter. It binds the two retrieved logs and incomplete
+matrix contract by exact byte size and SHA-256 and explicitly makes no claim
+about feed-forward performance.
+
+`gravity_feed_forward_result_2026-07-31.json` promotes the repaired two-case
+machine result. The unchanged force `1048/53/100` baseline still misses by
+`1.73936°`; bounded gravity feed-forward reduces the worst settled error to
+`0.002391°` with zero contact, zero clipping, and a maximum applied gravity
+effort of `0.363701`. The concise record binds both ignored 3 MB case JSON
+files, both logs, and the machine contract. It establishes actuator tracking
+only; the pre-grasp runner still needs to adopt the selected runtime contract
+before a separate machine gate, and Viewer/contact/grasp remain blocked.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

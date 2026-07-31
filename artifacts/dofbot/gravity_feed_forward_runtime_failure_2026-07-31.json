@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-07-31T15:57:17Z",
+  "scope": "first bounded gravity feed-forward machine attempt",
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "live_compute_quote_usd_per_hour": 1.59,
+    "persistent_disk_quote_usd_per_hour_approx": 0.04
+  },
+  "provenance": {
+    "git_commit": "75395855c2f92b5f25ab1ac098f38ce7e8eb4465",
+    "command": "BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-gravity-feed-forward"
+  },
+  "result": {
+    "matrix_exit_code": 1,
+    "matrix_complete": false,
+    "decision": "incomplete_case_matrix",
+    "failed_cases": [
+      "force_damping_53_baseline",
+      "bounded_gravity_feed_forward"
+    ],
+    "case_artifacts_written": false,
+    "pose_commands_executed": false,
+    "pregrasp_authorized": false,
+    "viewer_authorized": false
+  },
+  "failure": {
+    "stage": "pre-motion required-API zero-actuation probe",
+    "category": "isaac_runtime_tensor_frontend_compatibility",
+    "exception_type": "TypeError",
+    "exception_message": "issubclass() arg 1 must be a class",
+    "call": "ArticulationView.set_dof_actuation_forces",
+    "installed_frontend": "omni.physics.tensors.frontend_warp.FrontendWarp",
+    "root_cause": "The raw PhysX articulation view requires native Warp arrays, but the runner supplied Torch tensors for actuation data and indices.",
+    "not_established": [
+      "gravity feed-forward tracking performance",
+      "gravity compensation magnitude or sign",
+      "effort clipping behavior",
+      "pre-grasp machine behavior",
+      "Viewer behavior"
+    ],
+    "selected_fix": "Use the non-deprecated root_view and native Warp float32/int32 arrays at the raw PhysX setter boundary; preserve all existing safety and tracking gates."
+  },
+  "retrieved_sources": {
+    "force_damping_53_baseline.log": {
+      "bytes": 20273,
+      "sha256": "d9f4424242d1457525a5f665e0f1208afa605c0e1d590c5a89f38ef86bb0e7ba"
+    },
+    "bounded_gravity_feed_forward.log": {
+      "bytes": 20252,
+      "sha256": "656626dab4dee17ee3bf32b8aca183f0326b2e74dac60559c34b6f095588a83e"
+    },
+    "gravity_feed_forward_contract.json": {
+      "bytes": 3352,
+      "sha256": "f314e65cdacbf81f9c1be56c90247c1dbcd5daf2d9c03f0cdb17e466aeb29e01"
+    }
+  }
+}

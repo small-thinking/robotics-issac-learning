@@ -70,6 +70,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 import torch
+import warp as wp
 
 import isaaclab.sim as sim_utils
 import omni.physx
@@ -265,10 +266,10 @@ class _BoundedGravityFeedForward:
         device: str,
     ) -> None:
         self._robot = scene["dofbot"]
-        self._view = getattr(self._robot, "root_physx_view", None)
+        self._view = getattr(self._robot, "root_view", None)
         if self._view is None:
             raise GravityFeedForwardError(
-                "root_physx_view is unavailable"
+                "root_view is unavailable"
             )
         self._controlled_joint_ids = controlled_joint_ids
         self._controlled_child_body_ids = controlled_child_body_ids
@@ -290,20 +291,31 @@ class _BoundedGravityFeedForward:
             raise GravityFeedForwardError(
                 f"required gravity runtime APIs are unavailable: {missing}"
             )
-        self._indices = torch.tensor(
+        # Isaac Lab 3.0's PhysX articulation view is backed by the Warp
+        # frontend even though the public articulation state is exposed as
+        # Torch tensors.  Raw view setters therefore require native Warp
+        # arrays for both data and indices.
+        self._indices = wp.array(
             [0],
             device=self._device,
-            dtype=torch.long,
+            dtype=wp.int32,
         )
         # Probe every required API and write a zero vector before any API pose
         # command. This fails closed on incompatible Isaac/PhysX releases.
         self._gravity_matrix()
         self._incoming_joint_force_matrix()
+        self._write_actuation_forces([0.0] * self._dof_count)
+
+    def _write_actuation_forces(self, efforts: list[float]) -> None:
+        if len(efforts) != self._dof_count:
+            raise GravityFeedForwardError(
+                "actuation force width does not match the articulation"
+            )
         self._view.set_dof_actuation_forces(
-            torch.zeros(
-                (1, self._dof_count),
+            wp.array(
+                [efforts],
                 device=self._device,
-                dtype=torch.float32,
+                dtype=wp.float32,
             ),
             self._indices,
         )
@@ -383,13 +395,8 @@ class _BoundedGravityFeedForward:
             enabled=self._enabled,
             maximum_effort=self._maximum_effort,
         )
-        self._view.set_dof_actuation_forces(
-            torch.tensor(
-                [prepared["applied_all_dof_efforts"]],
-                device=self._device,
-                dtype=torch.float32,
-            ),
-            self._indices,
+        self._write_actuation_forces(
+            prepared["applied_all_dof_efforts"]
         )
         return prepared
 

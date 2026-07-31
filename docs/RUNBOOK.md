@@ -146,17 +146,27 @@ moved into a timestamped archive before execution, and every result must match
 the current Git commit and calibration-config SHA; a failed process therefore
 cannot be masked by stale evidence.
 
-Use Brev's container-aware copy command while the approved instance is still
-running:
+In this Launchable, `brev copy` addresses the VM host rather than the
+`vscode` container. Copy the container paths to a unique VM `/tmp` directory
+first, then retrieve them while the approved instance is still running:
 
 ```bash
+brev exec isaac-launchable-f150a5 --host \
+  "docker cp vscode:/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_cases /tmp/dofbot-actuator-calibration-cases"
+brev exec isaac-launchable-f150a5 --host \
+  "docker cp vscode:/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_contract.json /tmp/dofbot-actuator-calibration-contract.json"
 brev copy \
-  isaac-launchable-f150a5:/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_cases/ \
+  isaac-launchable-f150a5:/tmp/dofbot-actuator-calibration-cases/ \
   artifacts/dofbot/actuator_calibration_cases/
 brev copy \
-  isaac-launchable-f150a5:/workspace/robotics-issac-learning/artifacts/dofbot/actuator_calibration_contract.json \
+  isaac-launchable-f150a5:/tmp/dofbot-actuator-calibration-contract.json \
   artifacts/dofbot/actuator_calibration_contract.json
 ```
+
+Use a run-specific temporary name for repeated matrices. If a direct
+container path fails with `No such file or directory`, treat it as a copy
+plumbing failure, not missing experiment evidence; verify the file inside the
+container before changing or rerunning the experiment.
 
 Retrieve the matrix artifacts, then stop the instance and poll
 `brev ls --json` to terminal `STOPPED` before implementing a correction. Do

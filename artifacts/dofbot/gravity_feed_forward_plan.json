@@ -131,7 +131,7 @@
   },
   "runner": {
     "path": "tools/run_dofbot_actuator_calibration.py",
-    "sha256": "7580774277bd6c92aa1cee391f54c9ba4110510cbe8f778eefda1534fa064ea8"
+    "sha256": "15bc5f40ab2371e14c21074f80f160f6e07d7c739704a59cb454800488cf89d2"
   },
   "single_factor_comparison": {
     "baseline_case": {
