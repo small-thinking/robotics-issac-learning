@@ -13,7 +13,7 @@ learning narrative.
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
 | [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
-| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; residual-force audit selects bounded gravity feed-forward after force tuning reaches 1.739°; pre-grasp remains blocked |
+| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; bounded gravity feed-forward passes local preparation after force tuning reaches 1.739°; isolated machine calibration pending and pre-grasp blocked |
 
 Every experiment section should leave:
 

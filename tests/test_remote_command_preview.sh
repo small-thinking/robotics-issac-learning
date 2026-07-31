@@ -331,6 +331,24 @@ assert_not_contains "$drive_model_output" '--livestream'
 assert_not_contains "$drive_model_output" '--viz'
 assert_contains "$drive_model_output" '[dry-run] Command displayed but not executed.'
 
+gravity_feed_forward_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_gravity_feed_forward_diagnostic.sh
+)"
+
+assert_contains "$gravity_feed_forward_output" 'goal5_gravity_feed_forward_diagnostic.json'
+assert_contains "$gravity_feed_forward_output" 'force_damping_53_baseline'
+assert_contains "$gravity_feed_forward_output" 'bounded_gravity_feed_forward'
+assert_contains "$gravity_feed_forward_output" 'gravity_feed_forward_contract.json'
+assert_contains "$gravity_feed_forward_output" 'gravity_feed_forward_cases'
+assert_contains "$gravity_feed_forward_output" '[MATRIX_EXIT_CODE]'
+assert_contains "$gravity_feed_forward_output" '--device cpu'
+assert_contains "$gravity_feed_forward_output" '--headless'
+assert_not_contains "$gravity_feed_forward_output" '--livestream'
+assert_not_contains "$gravity_feed_forward_output" '--viz'
+assert_contains "$gravity_feed_forward_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \

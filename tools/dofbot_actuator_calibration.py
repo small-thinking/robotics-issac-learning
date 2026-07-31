@@ -38,6 +38,10 @@ DRIVE_MODEL_CASE_NAMES = (
     "force_damping_53",
     "force_authored_tuning",
 )
+GRAVITY_FEED_FORWARD_CASE_NAMES = (
+    "force_damping_53_baseline",
+    "bounded_gravity_feed_forward",
+)
 REQUIRED_POSE_NAMES = (
     "neutral_start",
     "mid_load",
@@ -73,6 +77,8 @@ class CalibrationCase:
     solver_velocity_iteration_count: int = 0
     enable_external_forces_every_iteration: bool = False
     drive_type: str | None = None
+    gravity_compensation_feed_forward: bool | None = None
+    gravity_compensation_effort_limit: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value = {
@@ -93,6 +99,14 @@ class CalibrationCase:
         }
         if self.drive_type is not None:
             value["drive_type"] = self.drive_type
+        if self.gravity_compensation_feed_forward is not None:
+            value["gravity_compensation_feed_forward"] = (
+                self.gravity_compensation_feed_forward
+            )
+        if self.gravity_compensation_effort_limit is not None:
+            value["gravity_compensation_effort_limit"] = (
+                self.gravity_compensation_effort_limit
+            )
         return value
 
 
@@ -268,6 +282,51 @@ def _validate_drive_model_case_ladder(
         raise ActuatorCalibrationError(
             "drive-model cases must change drive type, then stiffness, then "
             "damping, then max force while holding other controls fixed"
+        )
+
+
+def _validate_gravity_feed_forward_case_ladder(
+    cases: list[CalibrationCase],
+) -> None:
+    expected = (
+        (
+            True,
+            100.0,
+            1048.0,
+            53.0,
+            8,
+            0,
+            True,
+            "force",
+            False,
+            5.2,
+        ),
+        (
+            True,
+            100.0,
+            1048.0,
+            53.0,
+            8,
+            0,
+            True,
+            "force",
+            True,
+            5.2,
+        ),
+    )
+    actual = tuple(
+        (
+            *_case_control_values(case),
+            case.drive_type,
+            case.gravity_compensation_feed_forward,
+            case.gravity_compensation_effort_limit,
+        )
+        for case in cases
+    )
+    if actual != expected:
+        raise ActuatorCalibrationError(
+            "gravity feed-forward cases must hold the stable force 1048/53/100 "
+            "baseline fixed and change only gravity_compensation_feed_forward"
         )
 
 
@@ -468,13 +527,17 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
         REQUIRED_CASE_NAMES,
         SOLVER_DRIVE_CASE_NAMES,
         DRIVE_MODEL_CASE_NAMES,
+        GRAVITY_FEED_FORWARD_CASE_NAMES,
     }:
         raise ActuatorCalibrationError(
-            "cases must match an actuator, solver/drive, or drive-model "
-            "diagnostic order"
+            "cases must match an actuator, solver/drive, drive-model, or "
+            "gravity feed-forward diagnostic order"
         )
     solver_drive_contract = case_names == SOLVER_DRIVE_CASE_NAMES
     drive_model_contract = case_names == DRIVE_MODEL_CASE_NAMES
+    gravity_feed_forward_contract = (
+        case_names == GRAVITY_FEED_FORWARD_CASE_NAMES
+    )
     legacy_case_keys = {"name", "gravity_enabled", "effort_limit_sim"}
     solver_drive_case_keys = legacy_case_keys | {
         "stiffness",
@@ -484,17 +547,25 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
         "enable_external_forces_every_iteration",
     }
     drive_model_case_keys = solver_drive_case_keys | {"drive_type"}
+    gravity_feed_forward_case_keys = drive_model_case_keys | {
+        "gravity_compensation_feed_forward",
+        "gravity_compensation_effort_limit",
+    }
     cases: list[CalibrationCase] = []
     for index, item in enumerate(cases_raw):
         case_raw = _strict_object(
             item,
             (
-                drive_model_case_keys
-                if drive_model_contract
+                gravity_feed_forward_case_keys
+                if gravity_feed_forward_contract
                 else (
-                    solver_drive_case_keys
-                    if solver_drive_contract
-                    else legacy_case_keys
+                    drive_model_case_keys
+                    if drive_model_contract
+                    else (
+                        solver_drive_case_keys
+                        if solver_drive_contract
+                        else legacy_case_keys
+                    )
                 )
             ),
             f"cases[{index}]",
@@ -509,7 +580,11 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
             case_raw["effort_limit_sim"],
             f"cases[{index}].effort_limit_sim",
         )
-        minimum_effort = 5.0 if drive_model_contract else 50.0
+        minimum_effort = (
+            5.0
+            if drive_model_contract or gravity_feed_forward_contract
+            else 50.0
+        )
         if not minimum_effort <= effort <= 300.0:
             raise ActuatorCalibrationError(
                 f"effort_limit_sim must be in [{minimum_effort:g}, 300]"
@@ -535,16 +610,51 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
             False,
         )
         drive_type = case_raw.get("drive_type")
-        if drive_model_contract and drive_type not in {
+        if (
+            drive_model_contract or gravity_feed_forward_contract
+        ) and drive_type not in {
             "acceleration",
             "force",
         }:
             raise ActuatorCalibrationError(
-                "drive-model case drive_type must be acceleration or force"
+                "drive-model and gravity-feed-forward case drive_type must be "
+                "acceleration or force"
             )
-        if not drive_model_contract and drive_type is not None:
+        if (
+            not drive_model_contract
+            and not gravity_feed_forward_contract
+            and drive_type is not None
+        ):
             raise ActuatorCalibrationError(
-                "drive_type is only valid in the drive-model diagnostic"
+                "drive_type is only valid in the drive-model or "
+                "gravity-feed-forward diagnostic"
+            )
+        gravity_compensation_feed_forward = case_raw.get(
+            "gravity_compensation_feed_forward"
+        )
+        gravity_compensation_effort_limit = case_raw.get(
+            "gravity_compensation_effort_limit"
+        )
+        if gravity_feed_forward_contract:
+            if not isinstance(gravity_compensation_feed_forward, bool):
+                raise ActuatorCalibrationError(
+                    "gravity_compensation_feed_forward must be boolean"
+                )
+            gravity_compensation_effort_limit = _number(
+                gravity_compensation_effort_limit,
+                f"cases[{index}].gravity_compensation_effort_limit",
+            )
+            if not 0.1 <= gravity_compensation_effort_limit <= 5.2:
+                raise ActuatorCalibrationError(
+                    "gravity_compensation_effort_limit must be in [0.1, 5.2]"
+                )
+        elif (
+            gravity_compensation_feed_forward is not None
+            or gravity_compensation_effort_limit is not None
+        ):
+            raise ActuatorCalibrationError(
+                "gravity compensation fields are only valid in the "
+                "gravity-feed-forward diagnostic"
             )
         if not 1000.0 <= stiffness <= 20_000.0:
             raise ActuatorCalibrationError("stiffness must be in [1000, 20000]")
@@ -575,12 +685,20 @@ def parse_actuator_calibration_config(value: Any) -> ActuatorCalibrationConfig:
                     external_forces_every_iteration
                 ),
                 drive_type=drive_type,
+                gravity_compensation_feed_forward=(
+                    gravity_compensation_feed_forward
+                ),
+                gravity_compensation_effort_limit=(
+                    gravity_compensation_effort_limit
+                ),
             )
         )
     if solver_drive_contract:
         _validate_solver_drive_case_ladder(cases)
     elif drive_model_contract:
         _validate_drive_model_case_ladder(cases)
+    elif gravity_feed_forward_contract:
+        _validate_gravity_feed_forward_case_ladder(cases)
     else:
         expected_case_values = (
             (True, 100.0),
@@ -1017,6 +1135,8 @@ def classify_calibration_matrix(
         return _classify_solver_drive_matrix(cases)
     if config.case_names == DRIVE_MODEL_CASE_NAMES:
         return _classify_drive_model_matrix(cases)
+    if config.case_names == GRAVITY_FEED_FORWARD_CASE_NAMES:
+        return _classify_gravity_feed_forward_matrix(cases)
 
     if any(
         not bool(value.get("checks", {}).get("contact_force_below_threshold"))
@@ -1245,6 +1365,85 @@ def _classify_drive_model_matrix(
             "force_authored_tuning_resolves_tracking",
         },
         "unstable_case_names": unstable_case_names,
+        "next_action": next_action,
+        "unchanged_pregrasp_gates": {
+            "maximum_position_error_m": 0.025,
+            "maximum_approach_error_deg": 12.0,
+        },
+    }
+
+
+def _classify_gravity_feed_forward_matrix(
+    cases: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    def check(case: dict[str, Any], name: str) -> bool:
+        return bool(case.get("checks", {}).get(name))
+
+    baseline, feed_forward = (
+        cases[name] for name in GRAVITY_FEED_FORWARD_CASE_NAMES
+    )
+    ordered = (baseline, feed_forward)
+    if any(
+        not check(case, "gravity_compensation_runtime_apis_available")
+        for case in ordered
+    ):
+        decision = "gravity_compensation_runtime_api_unavailable"
+        next_action = (
+            "repair the installed Isaac/Omni Physics API compatibility before "
+            "applying feed-forward"
+        )
+    elif any(
+        not check(case, "gravity_compensation_values_finite")
+        or not check(case, "feed_forward_effort_bounded")
+        or not check(case, "only_controlled_joints_receive_feed_forward")
+        for case in ordered
+    ):
+        decision = "gravity_feed_forward_safety_contract_failed"
+        next_action = (
+            "repair gravity-force shape, finiteness, or effort isolation before "
+            "another machine case"
+        )
+    elif any(
+        not check(case, "contact_force_below_threshold")
+        for case in ordered
+    ):
+        decision = "contact_or_self_collision_interference"
+        next_action = "inspect contact actors before interpreting feed-forward"
+    elif any(
+        not check(case, "target_buffer_telemetry_available")
+        or not check(case, "target_buffer_matches_backend_target")
+        for case in ordered
+    ):
+        decision = "backend_or_target_buffer_mismatch"
+        next_action = "repair the target path before interpreting feed-forward"
+    elif any(
+        not check(case, "position_derived_velocity_available")
+        or not check(case, "all_poses_settled_by_position_derived_velocity")
+        for case in ordered
+    ):
+        decision = "position_velocity_instrumentation_incomplete"
+        next_action = "repair position-derived settling before another paid run"
+    elif bool(baseline.get("tracking_gate_passed")):
+        decision = "stable_force_baseline_tracking_validated"
+        next_action = "run the separate headless pre-grasp machine gate"
+    elif bool(feed_forward.get("tracking_gate_passed")):
+        decision = "bounded_gravity_feed_forward_resolves_tracking"
+        next_action = "run the separate headless pre-grasp machine gate"
+    else:
+        decision = "bounded_gravity_feed_forward_no_resolution"
+        next_action = (
+            "retain the blocked pre-grasp gate and prepare the full explicit "
+            "PD actuator fallback"
+        )
+
+    return {
+        "decision": decision,
+        "pregrasp_authorized": False,
+        "tracking_identity_validated": decision
+        in {
+            "stable_force_baseline_tracking_validated",
+            "bounded_gravity_feed_forward_resolves_tracking",
+        },
         "next_action": next_action,
         "unchanged_pregrasp_gates": {
             "maximum_position_error_m": 0.025,

@@ -1735,3 +1735,40 @@
   pre-grasp, and Viewer blocked**. The next paid gate, after implementation,
   review, merge, fresh quote, and approval, is isolated headless gravity-on
   calibration. Viewer remains third in the gate order after headless pre-grasp.
+
+## 2026-07-30 — Bounded gravity feed-forward passed local preparation
+
+- Scope: local implementation, fail-closed tests, deterministic plan
+  generation, and remote-command preview only. No GPU, remote Isaac runtime,
+  Viewer, pre-grasp, task scene, contact, gripper, hardware, policy, or
+  checkpoint ran.
+- Single-factor contract: both cases keep gravity on, force drive
+  `1048/53/100`, external-force iteration, the four-pose Yahboom API
+  trajectory, and the independent one-degree gate. Only
+  `gravity_compensation_feed_forward` changes from false to true.
+- Safety boundary: before any pose command, the runner requires
+  `get_gravity_compensation_forces`, `set_dof_actuation_forces`, and
+  `get_link_incoming_joint_force`. Every step clamps controlled-joint effort
+  to `±5.2`, zeroes all uncontrolled DOFs, and records raw/applied effort plus
+  the controlled child links' incoming 6D joint forces.
+- Commands:
+
+  ```bash
+  make dofbot-gravity-feed-forward-dry-run
+  BREV_INSTANCE_NAME=preview-only make show-dofbot-gravity-feed-forward
+  ```
+
+- Evidence: `artifacts/dofbot/gravity_feed_forward_plan.json`.
+- Validation: `200/200` repository tests, eight focused feed-forward tests,
+  targeted Ruff, Python compilation, shell syntax, deterministic artifact
+  generation, JSON parsing, Git LFS checks, remote-command previews, and
+  `git diff --check` pass.
+- Resource state: `brev ls --json` returned retained instance
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, as
+  explicit `STOPPED`. No resource mutation occurred.
+- Acceptance: **local implementation passed / machine calibration pending /
+  pre-grasp and Viewer blocked**. After review and merge, a fresh quote and
+  explicit approval are required before
+  `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-gravity-feed-forward`.
+  A `<=1°` calibration pass advances only to the separate headless pre-grasp
+  gate. Full explicit PD remains the fallback if feed-forward fails.
