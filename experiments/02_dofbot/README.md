@@ -1273,6 +1273,50 @@ review and merge, a fresh quote and explicit approval are still required
 before `make dofbot-gravity-feed-forward`. A machine `<=1°` pass advances only
 to the separate headless pre-grasp gate; Viewer remains third.
 
+### Bounded gravity feed-forward machine result
+
+The approved machine attempt first exercised the fail-closed compatibility
+probe on merged `main@7539585`. It correctly stopped before any pose command,
+but located a runtime boundary omitted by GPU-free tests: the installed raw
+PhysX articulation view uses a Warp tensor frontend, while the runner supplied
+Torch tensors to `set_dof_actuation_forces`. Both cases raised
+`TypeError: issubclass() arg 1 must be a class`, wrote no case JSON, and the
+summary selected `incomplete_case_matrix`.
+
+Commit `1cf25a0` changed only that boundary: it uses `root_view` and native
+Warp `float32` actuation data with `int32` indices. The same matrix then
+completed with `[MATRIX_EXIT_CODE] 0`:
+
+| Case | Maximum settled error | Maximum overshoot | Contact | Gate |
+| --- | ---: | ---: | ---: | --- |
+| stable force `1048/53/100`, FF disabled | `1.73936°` | `1.74808°` | `0 N` | fail |
+| identical drive, bounded gravity FF enabled | `0.002391°` | `0.03611°` | `0 N` | pass |
+
+All four treatment poses settled by the `100 ms` position-difference signal;
+target-buffer error remained below `0.000000854°`. All required APIs returned
+finite data. Across 645 treatment samples the maximum raw/applied gravity
+effort was `0.363701`, no sample reached the `5.2` clamp, and all uncontrolled
+DOFs stayed at zero external actuation.
+
+The reviewed evidence is
+`artifacts/dofbot/gravity_feed_forward_runtime_failure_2026-07-31.json` and
+`artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json`; together they
+bind the failed logs, successful raw case JSON/log files, and both matrix
+contracts by exact byte size and SHA-256.
+
+All evidence was retrieved before stop. Standard `brev ls --json` reached
+explicit `STOPPED` at 09:15:35 PDT; the existing instance and disk were
+retained, and no resource was created, resized, reset, or deleted.
+
+Acceptance is **isolated actuator tracking passed / pre-grasp integration
+pending / pre-grasp machine and Viewer blocked**. The existing pre-grasp
+runner still configures acceleration drive `10000/100` and therefore must not
+be run as if it used the selected correction. The next GPU-free step is to
+share the accepted force `1048/53/100`, external-force-iteration, bounded
+gravity feed-forward, API availability, effort isolation, and telemetry
+contract with that runner. Only its reviewed, merged implementation may enter
+the separate headless pre-grasp gate; Viewer remains after that gate.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

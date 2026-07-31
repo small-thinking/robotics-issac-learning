@@ -1772,3 +1772,71 @@
   `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-gravity-feed-forward`.
   A `<=1°` calibration pass advances only to the separate headless pre-grasp
   gate. Full explicit PD remains the fallback if feed-forward fails.
+
+## 2026-07-31 — Bounded gravity feed-forward passed the machine gate
+
+- Scope: one approved headless window on the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4. The
+  fresh quote displayed `$1.59/hour` compute plus the existing approximately
+  `$0.04/hour` disk. No Viewer, table/cube task, pre-grasp, gripper, contact,
+  hardware, policy, checkpoint, instance creation, resize, or deletion ran.
+- Initial merged provenance: `main@7539585`. The first matrix failed closed
+  before any Yahboom pose command. Both cases raised
+  `TypeError: issubclass() arg 1 must be a class` when a Torch tensor reached
+  the installed Warp-backed `ArticulationView.set_dof_actuation_forces`.
+  No case JSON was written; the summary correctly selected
+  `incomplete_case_matrix`.
+- Failure evidence:
+  `artifacts/dofbot/gravity_feed_forward_runtime_failure_2026-07-31.json`.
+  It binds both retrieved logs and the incomplete matrix contract and records
+  which hypotheses were not tested.
+- Minimal compatibility repair: branch
+  `codex/dofbot-gravity-ff-warp-compat`, commit `1cf25a0`; use the
+  non-deprecated `root_view` and native Warp `float32` actuation data plus
+  `int32` indices. No controller, trajectory, effort bound, single-factor
+  comparison, or acceptance gate changed.
+- Repaired command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-gravity-feed-forward
+  ```
+
+- Result: `[MATRIX_EXIT_CODE] 0`, `matrix_complete=true`, decision
+  `bounded_gravity_feed_forward_resolves_tracking`.
+
+  | Case | Worst settled error | Worst overshoot | Contact | Result |
+  | --- | ---: | ---: | ---: | --- |
+  | force `1048/53/100`, FF off | `1.73936°` | `1.74808°` | `0 N` | tracking fail |
+  | same drive, bounded gravity FF on | `0.002391°` | `0.03611°` | `0 N` | tracking pass |
+
+- All four treatment poses settled by position difference. Target-buffer
+  error stayed below `0.000000854°`; all three required runtime APIs were
+  available; all uncontrolled DOFs received zero external actuation. Across
+  645 samples, raw and applied gravity effort both peaked at `0.363701`, well
+  below the `5.2` bound, with zero clipped samples.
+- Established: the remaining isolated gravity-on tracking residual is resolved
+  by bounded generalized-gravity feed-forward on the stable force drive.
+  Falsified: the earlier `1.73936°` residual is an unavoidable property of the
+  pose or target path.
+- Not established: task-space pre-grasp, Viewer, contact, grasp, lift, place,
+  or real-hardware behavior. The current pre-grasp runner still uses the old
+  acceleration `10000/100` scene configuration, so running it unchanged would
+  not test the selected actuator contract.
+- Success evidence:
+  `artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json`, which binds
+  the two ignored multi-megabyte case JSON files, both logs, and the matrix
+  contract by exact byte size and SHA-256.
+- Validation before repaired machine run: `201/201` repository tests, nine
+  focused feed-forward tests, targeted Ruff, Python compilation, JSON parsing,
+  deterministic plan regeneration, Git LFS checks, remote-command preview,
+  and `git diff --check` passed.
+- Resource lifecycle: all failed and successful artifacts were retrieved before
+  stop. Standard `brev ls --json` reached explicit `STOPPED` at 09:15:35 PDT;
+  the instance and persistent disk were retained and no resource was created,
+  resized, reset, or deleted.
+- Acceptance: **isolated actuator machine gate passed / pre-grasp integration
+  pending / pre-grasp machine gate and Viewer blocked**. The next work is
+  GPU-free: reuse this exact runtime contract inside the pre-grasp runner and
+  fail closed on its API and effort-isolation telemetry. Only after review,
+  merge, fresh quote, and approval should the separate headless pre-grasp run.

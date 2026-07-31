@@ -196,3 +196,28 @@ Wrap string checks in assertion functions that use an explicit `if` branch and
 `exit 1`. Keep finite simulator commands explicit about `--headless` so the
 preview tests verify an intentional launch contract rather than an implicit
 runtime default.
+
+## Raw PhysX setters use the native tensor frontend
+
+Isaac Lab can expose public articulation state as Torch tensors while its raw
+`omni.physics.tensors.ArticulationView` is backed by Warp. Passing Torch data
+directly to `set_dof_actuation_forces` then fails inside
+`FrontendWarp.as_contiguous_float32` with
+`TypeError: issubclass() arg 1 must be a class`.
+
+Probe raw runtime APIs before any robot command, inspect the installed
+frontend, and use its native tensor type for both data and indices. Keep this
+boundary separate from the backend-neutral Yahboom API and from Torch used for
+controller math. A local type-shaped mock cannot substitute for this runtime
+probe.
+
+## Brev copy may address the VM rather than the Isaac container
+
+On the retained Launchable, `brev copy` could not resolve an absolute path that
+existed inside the `vscode` container. The evidence was still present; the
+copy command was looking at the VM host filesystem.
+
+Before concluding that an artifact is missing, verify it inside the container.
+Use `brev exec --host "docker cp ..."` to a unique VM `/tmp` path, then run
+`brev copy` from that host path. Classify direct-path failure as infrastructure
+plumbing and do not rerun Isaac merely to regenerate already existing data.

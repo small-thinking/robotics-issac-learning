@@ -1,6 +1,6 @@
 # Status
 
-- Updated: 2026-07-30 America/Los_Angeles
+- Updated: 2026-07-31 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
@@ -18,18 +18,21 @@
   passes the unchanged one-degree gate; the completed GPU-free residual-force
   audit explains the `100`/`5.2` invariance at high confidence as a non-binding
   impulse limit, rejects joint-frame correction as the primary fix, and
-  selects bounded gravity-compensation feed-forward; that implementation now
-  passes its GPU-free single-factor, safety, telemetry, and command-preview
-  gates, while isolated machine calibration remains pending
+  selects bounded gravity-compensation feed-forward; after one fail-closed
+  Warp/Torch setter-boundary error and a minimal native-Warp repair, the
+  isolated machine matrix now reduces the worst settled error from `1.73936°`
+  to `0.002391°` with zero contact and zero effort clipping; the accepted
+  actuator contract is not yet wired into the pre-grasp runner, so its machine
+  gate and Viewer remain blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-30 20:05:30 PDT after drive-model artifact retrieval
+  2026-07-31 09:15:35 PDT after gravity feed-forward artifact retrieval
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
-- Latest live L4 quote: existing AWS `g6.4xlarge` class was
-  `$1.58784/hour` compute; rechecked 2026-07-30 before this matrix
+- Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
+  `$1.59/hour` compute; rechecked 2026-07-31 before this matrix
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1092,23 +1095,59 @@
 - Current acceptance: **local passed / isolated machine calibration pending /
   pre-grasp and Viewer blocked**
 
+## DOFBOT bounded gravity feed-forward machine result
+
+- Branch: `codex/dofbot-gravity-ff-warp-compat`; repaired machine commit
+  `1cf25a0`; merged preparation base `7539585`
+- Initial result: fail closed before any pose command. The installed raw PhysX
+  view used `FrontendWarp`, while the runner supplied Torch actuation data and
+  indices; both cases raised `TypeError: issubclass() arg 1 must be a class`,
+  no case artifact was written, and the matrix selected
+  `incomplete_case_matrix`
+- Failure record:
+  `artifacts/dofbot/gravity_feed_forward_runtime_failure_2026-07-31.json`
+- Minimal repair: use non-deprecated `root_view` and native Warp `float32`
+  actuation data plus `int32` indices; no controller, bound, pose, or gate
+  changed
+- Repaired result: `[MATRIX_EXIT_CODE] 0`, matrix complete, decision
+  `bounded_gravity_feed_forward_resolves_tracking`
+- Baseline: `1.73936°` worst settled error, `1.74808°` overshoot, `0 N`
+  monitored contact, tracking gate failed
+- Treatment: `0.002391°` worst settled error, `0.03611°` overshoot, `0 N`
+  contact, tracking gate passed
+- Gravity telemetry: 645 finite treatment samples; maximum raw/applied effort
+  `0.363701`; configured bound `5.2`; zero clipped samples; every uncontrolled
+  DOF remained at zero external actuation
+- Success record:
+  `artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json`
+- Local validation: `201/201` repository tests, nine focused tests, Ruff,
+  Python compilation, deterministic plan generation, JSON, Git LFS, remote
+  preview, and `git diff --check` passed
+- Current acceptance: **isolated actuator tracking passed / pre-grasp runtime
+  integration pending / pre-grasp machine gate and Viewer blocked**
+- Next free gate: make the pre-grasp runner reuse the exact force
+  `1048/53/100`, external-force-iteration, native-Warp bounded gravity FF,
+  API-probe, effort-isolation, and telemetry contract. Do not run the existing
+  acceleration `10000/100` pre-grasp runner as if it contained this fix.
+- Scope remains no gripper command, target motion, contact task, grasp, lift,
+  place, hardware, policy, checkpoint, PPO, SFT, or VLA.
+- Resource lifecycle: artifacts were retrieved before stop; standard
+  `brev ls --json` reached explicit `STOPPED` at 2026-07-31 09:15:35 PDT.
+  The instance and persistent disk were retained; no resource was created,
+  resized, reset, or deleted.
+
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the locally complete bounded
-gravity feed-forward implementation. It retains force `1048/53/100`, changes
-only the feed-forward enable flag between its two cases, requires all selected
-Omni Physics APIs before motion, clamps joints 1-4 to `±5.2`, and writes zero
-external actuation to every uncontrolled DOF.
+Keep the Brev instance stopped. Review and merge this repaired machine result,
+then implement the selected actuator runtime contract in the pre-grasp runner
+locally. The integration must fail before motion unless the three runtime APIs
+and native Warp write path are available, preserve the `5.2` bound and zero
+uncontrolled-DOF actuation, and record effort, incoming force, target,
+position, settling, and contact telemetry.
 
-After merge, obtain a fresh quote and explicit approval before running:
-
-```bash
-BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
-  make dofbot-gravity-feed-forward
-```
-
-This is an isolated headless gravity-on calibration, not the Viewer. Only a
-complete result at or below `1°` may proceed to the unchanged headless
-pre-grasp machine gate. `make dofbot-pregrasp-view` remains blocked until both
-machine gates pass. Contact, closing, grasping, lifting, and placing remain
-unauthorized.
+Only after that integration passes local review, merges, receives a fresh
+quote, and has explicit approval may the separate headless pre-grasp machine
+gate run. `make dofbot-pregrasp-view` remains blocked until the pre-grasp
+machine artifact passes its unchanged position, orientation, tracking,
+collision, contact, and reset gates. Contact tasks, closing, grasping, lifting,
+and placing remain unauthorized.

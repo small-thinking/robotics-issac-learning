@@ -348,3 +348,26 @@ This decision authorizes implementation and local tests only. A paid headless
 run still needs review, merge, a fresh quote, and explicit approval. The
 gravity-on `<=1°` calibration and headless pre-grasp gates remain sequential;
 Viewer, contact, and grasp stay blocked.
+
+## 2026-07-31 — Adopt bounded gravity feed-forward for simulated pre-grasp
+
+The isolated machine matrix accepts bounded generalized-gravity feed-forward
+on force drive `1048/53/100`. The matched baseline remains at `1.73936°`
+maximum settled error; the treatment reaches `0.002391°`, with zero monitored
+contact, target-buffer agreement below `0.000000854°`, and zero clipping. Raw
+and applied compensation peak at only `0.363701` against the `5.2` safety
+bound. The full explicit PD fallback is therefore not selected.
+
+The first attempt did not test this hypothesis: it failed before any pose
+command because the raw PhysX view was Warp-backed and received Torch tensors.
+The repaired run changed only native tensor plumbing. Preserve both records so
+future work does not reinterpret a runtime compatibility failure as a control
+failure or rerun the same diagnosis.
+
+Adoption is limited to simulation and must preserve the exact drive tuning,
+external-force iteration, required API probe, controlled-joint-only effort,
+uncontrolled-DOF zeros, incoming-force telemetry, contact monitoring, and
+existing one-degree gate. The current pre-grasp runner does not satisfy that
+contract and remains blocked until GPU-free integration is reviewed and
+merged. This decision does not authorize Viewer, contact, gripper closing,
+grasp, lift, place, or hardware execution.

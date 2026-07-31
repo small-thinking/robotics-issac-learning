@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-31T16:05:16.570873+00:00",
+  "experiment": "dofbot_bounded_gravity_feed_forward_machine_result",
+  "scope": "isolated headless actuator calibration only",
+  "provenance": {
+    "merged_base_commit": "75395855c2f92b5f25ab1ac098f38ce7e8eb4465",
+    "runtime_fix_commit": "1cf25a0502e8f4c9fdd3ad321feae42736482561",
+    "command": "BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-gravity-feed-forward",
+    "initial_failure_record": "artifacts/dofbot/gravity_feed_forward_runtime_failure_2026-07-31.json"
+  },
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "live_compute_quote_usd_per_hour": 1.59,
+    "persistent_disk_quote_usd_per_hour_approx": 0.04,
+    "terminal_instance_state": "STOPPED",
+    "terminal_state_verified_at": "2026-07-31T09:15:35-07:00",
+    "instance_or_disk_created_resized_reset_or_deleted": false
+  },
+  "compatibility_repair": {
+    "initial_failure": "Torch tensors were passed to a Warp-backed raw PhysX articulation setter before any pose command.",
+    "repair": "Use root_view and native Warp float32 actuation data with int32 indices.",
+    "control_or_gate_changes": false,
+    "local_regression_tests_passed": 201
+  },
+  "matrix": {
+    "matrix_exit_code": 0,
+    "matrix_complete": true,
+    "decision": "bounded_gravity_feed_forward_resolves_tracking",
+    "tracking_identity_validated": true,
+    "pregrasp_authorized_by_matrix": false,
+    "viewer_authorized": false
+  },
+  "cases": {
+    "force_damping_53_baseline": {
+      "gravity_compensation_feed_forward": false,
+      "diagnostic_complete": true,
+      "tracking_gate_passed": false,
+      "maximum_settled_tracking_error_deg": 1.739357858876076,
+      "maximum_target_buffer_error_deg": 8.537378448636446e-7,
+      "maximum_overshoot_deg": 1.7480783028988895,
+      "maximum_contact_force_n": 0.0
+    },
+    "bounded_gravity_feed_forward": {
+      "gravity_compensation_feed_forward": true,
+      "diagnostic_complete": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.002390900139928931,
+      "maximum_target_buffer_error_deg": 8.537736562175269e-7,
+      "maximum_overshoot_deg": 0.03611426171563892,
+      "maximum_contact_force_n": 0.0,
+      "maximum_absolute_raw_gravity_effort": 0.36370089650154114,
+      "maximum_absolute_applied_feed_forward_effort": 0.36370089650154114,
+      "configured_feed_forward_effort_limit": 5.2,
+      "clipped_sample_count": 0,
+      "feed_forward_sample_count": 645
+    }
+  },
+  "shared_runtime_contract": {
+    "drive_type": "force",
+    "stiffness": 1048.0,
+    "damping": 53.0,
+    "effort_limit_sim": 100.0,
+    "enable_external_forces_every_iteration": true,
+    "controlled_joints": ["joint1", "joint2", "joint3", "joint4"],
+    "uncontrolled_dof_external_actuation": 0.0,
+    "official_api_calls_per_case": 16
+  },
+  "retrieved_sources": {
+    "force_damping_53_baseline.json": {
+      "bytes": 3041715,
+      "sha256": "6b093f5f5c0f911f80cb2587f4a754bc1122f7445f7c36f3b92b7d3d99795cfe"
+    },
+    "force_damping_53_baseline.log": {
+      "bytes": 20239,
+      "sha256": "0ef7986426bc164117a1aa53472476954c28368944c14fcde5ac88911a73d6c3"
+    },
+    "bounded_gravity_feed_forward.json": {
+      "bytes": 3123652,
+      "sha256": "b5fcf7964bda7973ff90cb53ebdbabea8735070886645a2f67b38977bac49964"
+    },
+    "bounded_gravity_feed_forward.log": {
+      "bytes": 20256,
+      "sha256": "c568eddeb33b75154978f244b952b41522ce2282b40ac7616b1df3c0387cde34"
+    },
+    "gravity_feed_forward_contract.json": {
+      "bytes": 4491,
+      "sha256": "c0ab236bae09d2ff6402658e48b9310b3f42f5a5a59ee0f36bf491316a72d2a6"
+    }
+  },
+  "conclusion": {
+    "established": [
+      "The installed gravity-compensation, actuation-force, and incoming-joint-force APIs are available with native Warp tensors.",
+      "Bounded gravity feed-forward removes the remaining gravity-on tracking residual for the isolated four-pose trajectory.",
+      "The configured 5.2 effort bound is non-binding for this run; observed compensation peaked at 0.363701 and no sample clipped."
+    ],
+    "not_established": [
+      "pre-grasp task-space acceptance",
+      "Viewer acceptance",
+      "contact, grasp, lift, or place success",
+      "real-hardware behavior"
+    ],
+    "next_action": "Wire the accepted actuator runtime contract into the pre-grasp runner, pass GPU-free tests, then run the separate headless pre-grasp machine gate after review, merge, fresh quote, and approval."
+  }
+}

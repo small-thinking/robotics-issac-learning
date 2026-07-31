@@ -157,12 +157,17 @@ The detailed first-stage contract lives in
    target/frame path passes at `0.0032°` with gravity off, so a static
    joint-frame correction is rejected as the primary fix. The bounded
    gravity-compensation feed-forward implementation on the stable force
-   `1048/53/100` baseline now passes local review and fail-closed tests. A full
-   explicit PD actuator is still a fallback. The next gate is the isolated
-   headless two-case machine calibration after review, merge, fresh quote, and
-   approval. The separate `<=1°` tracking gate remains. Pre-grasp, Viewer,
-   wrist twist, gripper closing, target motion, contact, and grasp success
-   remain unauthorized.
+   `1048/53/100` baseline now passes the isolated machine gate. Its first
+   attempt failed before motion at a Torch-to-Warp raw-setter boundary; the
+   native-Warp repair preserved every experimental control. The repaired
+   treatment reaches `0.002391°` worst settled tracking error versus
+   `1.73936°` for the matched baseline, with zero contact, zero clipping, and
+   maximum applied compensation `0.363701`. The actuator hypothesis is now
+   accepted. The next gate is GPU-free integration of this exact runtime
+   contract into pre-grasp, followed after review, merge, fresh quote, and
+   approval by the separate headless pre-grasp machine gate. Viewer, wrist
+   twist, gripper closing, target motion, contact, and grasp success remain
+   unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

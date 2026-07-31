@@ -73,7 +73,12 @@ lightweight VLA post-training, and optional real hardware.
   `4.974°` tracking error. The completed four-case TGS/drive comparison shows
   that external-force iteration repairs velocity telemetry but not tracking;
   two velocity iterations have no material effect; and damping 50 remains at
-  `4.883°`. No pre-grasp, Viewer, contact, or grasp is authorized.
+  `4.883°`. Force `1048/53/100` reduces that residual to `1.73936°`. The
+  bounded gravity feed-forward machine treatment now passes at `0.002391°`
+  after a fail-closed Torch/Warp setter incompatibility was repaired with
+  native Warp arrays. No pre-grasp, Viewer, contact, or grasp is authorized
+  because the accepted actuator runtime contract is not yet wired into the
+  pre-grasp runner.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -114,8 +119,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    `100`/`5.2` invariance at high confidence as a non-binding
    force-versus-impulse limit and rejects a static joint-frame error as the
    primary cause. The bounded gravity-compensation feed-forward implementation
-   now passes its GPU-free single-factor, safety, telemetry, and remote-command
-   preparation gates; its isolated machine result remains pending.
+   now passes its isolated machine gate at `0.002391°` worst settled error,
+   with zero contact and zero clipped samples. Its first attempt failed before
+   motion at the installed Warp frontend boundary and is preserved separately.
+   The next free step is pre-grasp runtime integration; pre-grasp machine and
+   Viewer gates remain pending.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -144,18 +152,16 @@ explanation for why limits `100` and `5.2` left all 647 selected physical
 samples identical, but the runtime articulation flag was not directly exposed
 by the recorded USD or tensor telemetry and the audit preserves that boundary.
 
-The bounded gravity-compensation feed-forward implementation is now locally
-prepared on top of the stable force-drive `1048/53/100` baseline. Its two cases
-change only the feed-forward enable flag; both require the three Omni Physics
-runtime APIs before motion, clamp only joints 1-4 to `±5.2`, zero every other
-DOF, and preserve target, position-derived settling, incoming-force, contact,
-trajectory, and one-degree gates. Gravity-off tracking at `0.0032°` and
-matched target buffers still reject a static joint-frame/sign error as the
-primary cause. A full explicit PD actuator remains a fallback because it
-introduces a new discrete-time controller. After review and merge, the next
-step is a fresh quote plus explicit approval for the isolated headless
-two-case calibration. Do not rerun pre-grasp or open the Viewer until that
-calibration and the separate headless pre-grasp machine gate both pass.
+The bounded gravity-compensation feed-forward experiment is complete. Its
+matched baseline remains at `1.73936°`, while the treatment passes at
+`0.002391°`; maximum compensation is `0.363701`, far below the `5.2` bound,
+with zero clipping, zero uncontrolled-DOF effort, and zero contact. The
+initial native-frontend failure and repaired success have separate SHA-bound
+records. The next step is free local integration of the selected force
+`1048/53/100`, external-force-iteration, native-Warp feed-forward, API-probe,
+effort-isolation, and telemetry contract into the pre-grasp runner. Do not run
+the existing acceleration `10000/100` pre-grasp path or open the Viewer until
+that integration is reviewed and its separate headless machine gate passes.
 Contact and grasping remain out of scope.
 
 ## Sources of truth
