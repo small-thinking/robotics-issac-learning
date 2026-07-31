@@ -254,3 +254,21 @@ drive change rather than an arbitrary motion-profile adjustment.
 The ladder does not authorize pre-grasp. A tracking improvement must still
 pass the independent one-degree position gate; a telemetry-only improvement
 is recorded separately and cannot substitute for tracking.
+
+## 2026-07-30 — Retain the TGS telemetry repair, reject it as a tracking fix
+
+The remote ladder shows that
+`enable_external_forces_every_iteration=true` reduces the raw/position
+velocity mismatch from `16.444°/s` to `0.099°/s`. Retain this setting for
+trustworthy velocity telemetry in subsequent diagnostics.
+
+Do not claim that it fixes actuation: tracking remains `5.041°`. Two solver
+velocity iterations produce the same result within `0.000004°`, and damping
+50 improves the baseline by only `0.091°`. Neither setting is adopted as the
+tracking correction.
+
+The next experiment is not another broad parameter sweep. First perform a
+GPU-free per-joint audit of the official USD's drive-force interpretation,
+mass/inertia, axis, and transmission semantics, focused on joint 3. Only that
+evidence may define a new orthogonal paid matrix. The one-degree gate and all
+pre-grasp, Viewer, contact, and grasp blocks remain unchanged.

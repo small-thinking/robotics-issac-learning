@@ -1530,3 +1530,54 @@
   run not authorized / pre-grasp and Viewer blocked**. A future
   `make dofbot-solver-drive` requires branch review, a fresh live quote, and
   explicit approval.
+
+## 2026-07-30 — Solver/drive matrix repaired telemetry but not gravity-on tracking
+
+- Scope: one approved headless window on the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4.
+  The live compute quote remained `$1.58784/hour`; the existing disk remained
+  approximately `$0.04/hour`. No instance or disk was created, resized, or
+  deleted.
+- Provenance: merged
+  `main@02f27d259d271a5bb01a9739c1c270db702de9f7`; config SHA-256
+  `5ae01f684857f78fb3eb973cf32655617a18eb3ec8d3847e20631140a0bb018d`.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-solver-drive
+  ```
+
+- Result: `[MATRIX_EXIT_CODE] 0`, `matrix_complete=true`, decision
+  `external_force_iteration_repairs_velocity_telemetry_only`.
+
+  | Case | Tracking error | Derived speed | Raw speed | Raw/derived mismatch | Tracking gate |
+  | --- | ---: | ---: | ---: | ---: | --- |
+  | baseline TGS | `4.97412°` | `0.04190°/s` | `16.36310°/s` | `16.44402°/s` | fail |
+  | external forces each iteration | `5.04065°` | `0.04259°/s` | `0.02504°/s` | `0.09921°/s` | fail |
+  | two velocity iterations | `5.04064°` | `0.04252°/s` | `0.02507°/s` | `0.09914°/s` | fail |
+  | damping 50 | `4.88333°` | `0.05761°/s` | `0.05792°/s` | `0.10186°/s` | fail |
+
+- All poses in all cases settled by position difference. All target-buffer
+  errors were below `0.0000017°`; all monitored contact forces were `0 N`.
+- Enabling external-force application on every TGS position iteration repairs
+  the raw velocity signal, but does not improve position tracking. Adding two
+  velocity iterations changes worst-case tracking by less than `0.000004°`.
+  Halving damping improves the baseline by only `0.09079°`, leaving the result
+  far outside the unchanged `1°` gate.
+- Joint 3 remains the dominant error at the candidate: approximately
+  `-4.97°` to `-5.04°`, or `-4.88°` under damping 50. This focuses the next
+  local audit on per-joint drive force, axis/transmission semantics, and
+  official-asset mass/inertia rather than another generic solver retry.
+- Evidence:
+  `artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json`; it
+  SHA/size-binds the four ignored raw JSON files, four logs, and matrix
+  contract.
+- Resource lifecycle: artifacts were retrieved before stop and standard
+  `brev ls --json` reached explicit `STOPPED` at 18:12:50 PDT. No instance or
+  disk was created, resized, or deleted.
+- Validation: `179/179` repository tests, Git LFS attributes, remote command
+  previews, targeted Ruff, promoted source SHA/size bindings, JSON parsing,
+  and `git diff --check` passed.
+- Acceptance: **remote matrix complete / velocity telemetry repaired /
+  tracking unresolved / pre-grasp and Viewer blocked**. The next work is a
+  GPU-free asset/drive audit before designing another paid matrix.

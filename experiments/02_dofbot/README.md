@@ -1054,6 +1054,34 @@ Evidence is
 velocity diagnosis passed / focused matrix prepared / remote Isaac pending /
 pre-grasp and Viewer blocked**.
 
+### Solver/drive remote result
+
+The approved headless matrix ran on merged
+`main@02f27d259d271a5bb01a9739c1c270db702de9f7` and completed with
+`[MATRIX_EXIT_CODE] 0`. The automatic decision is
+`external_force_iteration_repairs_velocity_telemetry_only`.
+
+Enabling external-force application every TGS position iteration reduces the
+maximum raw/position velocity mismatch from `16.44402°/s` to `0.09921°/s`.
+It does not reduce position error: worst-case tracking changes from
+`4.97412°` to `5.04065°`. Adding two velocity iterations is materially
+identical at `5.04064°`. Damping 50 reaches `4.88333°`, only `0.09079°`
+better than baseline and still far outside the one-degree gate.
+
+Every case settles by position difference, matches the target buffer within
+`0.0000017°`, and records zero monitored contact. Joint 3 remains the
+dominant error at the candidate. Thus the TGS velocity warning is not the
+cause of the position error, and neither velocity iterations nor damping 50 is
+accepted as a fix.
+
+The reviewed evidence is
+`artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json`. The raw
+case JSON and logs remain ignored but are bound by byte size and SHA-256.
+Acceptance is **machine matrix complete / velocity telemetry repair found /
+tracking unresolved / pre-grasp and Viewer blocked**. Before another paid
+window, audit the official asset's per-joint drive force, axes/transmission,
+mass, and inertia with particular attention to joint 3.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

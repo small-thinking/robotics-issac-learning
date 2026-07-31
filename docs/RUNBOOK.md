@@ -230,6 +230,15 @@ to explicit `STOPPED` before interpreting results. A case may repair tracking,
 repair only raw velocity telemetry, or repair neither; these outcomes are
 separate decisions.
 
+The 2026-07-30 matrix selected the telemetry-only branch. Preserve
+`enable_external_forces_every_iteration=true` in later diagnostics, but do not
+adopt velocity iterations 2 or damping 50 as tracking fixes. Before another
+paid matrix, inspect the retrieved physics snapshot and pose summaries
+offline: joint 3 is the dominant error, every target buffer agrees, every pose
+is physically settled, and every monitored contact is zero. Audit drive force,
+mass/inertia, axis, and transmission semantics before selecting another
+parameter.
+
 After applying the decision-specific change, rerun the selected gravity-on
 calibration.
 Only a complete calibration with the selected baseline meeting the `1°`

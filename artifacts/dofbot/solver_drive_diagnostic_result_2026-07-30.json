@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_solver_drive_diagnostic_remote_result",
+  "reviewed_at_utc": "2026-07-31T01:08:22Z",
+  "machine_commit": "02f27d259d271a5bb01a9739c1c270db702de9f7",
+  "calibration_config_sha256": "5ae01f684857f78fb3eb973cf32655617a18eb3ec8d3847e20631140a0bb018d",
+  "remote": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "provider_instance_type": "AWS g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "quoted_compute_usd_per_hour": 1.58784,
+    "persistent_disk_usd_per_hour_approx": 0.04,
+    "matrix_command_started_utc": "2026-07-31T01:02:13Z",
+    "stop_verified_utc": "2026-07-31T01:12:50Z",
+    "stop_status": "STOPPED",
+    "instance_or_disk_created_resized_or_deleted": false
+  },
+  "matrix": {
+    "matrix_complete": true,
+    "matrix_exit_code": 0,
+    "decision": "external_force_iteration_repairs_velocity_telemetry_only",
+    "tracking_identity_validated": false,
+    "pregrasp_authorized": false,
+    "viewer_authorized": false,
+    "contact_or_grasp_authorized": false,
+    "unchanged_maximum_joint_tracking_error_deg": 1.0
+  },
+  "cases": {
+    "baseline_tgs": {
+      "enable_external_forces_every_iteration": false,
+      "solver_velocity_iteration_count": 0,
+      "damping": 100.0,
+      "maximum_tracking_error_deg": 4.974120081868477,
+      "maximum_position_derived_velocity_deg_s": 0.041903210558018746,
+      "maximum_raw_joint_velocity_deg_s": 16.36310468516706,
+      "maximum_raw_position_velocity_mismatch_deg_s": 16.444018521169614,
+      "raw_position_velocity_signals_consistent": false,
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_target_buffer_error_deg": 1.5201597847180892e-6,
+      "maximum_contact_force_n": 0.0,
+      "maximum_applied_torque": 100.0,
+      "tracking_gate_passed": false
+    },
+    "external_forces_each_iteration": {
+      "enable_external_forces_every_iteration": true,
+      "solver_velocity_iteration_count": 0,
+      "damping": 100.0,
+      "maximum_tracking_error_deg": 5.040646124384409,
+      "maximum_position_derived_velocity_deg_s": 0.042586229475034695,
+      "maximum_raw_joint_velocity_deg_s": 0.02503772259428127,
+      "maximum_raw_position_velocity_mismatch_deg_s": 0.09920737378148248,
+      "raw_position_velocity_signals_consistent": true,
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_target_buffer_error_deg": 1.6483523239685383e-6,
+      "maximum_contact_force_n": 0.0,
+      "maximum_applied_torque": 100.0,
+      "tracking_gate_passed": false
+    },
+    "velocity_iterations_2": {
+      "enable_external_forces_every_iteration": true,
+      "solver_velocity_iteration_count": 2,
+      "damping": 100.0,
+      "maximum_tracking_error_deg": 5.04064270928982,
+      "maximum_position_derived_velocity_deg_s": 0.04251792758331889,
+      "maximum_raw_joint_velocity_deg_s": 0.025070181000578704,
+      "maximum_raw_position_velocity_mismatch_deg_s": 0.09914146645799678,
+      "raw_position_velocity_signals_consistent": true,
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_target_buffer_error_deg": 1.6372216364857195e-6,
+      "maximum_contact_force_n": 0.0,
+      "maximum_applied_torque": 100.0,
+      "tracking_gate_passed": false
+    },
+    "reduced_damping_50": {
+      "enable_external_forces_every_iteration": true,
+      "solver_velocity_iteration_count": 2,
+      "damping": 50.0,
+      "maximum_tracking_error_deg": 4.8833332074206695,
+      "maximum_position_derived_velocity_deg_s": 0.057612645649030216,
+      "maximum_raw_joint_velocity_deg_s": 0.05792490669006747,
+      "maximum_raw_position_velocity_mismatch_deg_s": 0.10186108903704963,
+      "raw_position_velocity_signals_consistent": true,
+      "all_poses_settled_by_position_derived_velocity": true,
+      "maximum_target_buffer_error_deg": 1.3393574107567474e-6,
+      "maximum_contact_force_n": 0.0,
+      "maximum_applied_torque": 100.0,
+      "tracking_gate_passed": false
+    }
+  },
+  "comparisons": {
+    "external_force_iteration_repairs_raw_velocity_telemetry": true,
+    "external_force_iteration_repairs_position_tracking": false,
+    "velocity_iterations_2_change_tracking_materially": false,
+    "velocity_iterations_2_tracking_delta_deg": -3.415094588898215e-6,
+    "reduced_damping_50_repairs_position_tracking": false,
+    "reduced_damping_50_tracking_improvement_vs_baseline_deg": 0.09078687444780775,
+    "every_case_settles_by_position_difference": true,
+    "every_case_has_zero_monitored_contact": true,
+    "every_case_matches_backend_target_buffer": true
+  },
+  "evidence_interpretation": {
+    "established": [
+      "enabling external-force application on every TGS position iteration repairs the raw joint velocity telemetry mismatch",
+      "the external-force change does not repair the approximately five-degree gravity-on joint tracking error",
+      "adding two velocity iterations after the telemetry repair changes tracking by less than 0.000004 degrees",
+      "halving damping improves worst-case tracking by only 0.0908 degrees and remains far outside the one-degree gate",
+      "joint3 remains the largest-error controlled joint at the pre-grasp candidate",
+      "all four cases are physically settled by position difference, match the target buffer, and record zero monitored contact"
+    ],
+    "falsified": [
+      "the raw TGS velocity warning is the cause of the position tracking error",
+      "two solver velocity iterations are sufficient to repair tracking",
+      "halving damping is sufficient to repair tracking"
+    ],
+    "unresolved": [
+      "why gravity-on joint3 holds approximately five degrees beyond the commanded pre-grasp angle",
+      "whether the remaining error is caused by the drive force model, authored mass or inertia, joint axis or transmission semantics, or another asset-runtime mapping issue"
+    ],
+    "next_local_action": "retain external-force iteration for trustworthy velocity telemetry, then perform a GPU-free per-joint drive-force and asset mass-inertia audit before designing another paid matrix"
+  },
+  "source_artifacts": {
+    "matrix_contract": {
+      "bytes": 5816,
+      "sha256": "c6b34d40b8e00623c3cac3aeb4c6b4000292be5fc326c7de552d8c7effbb9533"
+    },
+    "baseline_tgs_json": {
+      "bytes": 2604916,
+      "sha256": "061d0d6b308ca1510efea5eaa9e15b151a5aca39f22e67339a7ce552f2d49c45"
+    },
+    "baseline_tgs_log": {
+      "bytes": 20325,
+      "sha256": "29c961ff66e393633bb2f49bd58517105f2ecba578dc82df4d018a8cfdc6f3c1"
+    },
+    "external_forces_each_iteration_json": {
+      "bytes": 2535632,
+      "sha256": "6bf769ec8e91eb62e16786c69e77d21d32db73bc11027e952cb4e01e5da53f6b"
+    },
+    "external_forces_each_iteration_log": {
+      "bytes": 20234,
+      "sha256": "bad3a757935d093b2a570ab0465c49ac83e341cac4faa0fa7fc23c098b3090bf"
+    },
+    "velocity_iterations_2_json": {
+      "bytes": 2535487,
+      "sha256": "91b5abb0e6402347bd88d435084ec9f1f6534a274650b6d3264c32ecd8e67e6a"
+    },
+    "velocity_iterations_2_log": {
+      "bytes": 20180,
+      "sha256": "046c6ac92ad6719aed1e32ab4c994d43e5e9d9c8e7cbbda68f078715cd7fd0ca"
+    },
+    "reduced_damping_50_json": {
+      "bytes": 3186106,
+      "sha256": "d06a88a5b90e363569e63da6a8677e0fc2a114ee93b5acf0d7dd2f31ea222613"
+    },
+    "reduced_damping_50_log": {
+      "bytes": 20162,
+      "sha256": "89ec73bfa29f32cb9a0019da4b961f0cb97c0b2ca5fe478dd4e288ab40e418a4"
+    }
+  }
+}

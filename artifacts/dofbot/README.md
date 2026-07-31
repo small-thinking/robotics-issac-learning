@@ -220,8 +220,16 @@ marked right-censored rather than extrapolating beyond the recorded samples.
 It locks four gravity-on, effort-100 cases that change exactly one control at a
 time: external-force application each TGS iteration, two velocity iterations,
 and then damping 100 to 50. It keeps GPU, Viewer, pre-grasp, contact, grasp,
-hardware, policy, and checkpoint authorization false. Future machine-generated
-case JSON and `solver_drive_diagnostic_contract.json` remain pending.
+hardware, policy, and checkpoint authorization false.
+
+`solver_drive_diagnostic_result_2026-07-30.json` is the reviewed promotion of
+the completed remote matrix. It records that external-force iteration repairs
+raw velocity telemetry but not the approximately five-degree tracking error;
+two velocity iterations have no material effect; and damping 50 improves the
+worst case by only 0.09079 degrees. It binds the ignored machine-generated
+four case JSON files, four logs, and
+`solver_drive_diagnostic_contract.json` by exact byte size and SHA-256.
+Pre-grasp, Viewer, contact, and grasp authorization remain false.
 
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,

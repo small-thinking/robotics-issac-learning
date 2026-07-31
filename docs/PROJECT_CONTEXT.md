@@ -70,9 +70,10 @@ lightweight VLA post-training, and optional real hardware.
   nearly stationary position samples. The local follow-up now measures
   settling from a `100 ms` position difference, reproduces a
   `16.444°/s` gravity-on raw/derived mismatch while preserving the real
-  `4.974°` tracking error, and prepares a four-case single-factor TGS/drive
-  comparison. That comparison is not yet an Isaac machine result. No
-  pre-grasp, Viewer, contact, or grasp is authorized.
+  `4.974°` tracking error. The completed four-case TGS/drive comparison shows
+  that external-force iteration repairs velocity telemetry but not tracking;
+  two velocity iterations have no material effect; and damping 50 remains at
+  `4.883°`. No pre-grasp, Viewer, contact, or grasp is authorized.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -100,8 +101,9 @@ The CartPole stage is complete. The canonical next-stage plan is
    endpoint, but the gravity-on articulation fails the one-degree tracking
    gate. The completed actuator matrix proves gravity sensitivity, falsifies
    effort 250 as a sufficient fix, and the local position-derived velocity
-   contract plus four-stage solver/drive plan now pass offline review. The
-   focused remote matrix remains pending a fresh quote and explicit approval.
+   contract plus four-stage solver/drive plan passed offline review. The
+   focused remote matrix then repaired raw velocity telemetry without repairing
+   tracking. A GPU-free joint-3-focused asset/drive audit is next.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older

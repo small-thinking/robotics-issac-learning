@@ -139,9 +139,13 @@ The detailed first-stage contract lives in
    load dependence and falsifies effort 250 alone as a fix. Nearly stationary
    final position samples disagree with raw TGS `joint_vel`. The GPU-free
    finite-difference velocity contract and focused four-stage solver/drive
-   design now pass; the remote matrix remains pending. The separate `<=1°`
-   tracking gate remains. Pre-grasp, Viewer, wrist twist, gripper closing,
-   target motion, contact, and grasp success remain unauthorized.
+   design passed. The remote matrix repairs the raw velocity mismatch when
+   external-force iteration is enabled, but leaves `4.883°-5.041°` tracking
+   error across all tested solver/damping settings. Audit joint 3 drive,
+   mass/inertia, axis, and transmission semantics locally before another paid
+   matrix. The separate `<=1°` tracking gate remains. Pre-grasp, Viewer, wrist
+   twist, gripper closing, target motion, contact, and grasp success remain
+   unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 
