@@ -5,6 +5,8 @@ project_dir="${REMOTE_PROJECT_DIR:-/workspace/robotics-issac-learning}"
 asset_contract="${DOFBOT_ASSET_CONTRACT:-$project_dir/artifacts/dofbot/asset_contract.json}"
 scene_config="${DOFBOT_PREGRASP_SCENE_CONFIG:-${REACHING:-configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json}}"
 pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_angled_pregrasp.json}}"
+actuator_config="${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-${GRAVITY_FEED_FORWARD_DIAGNOSTIC:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}}"
+actuator_result="${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}"
 output="${DOFBOT_PREGRASP_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_machine_contract.json}"
 
 if [[ "$scene_config" != /* ]]; then
@@ -13,11 +15,19 @@ fi
 if [[ "$pose_config" != /* ]]; then
   pose_config="$project_dir/$pose_config"
 fi
+if [[ "$actuator_config" != /* ]]; then
+  actuator_config="$project_dir/$actuator_config"
+fi
+if [[ "$actuator_result" != /* ]]; then
+  actuator_result="$project_dir/$actuator_result"
+fi
 
 printf -v quoted_project_dir '%q' "$project_dir"
 printf -v quoted_asset_contract '%q' "$asset_contract"
 printf -v quoted_scene_config '%q' "$scene_config"
 printf -v quoted_pose_config '%q' "$pose_config"
+printf -v quoted_actuator_config '%q' "$actuator_config"
+printf -v quoted_actuator_result '%q' "$actuator_result"
 printf -v quoted_output '%q' "$output"
 
 remote_command="
@@ -28,6 +38,8 @@ git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
   --asset-contract $quoted_asset_contract \
   --scene-config $quoted_scene_config \
   --pose-config $quoted_pose_config \
+  --actuator-config $quoted_actuator_config \
+  --actuator-result $quoted_actuator_result \
   --output $quoted_output \
   --cycles 1 \
   --viewer-connection-hold-seconds 0 \

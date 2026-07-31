@@ -22,11 +22,11 @@
   Warp/Torch setter-boundary error and a minimal native-Warp repair, the
   isolated machine matrix now reduces the worst settled error from `1.73936°`
   to `0.002391°` with zero contact and zero effort clipping; the accepted
-  actuator contract is not yet wired into the pre-grasp runner, so its machine
-  gate and Viewer remain blocked
+  actuator contract now passes GPU-free pre-grasp runtime integration, while
+  the separate pre-grasp machine gate and Viewer remain blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-31 09:15:35 PDT after gravity feed-forward artifact retrieval
+  2026-07-31 11:21 PDT after local pre-grasp runtime integration
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -1124,11 +1124,11 @@
   Python compilation, deterministic plan generation, JSON, Git LFS, remote
   preview, and `git diff --check` passed
 - Current acceptance: **isolated actuator tracking passed / pre-grasp runtime
-  integration pending / pre-grasp machine gate and Viewer blocked**
-- Next free gate: make the pre-grasp runner reuse the exact force
-  `1048/53/100`, external-force-iteration, native-Warp bounded gravity FF,
-  API-probe, effort-isolation, and telemetry contract. Do not run the existing
-  acceleration `10000/100` pre-grasp runner as if it contained this fix.
+  integration passed locally / pre-grasp machine gate and Viewer blocked**
+- Integrated runtime: the pre-grasp runner now reuses the exact force
+  `1048/53/100`, external-force iteration, native-Warp bounded gravity FF,
+  API probe, effort isolation, live-drive readback, per-step telemetry, and
+  failure-classification contract.
 - Scope remains no gripper command, target motion, contact task, grasp, lift,
   place, hardware, policy, checkpoint, PPO, SFT, or VLA.
 - Resource lifecycle: artifacts were retrieved before stop; standard
@@ -1136,18 +1136,51 @@
   The instance and persistent disk were retained; no resource was created,
   resized, reset, or deleted.
 
+## DOFBOT pre-grasp actuator-runtime integration
+
+- Branch: `codex/dofbot-pregrasp-actuator-runtime`
+- Scope: GPU-free integration and regression testing only; no Brev start,
+  Isaac execution, Viewer, contact, gripper, hardware, policy, or checkpoint
+- Evidence binding: the runner parses the accepted calibration config and the
+  promoted machine result before Kit launch, requires the successful matrix
+  decision and treatment metrics, cross-checks force `1048/53/100`, and records
+  both source SHA-256 values
+- Shared runtime: calibration and pre-grasp now import the same native-Warp
+  `BoundedGravityFeedForward`; the probe writes zero before the first Yahboom
+  pose, and every physics step preserves PD-write, bounded feed-forward,
+  simulation-step, incoming-force-read order
+- Machine fail-closed additions: read back every controlled USD drive, require
+  the selected drive/gain/limit values, retain the `5.2` bound and zero
+  uncontrolled-DOF effort, record all feed-forward samples, and classify failed
+  checks as actuator, tracking, contact, API-accounting, reset, or task-space
+- Local evidence: `artifacts/dofbot/pregrasp_command_space_contract.json`
+  passes `27/27` checks and binds the runner plus shared-runtime SHA-256 values
+- Validation: `205/205` repository tests, changed-file Ruff, Python
+  compilation, shell syntax, remote-command previews, deterministic JSON,
+  Git LFS, and `git diff --check` pass. Full-repository Ruff still reports the
+  pre-existing unrelated long line in `tools/collect_environment_info.py:47`.
+- Known remaining integration bugs: none from static and GPU-free tests.
+  Installed Isaac task-scene behavior is still unverified and cannot be
+  converted into a finite bug count before the headless machine gate.
+- Current acceptance: **local runtime integration passed / headless pre-grasp
+  machine pending / Viewer blocked**
+- Resource state: `brev ls --json` re-verified the retained `g6.4xlarge` L4
+  instance as explicit `STOPPED` at 11:21 PDT; no remote resource was started,
+  created, resized, stopped, or deleted in this integration step.
+
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge this repaired machine result,
-then implement the selected actuator runtime contract in the pre-grasp runner
-locally. The integration must fail before motion unless the three runtime APIs
-and native Warp write path are available, preserve the `5.2` bound and zero
-uncontrolled-DOF actuation, and record effort, incoming force, target,
-position, settling, and contact telemetry.
+Keep the Brev instance stopped. Review and merge the local pre-grasp actuator
+integration. Its deterministic preparation now passes `27/27`; all `205`
+repository tests, targeted Ruff, Python compilation, shell syntax, JSON,
+remote-command preview, Git LFS, and `git diff --check` pass. It binds the
+accepted calibration config and machine-result SHA-256 values and fails before
+motion on evidence drift, missing APIs, a non-native setter path, or composed
+drive mismatch.
 
-Only after that integration passes local review, merges, receives a fresh
-quote, and has explicit approval may the separate headless pre-grasp machine
-gate run. `make dofbot-pregrasp-view` remains blocked until the pre-grasp
+Only after merge, a fresh quote, and explicit approval may the separate
+headless `make dofbot-pregrasp` machine gate run. `make dofbot-pregrasp-view`
+remains blocked until the pre-grasp
 machine artifact passes its unchanged position, orientation, tracking,
 collision, contact, and reset gates. Contact tasks, closing, grasping, lifting,
 and placing remain unauthorized.

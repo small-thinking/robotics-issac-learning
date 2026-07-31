@@ -2,19 +2,305 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+try:
+    from .dofbot_actuator_calibration import (
+        GRAVITY_FEED_FORWARD_CASE_NAMES,
+        load_actuator_calibration_config,
+    )
+    from .dofbot_control_api import CONTROLLED_JOINT_NAMES
+except ImportError:
+    from dofbot_actuator_calibration import (
+        GRAVITY_FEED_FORWARD_CASE_NAMES,
+        load_actuator_calibration_config,
+    )
+    from dofbot_control_api import CONTROLLED_JOINT_NAMES
 
 REQUIRED_GRAVITY_RUNTIME_APIS = (
     "get_gravity_compensation_forces",
     "set_dof_actuation_forces",
     "get_link_incoming_joint_force",
 )
+ACCEPTED_GRAVITY_FEED_FORWARD_CONFIG_SHA256 = (
+    "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef"
+)
+ACCEPTED_GRAVITY_FEED_FORWARD_RESULT_SHA256 = (
+    "a837f2b77ba32bd10d357f9c6b36db826affab1174fbfd05bbdfe2427617a42f"
+)
 
 
 class GravityFeedForwardError(ValueError):
     """Raised when gravity feed-forward data is incomplete or unsafe."""
+
+
+@dataclass(frozen=True)
+class AcceptedGravityFeedForwardRuntime:
+    """Machine-evidence-bound actuator settings selected for pre-grasp."""
+
+    calibration_config_sha256: str
+    machine_result_sha256: str
+    machine_runtime_fix_commit: str
+    selected_case_name: str
+    gravity_enabled: bool
+    drive_type: str
+    stiffness: float
+    damping: float
+    effort_limit_sim: float
+    solver_position_iteration_count: int
+    solver_velocity_iteration_count: int
+    enable_external_forces_every_iteration: bool
+    gravity_compensation_feed_forward: bool
+    gravity_compensation_effort_limit: float
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "calibration_config_sha256": self.calibration_config_sha256,
+            "machine_result_sha256": self.machine_result_sha256,
+            "machine_runtime_fix_commit": self.machine_runtime_fix_commit,
+            "selected_case_name": self.selected_case_name,
+            "gravity_enabled": self.gravity_enabled,
+            "drive_type": self.drive_type,
+            "stiffness": self.stiffness,
+            "damping": self.damping,
+            "effort_limit_sim": self.effort_limit_sim,
+            "solver_position_iteration_count": (
+                self.solver_position_iteration_count
+            ),
+            "solver_velocity_iteration_count": (
+                self.solver_velocity_iteration_count
+            ),
+            "enable_external_forces_every_iteration": (
+                self.enable_external_forces_every_iteration
+            ),
+            "gravity_compensation_feed_forward": (
+                self.gravity_compensation_feed_forward
+            ),
+            "gravity_compensation_effort_limit": (
+                self.gravity_compensation_effort_limit
+            ),
+        }
+
+
+def _object(value: Any, label: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise GravityFeedForwardError(f"{label} must be an object")
+    return value
+
+
+def _finite_number(value: Any, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise GravityFeedForwardError(f"{label} must be numeric")
+    number = float(value)
+    if not math.isfinite(number):
+        raise GravityFeedForwardError(f"{label} must be finite")
+    return number
+
+
+def load_accepted_gravity_feed_forward_runtime(
+    *,
+    calibration_config_path: Path,
+    machine_result_path: Path,
+) -> AcceptedGravityFeedForwardRuntime:
+    """Bind the selected runtime to the checked-in successful machine result.
+
+    The machine result intentionally does not authorize pre-grasp by itself.
+    This loader only promotes its actuator settings after checking the complete
+    matrix decision, treatment metrics, safety telemetry, and exact agreement
+    with the independently parsed calibration config.
+    """
+    config, config_sha256 = load_actuator_calibration_config(
+        calibration_config_path
+    )
+    if config_sha256 != ACCEPTED_GRAVITY_FEED_FORWARD_CONFIG_SHA256:
+        raise GravityFeedForwardError(
+            "calibration config SHA-256 differs from the accepted machine input"
+        )
+    if config.case_names != GRAVITY_FEED_FORWARD_CASE_NAMES:
+        raise GravityFeedForwardError(
+            "calibration config is not the accepted gravity feed-forward matrix"
+        )
+    selected = config.case("bounded_gravity_feed_forward")
+
+    raw_result = machine_result_path.read_bytes()
+    try:
+        result = _object(json.loads(raw_result), "machine result")
+    except json.JSONDecodeError as error:
+        raise GravityFeedForwardError(
+            f"{machine_result_path} is not valid JSON"
+        ) from error
+    result_sha256 = hashlib.sha256(raw_result).hexdigest()
+    if result_sha256 != ACCEPTED_GRAVITY_FEED_FORWARD_RESULT_SHA256:
+        raise GravityFeedForwardError(
+            "machine result SHA-256 differs from the accepted evidence"
+        )
+    if result.get("schema_version") != 1 or result.get("experiment") != (
+        "dofbot_bounded_gravity_feed_forward_machine_result"
+    ):
+        raise GravityFeedForwardError(
+            "machine result is not the accepted gravity feed-forward experiment"
+        )
+
+    matrix = _object(result.get("matrix"), "machine result matrix")
+    expected_matrix = {
+        "matrix_exit_code": 0,
+        "matrix_complete": True,
+        "decision": "bounded_gravity_feed_forward_resolves_tracking",
+        "tracking_identity_validated": True,
+        "pregrasp_authorized_by_matrix": False,
+        "viewer_authorized": False,
+    }
+    mismatched_matrix = [
+        name for name, expected in expected_matrix.items()
+        if matrix.get(name) != expected
+    ]
+    if mismatched_matrix:
+        raise GravityFeedForwardError(
+            "machine result matrix is incomplete or rejected: "
+            + ", ".join(mismatched_matrix)
+        )
+
+    cases = _object(result.get("cases"), "machine result cases")
+    baseline = _object(
+        cases.get("force_damping_53_baseline"),
+        "machine baseline case",
+    )
+    treatment = _object(
+        cases.get("bounded_gravity_feed_forward"),
+        "machine treatment case",
+    )
+    if (
+        baseline.get("gravity_compensation_feed_forward") is not False
+        or baseline.get("diagnostic_complete") is not True
+        or baseline.get("tracking_gate_passed") is not False
+        or treatment.get("gravity_compensation_feed_forward") is not True
+        or treatment.get("diagnostic_complete") is not True
+        or treatment.get("tracking_gate_passed") is not True
+    ):
+        raise GravityFeedForwardError(
+            "machine result does not preserve the accepted baseline/treatment outcome"
+        )
+
+    metric_limits = {
+        "maximum_settled_tracking_error_deg": (
+            config.acceptance.maximum_settled_tracking_error_deg
+        ),
+        "maximum_target_buffer_error_deg": (
+            config.acceptance.maximum_target_buffer_error_deg
+        ),
+        "maximum_overshoot_deg": config.acceptance.maximum_overshoot_deg,
+        "maximum_contact_force_n": config.acceptance.maximum_contact_force_n,
+    }
+    failed_metrics = [
+        name
+        for name, limit in metric_limits.items()
+        if _finite_number(treatment.get(name), f"treatment {name}") > limit
+    ]
+    if failed_metrics:
+        raise GravityFeedForwardError(
+            "machine treatment no longer passes: " + ", ".join(failed_metrics)
+        )
+
+    if selected.gravity_compensation_effort_limit is None:
+        raise GravityFeedForwardError(
+            "selected calibration case is missing its feed-forward limit"
+        )
+    feed_forward_limit = float(selected.gravity_compensation_effort_limit)
+    for name in (
+        "maximum_absolute_raw_gravity_effort",
+        "maximum_absolute_applied_feed_forward_effort",
+    ):
+        if _finite_number(treatment.get(name), f"treatment {name}") > (
+            feed_forward_limit + 1.0e-9
+        ):
+            raise GravityFeedForwardError(
+                f"machine treatment {name} exceeds the accepted bound"
+            )
+    if (
+        _finite_number(
+            treatment.get("configured_feed_forward_effort_limit"),
+            "treatment configured feed-forward effort limit",
+        )
+        != feed_forward_limit
+        or treatment.get("clipped_sample_count") != 0
+        or not isinstance(treatment.get("feed_forward_sample_count"), int)
+        or treatment["feed_forward_sample_count"] <= 0
+    ):
+        raise GravityFeedForwardError(
+            "machine treatment feed-forward telemetry is incomplete or drifted"
+        )
+
+    shared = _object(
+        result.get("shared_runtime_contract"),
+        "machine shared runtime contract",
+    )
+    expected_shared = {
+        "drive_type": selected.drive_type,
+        "stiffness": selected.stiffness,
+        "damping": selected.damping,
+        "effort_limit_sim": selected.effort_limit_sim,
+        "enable_external_forces_every_iteration": (
+            selected.enable_external_forces_every_iteration
+        ),
+        "controlled_joints": list(CONTROLLED_JOINT_NAMES),
+        "uncontrolled_dof_external_actuation": 0.0,
+    }
+    mismatched_shared = [
+        name for name, expected in expected_shared.items()
+        if shared.get(name) != expected
+    ]
+    if mismatched_shared:
+        raise GravityFeedForwardError(
+            "machine shared runtime differs from calibration config: "
+            + ", ".join(mismatched_shared)
+        )
+
+    provenance = _object(result.get("provenance"), "machine provenance")
+    runtime_fix_commit = provenance.get("runtime_fix_commit")
+    if not isinstance(runtime_fix_commit, str) or len(runtime_fix_commit) != 40:
+        raise GravityFeedForwardError(
+            "machine result is missing its runtime-fix commit"
+        )
+    if (
+        selected.gravity_enabled is not True
+        or selected.drive_type != "force"
+        or selected.gravity_compensation_feed_forward is not True
+        or selected.enable_external_forces_every_iteration is not True
+    ):
+        raise GravityFeedForwardError(
+            "selected calibration case is not the accepted force/feed-forward runtime"
+        )
+
+    return AcceptedGravityFeedForwardRuntime(
+        calibration_config_sha256=config_sha256,
+        machine_result_sha256=result_sha256,
+        machine_runtime_fix_commit=runtime_fix_commit,
+        selected_case_name=selected.name,
+        gravity_enabled=selected.gravity_enabled,
+        drive_type=selected.drive_type,
+        stiffness=selected.stiffness,
+        damping=selected.damping,
+        effort_limit_sim=selected.effort_limit_sim,
+        solver_position_iteration_count=(
+            selected.solver_position_iteration_count
+        ),
+        solver_velocity_iteration_count=(
+            selected.solver_velocity_iteration_count
+        ),
+        enable_external_forces_every_iteration=(
+            selected.enable_external_forces_every_iteration
+        ),
+        gravity_compensation_feed_forward=bool(
+            selected.gravity_compensation_feed_forward
+        ),
+        gravity_compensation_effort_limit=feed_forward_limit,
+    )
 
 
 def _finite_numbers(values: Any, label: str) -> list[float]:

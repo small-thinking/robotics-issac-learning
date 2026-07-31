@@ -76,9 +76,10 @@ lightweight VLA post-training, and optional real hardware.
   `4.883°`. Force `1048/53/100` reduces that residual to `1.73936°`. The
   bounded gravity feed-forward machine treatment now passes at `0.002391°`
   after a fail-closed Torch/Warp setter incompatibility was repaired with
-  native Warp arrays. No pre-grasp, Viewer, contact, or grasp is authorized
-  because the accepted actuator runtime contract is not yet wired into the
-  pre-grasp runner.
+  native Warp arrays. The accepted force `1048/53/100`, external-force
+  iteration, and the exact native-Warp feed-forward implementation are now
+  wired into the pre-grasp runner and pass the GPU-free `27/27` integration
+  contract. Pre-grasp machine, Viewer, contact, and grasp remain unverified.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -122,8 +123,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    now passes its isolated machine gate at `0.002391°` worst settled error,
    with zero contact and zero clipped samples. Its first attempt failed before
    motion at the installed Warp frontend boundary and is preserved separately.
-   The next free step is pre-grasp runtime integration; pre-grasp machine and
-   Viewer gates remain pending.
+   GPU-free pre-grasp runtime integration now passes and binds both source
+   SHA-256 values, probes the installed runtime before motion, reads back the
+   live USD drives, records every physics-step feed-forward sample, and emits
+   a failure classification. The separate headless pre-grasp machine gate is
+   next; Viewer remains blocked until that machine artifact passes.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -157,11 +161,12 @@ matched baseline remains at `1.73936°`, while the treatment passes at
 `0.002391°`; maximum compensation is `0.363701`, far below the `5.2` bound,
 with zero clipping, zero uncontrolled-DOF effort, and zero contact. The
 initial native-frontend failure and repaired success have separate SHA-bound
-records. The next step is free local integration of the selected force
-`1048/53/100`, external-force-iteration, native-Warp feed-forward, API-probe,
-effort-isolation, and telemetry contract into the pre-grasp runner. Do not run
-the existing acceleration `10000/100` pre-grasp path or open the Viewer until
-that integration is reviewed and its separate headless machine gate passes.
+records. The selected force `1048/53/100`, external-force iteration,
+native-Warp feed-forward, API probe, effort isolation, live-drive readback,
+telemetry, and failure-classification contracts are now shared with the
+pre-grasp runner. The local contract passes `27/27`; the next gate is a
+separate headless Isaac pre-grasp run after review, merge, a fresh quote, and
+explicit approval. Do not open the Viewer until that machine artifact passes.
 Contact and grasping remain out of scope.
 
 ## Sources of truth

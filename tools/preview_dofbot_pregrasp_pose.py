@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .dofbot_gravity_feed_forward import (
+        load_accepted_gravity_feed_forward_runtime,
+    )
     from .dofbot_pregrasp_pose import (
         VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
         derive_grasp_frame,
@@ -20,6 +23,9 @@ try:
     )
     from .dofbot_reaching import load_reaching_config
 except ImportError:
+    from dofbot_gravity_feed_forward import (
+        load_accepted_gravity_feed_forward_runtime,
+    )
     from dofbot_pregrasp_pose import (
         VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
         derive_grasp_frame,
@@ -52,6 +58,32 @@ def _parse_args() -> argparse.Namespace:
         "--asset-contract",
         type=Path,
         default=Path("artifacts/dofbot/asset_contract.json"),
+    )
+    parser.add_argument(
+        "--actuator-config",
+        type=Path,
+        default=Path(
+            "configs/dofbot/calibration/"
+            "goal5_gravity_feed_forward_diagnostic.json"
+        ),
+    )
+    parser.add_argument(
+        "--actuator-result",
+        type=Path,
+        default=Path(
+            "artifacts/dofbot/"
+            "gravity_feed_forward_result_2026-07-31.json"
+        ),
+    )
+    parser.add_argument(
+        "--runner",
+        type=Path,
+        default=Path("tools/run_dofbot_pregrasp.py"),
+    )
+    parser.add_argument(
+        "--gravity-runtime",
+        type=Path,
+        default=Path("tools/dofbot_gravity_feed_forward_runtime.py"),
     )
     parser.add_argument(
         "--output",
@@ -123,7 +155,32 @@ def build_preview(
     pose_config_path: Path,
     scene_config_path: Path,
     asset_contract_path: Path,
+    actuator_config_path: Path | None = None,
+    actuator_result_path: Path | None = None,
+    runner_path: Path | None = None,
+    gravity_runtime_path: Path | None = None,
 ) -> dict[str, Any]:
+    project_dir = Path(__file__).resolve().parents[1]
+    actuator_config_path = actuator_config_path or (
+        project_dir
+        / "configs/dofbot/calibration/"
+        "goal5_gravity_feed_forward_diagnostic.json"
+    )
+    actuator_result_path = actuator_result_path or (
+        project_dir
+        / "artifacts/dofbot/"
+        "gravity_feed_forward_result_2026-07-31.json"
+    )
+    runner_path = runner_path or project_dir / "tools/run_dofbot_pregrasp.py"
+    gravity_runtime_path = gravity_runtime_path or (
+        project_dir / "tools/dofbot_gravity_feed_forward_runtime.py"
+    )
+    actuator_runtime = load_accepted_gravity_feed_forward_runtime(
+        calibration_config_path=actuator_config_path,
+        machine_result_path=actuator_result_path,
+    )
+    runner_source = runner_path.read_text(encoding="utf-8")
+    gravity_runtime_source = gravity_runtime_path.read_text(encoding="utf-8")
     pose, pose_sha256 = load_pregrasp_pose_config(pose_config_path)
     scene, scene_sha256 = load_reaching_config(scene_config_path)
     asset, asset_sha256 = _read_json(asset_contract_path)
@@ -297,6 +354,17 @@ def build_preview(
         pose.grasp_frame.right_tip_body_name,
         *pose.collision.critical_body_names,
     }
+    write_index = runner_source.find("scene.write_data_to_sim()")
+    apply_index = runner_source.find(
+        "gravity_sample = gravity_feed_forward.apply_before_step()"
+    )
+    step_index = runner_source.find("sim.step(render=render)")
+    probe_index = runner_source.find(
+        "gravity_feed_forward = BoundedGravityFeedForward("
+    )
+    first_pose_index = runner_source.find(
+        "initialization_api_calls = _issue_angles("
+    )
     checks = {
         "asset_contract_sha256_matches": (
             asset_sha256 == pose.source_contracts.asset_contract_sha256
@@ -411,6 +479,35 @@ def build_preview(
         "contact_remains_unauthorized": (
             pose.collision.contact_authorized is False
         ),
+        "accepted_actuator_machine_result_bound": (
+            actuator_runtime.selected_case_name
+            == "bounded_gravity_feed_forward"
+            and actuator_runtime.drive_type == "force"
+            and actuator_runtime.stiffness == 1048.0
+            and actuator_runtime.damping == 53.0
+            and actuator_runtime.effort_limit_sim == 100.0
+            and actuator_runtime.gravity_compensation_feed_forward
+            and actuator_runtime.gravity_compensation_effort_limit == 5.2
+        ),
+        "actuator_runtime_probe_occurs_before_first_pose": (
+            -1 < probe_index < first_pose_index
+        ),
+        "gravity_feed_forward_applies_after_pd_write_before_step": (
+            -1 < write_index < apply_index < step_index
+        ),
+        "native_warp_setter_is_shared_with_calibration": all(
+            value in gravity_runtime_source
+            for value in (
+                'getattr(self._robot, "root_view", None)',
+                "dtype=wp.float32",
+                "dtype=wp.int32",
+            )
+        ),
+        "pregrasp_runner_records_actuator_failure_classification": (
+            '"failed_checks": failed_checks' in runner_source
+            and '"decision": _failure_decision(failed_checks)'
+            in runner_source
+        ),
         "real_hardware_not_commanded": True,
         "gpu_not_started": True,
     }
@@ -430,7 +527,26 @@ def build_preview(
                 "path": str(asset_contract_path),
                 "sha256": asset_sha256,
             },
+            "actuator_config": {
+                "path": str(actuator_config_path),
+                "sha256": actuator_runtime.calibration_config_sha256,
+            },
+            "actuator_machine_result": {
+                "path": str(actuator_result_path),
+                "sha256": actuator_runtime.machine_result_sha256,
+            },
+            "pregrasp_runner": {
+                "path": str(runner_path),
+                "sha256": hashlib.sha256(runner_source.encode()).hexdigest(),
+            },
+            "gravity_feed_forward_runtime": {
+                "path": str(gravity_runtime_path),
+                "sha256": hashlib.sha256(
+                    gravity_runtime_source.encode()
+                ).hexdigest(),
+            },
         },
+        "actuator_runtime": actuator_runtime.to_dict(),
         "grasp_frame": frame.to_dict(),
         "target_pose": {
             "position_world_m": list(pose.target_pose.position_world_m),
@@ -492,6 +608,10 @@ def main() -> None:
         pose_config_path=args.pose_config,
         scene_config_path=args.scene_config,
         asset_contract_path=args.asset_contract,
+        actuator_config_path=args.actuator_config,
+        actuator_result_path=args.actuator_result,
+        runner_path=args.runner,
+        gravity_runtime_path=args.gravity_runtime,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

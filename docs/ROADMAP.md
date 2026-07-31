@@ -163,9 +163,12 @@ The detailed first-stage contract lives in
    treatment reaches `0.002391°` worst settled tracking error versus
    `1.73936°` for the matched baseline, with zero contact, zero clipping, and
    maximum applied compensation `0.363701`. The actuator hypothesis is now
-   accepted. The next gate is GPU-free integration of this exact runtime
-   contract into pre-grasp, followed after review, merge, fresh quote, and
-   approval by the separate headless pre-grasp machine gate. Viewer, wrist
+   accepted. GPU-free integration of this exact runtime contract into
+   pre-grasp now passes: the machine evidence and config are SHA-bound, the
+   live drive and three APIs are probed before motion, the native-Warp setter
+   is shared with calibration, and failures are classified in the artifact.
+   After review, merge, a fresh quote, and approval, the next gate is the
+   separate headless pre-grasp machine run. Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

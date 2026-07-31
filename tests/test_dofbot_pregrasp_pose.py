@@ -557,8 +557,17 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             asset_contract_path=PROJECT_DIR / "artifacts/dofbot/asset_contract.json",
         )
         self.assertTrue(report["acceptance"]["local_preparation_passed"])
-        self.assertEqual(len(report["acceptance"]["checks"]), 22)
+        self.assertEqual(len(report["acceptance"]["checks"]), 27)
         self.assertTrue(all(report["acceptance"]["checks"].values()))
+        self.assertEqual(
+            report["actuator_runtime"]["selected_case_name"],
+            "bounded_gravity_feed_forward",
+        )
+        self.assertTrue(
+            report["acceptance"]["checks"][
+                "gravity_feed_forward_applies_after_pd_write_before_step"
+            ]
+        )
         self.assertFalse(report["acceptance"]["candidate_isaac_machine_passed"])
         self.assertFalse(report["acceptance"]["candidate_visual_passed"])
         self.assertFalse(report["acceptance"]["contact_or_grasp_authorized"])

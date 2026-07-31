@@ -1308,14 +1308,54 @@ All evidence was retrieved before stop. Standard `brev ls --json` reached
 explicit `STOPPED` at 09:15:35 PDT; the existing instance and disk were
 retained, and no resource was created, resized, reset, or deleted.
 
-Acceptance is **isolated actuator tracking passed / pre-grasp integration
-pending / pre-grasp machine and Viewer blocked**. The existing pre-grasp
-runner still configures acceleration drive `10000/100` and therefore must not
-be run as if it used the selected correction. The next GPU-free step is to
-share the accepted force `1048/53/100`, external-force-iteration, bounded
-gravity feed-forward, API availability, effort isolation, and telemetry
-contract with that runner. Only its reviewed, merged implementation may enter
-the separate headless pre-grasp gate; Viewer remains after that gate.
+At this machine-result checkpoint, acceptance was **isolated actuator tracking
+passed / pre-grasp integration pending / pre-grasp machine and Viewer
+blocked**. The then-current pre-grasp runner still configured acceleration
+drive `10000/100`; the following section records its replacement with the
+accepted runtime.
+
+### Pre-grasp actuator-runtime integration
+
+The GPU-free integration now replaces that blocked path. The pre-grasp runner
+loads the accepted calibration config and promoted machine result before Kit,
+cross-checks their successful matrix decision, treatment metrics, and exact
+force `1048/53/100` runtime, then records both SHA-256 values in its output.
+Calibration and pre-grasp import one shared native-Warp implementation, so the
+previous Torch-to-Warp boundary cannot diverge between the two runners.
+
+Before the first Yahboom pose, the integrated runner reads back the composed
+controlled-joint drives, probes all three required PhysX APIs, and writes zero
+external actuation. Every physics step executes in this order:
+
+1. write the interpolated position target;
+2. read, clamp, and apply gravity effort only on joints 1-4;
+3. step physics;
+4. read the controlled child links' incoming 6D forces.
+
+The output retains every feed-forward sample and classifies failures as
+actuator/runtime telemetry, joint tracking, contact safety, Yahboom API
+accounting, neutral reset, or task-space failure. This prevents another failed
+machine attempt from collapsing into an undifferentiated debug loop.
+
+```bash
+make dofbot-pregrasp-pose-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-pregrasp
+```
+
+Evidence is `artifacts/dofbot/pregrasp_command_space_contract.json`; its local
+integration gate passes `27/27`. All `205` repository tests, changed-file
+Ruff, Python compilation, shell syntax, JSON generation, Git LFS checks,
+remote-command previews, and `git diff --check` pass. Full-repository Ruff has
+one pre-existing unrelated long line in `tools/collect_environment_info.py:47`.
+
+Acceptance is **pre-grasp runtime integration passed locally / separate
+headless pre-grasp machine gate pending / Viewer blocked**. There are no known
+remaining integration bugs from GPU-free validation, but the number of
+runtime-only issues is unknowable until the installed Isaac task scene runs.
+After review and merge, a fresh quote and explicit approval are required for
+`make dofbot-pregrasp`. `make dofbot-pregrasp-view` remains blocked until that
+machine artifact passes. Contact, gripper closing, grasp, lift, place, and real
+hardware remain out of scope.
 
 ## Later milestones
 

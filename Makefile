@@ -114,6 +114,8 @@ dofbot-pregrasp-pose-dry-run:
 	 --pose-config "$${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_angled_pregrasp.json}" \
 	 --scene-config "$${REACHING:-configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json}" \
 	 --asset-contract "$${DOFBOT_ASSET_CONTRACT:-artifacts/dofbot/asset_contract.json}" \
+	 --actuator-config "$${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}" \
+	 --actuator-result "$${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}" \
 	 --output "$${DOFBOT_PREGRASP_POSE_OUTPUT:-/tmp/dofbot-pregrasp-pose-contract.json}"
 
 dofbot-pregrasp-reachability:

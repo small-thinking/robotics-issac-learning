@@ -13,7 +13,39 @@
     "asset_contract": {
       "path": "artifacts/dofbot/asset_contract.json",
       "sha256": "1c0d806e4c61206355bddea738481496c45a98d789b5f64f269ec1d3f574a2b2"
+    },
+    "actuator_config": {
+      "path": "configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json",
+      "sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef"
+    },
+    "actuator_machine_result": {
+      "path": "artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json",
+      "sha256": "a837f2b77ba32bd10d357f9c6b36db826affab1174fbfd05bbdfe2427617a42f"
+    },
+    "pregrasp_runner": {
+      "path": "tools/run_dofbot_pregrasp.py",
+      "sha256": "b871644bcf8853b84cffe438fea0878c86f2097d120095b87dbf3029f8c79290"
+    },
+    "gravity_feed_forward_runtime": {
+      "path": "tools/dofbot_gravity_feed_forward_runtime.py",
+      "sha256": "836d81806c363b22ea1bc737a65db04fe6d251db89cdb1d629ba0cb04a63bbd0"
     }
+  },
+  "actuator_runtime": {
+    "calibration_config_sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef",
+    "machine_result_sha256": "a837f2b77ba32bd10d357f9c6b36db826affab1174fbfd05bbdfe2427617a42f",
+    "machine_runtime_fix_commit": "1cf25a0502e8f4c9fdd3ad321feae42736482561",
+    "selected_case_name": "bounded_gravity_feed_forward",
+    "gravity_enabled": true,
+    "drive_type": "force",
+    "stiffness": 1048.0,
+    "damping": 53.0,
+    "effort_limit_sim": 100.0,
+    "solver_position_iteration_count": 8,
+    "solver_velocity_iteration_count": 0,
+    "enable_external_forces_every_iteration": true,
+    "gravity_compensation_feed_forward": true,
+    "gravity_compensation_effort_limit": 5.2
   },
   "grasp_frame": {
     "origin_world_m": [
@@ -423,6 +455,11 @@
       "collision_probe_rejected": true,
       "reversed_fixed_closing_axis_rejected": true,
       "contact_remains_unauthorized": true,
+      "accepted_actuator_machine_result_bound": true,
+      "actuator_runtime_probe_occurs_before_first_pose": true,
+      "gravity_feed_forward_applies_after_pd_write_before_step": true,
+      "native_warp_setter_is_shared_with_calibration": true,
+      "pregrasp_runner_records_actuator_failure_classification": true,
       "real_hardware_not_commanded": true,
       "gpu_not_started": true
     },
