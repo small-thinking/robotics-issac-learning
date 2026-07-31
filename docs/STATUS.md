@@ -8,8 +8,9 @@
   failed narrowly; the direct validated-joint-candidate now reaches its exact
   API endpoint remotely, but Isaac joint tracking still fails under load; the
   isolated three-case actuator matrix now proves gravity dependence, falsifies
-  effort-250 as a sufficient fix, and exposes a raw-velocity telemetry
-  inconsistency that must be repaired before another paid actuator run
+  effort-250 as a sufficient fix, and the local follow-up now separates
+  position-derived settling from incompatible raw velocity and prepares a
+  four-case single-factor solver/drive diagnostic for later remote validation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
   2026-07-30 08:50:21 PDT after artifact retrieval
@@ -512,6 +513,41 @@
   requires correction / pre-grasp and Viewer blocked**. No pre-grasp, Viewer,
   contact, closing, grasping, lifting, or placing ran in this paid window.
 
+## DOFBOT velocity-contract repair and solver/drive preparation
+
+- Offline evidence replay uses the exact retrieved case JSON bound by the
+  promoted result artifact's byte counts and SHA-256 values. A `100 ms`
+  finite difference of observed `joint_pos` is now the physical settling
+  signal; raw `joint_vel` remains recorded as a compatibility signal.
+- Gravity-on effort-100 and effort-250 both settle on every pose by the
+  position-derived signal. Their maximum terminal derived speed is
+  `0.041972°/s`, while raw speed reaches `16.363141°/s` and maximum
+  raw/derived mismatch reaches `16.444165°/s`. The approximately
+  `4.974117°` tracking error remains real.
+- Gravity-off ends below the derived threshold at `0.025304°/s` and has only
+  `0.085753°/s` maximum raw/derived mismatch. Its old record is right-censored:
+  the original raw-velocity gate ended collection before a full new derived
+  `500 ms` hold, so this replay does not rewrite the historical machine result.
+- The runner now fails closed if position-derived telemetry is unavailable,
+  if a pose does not settle by position difference, or if raw and derived
+  velocity differ by more than `1°/s` during settling.
+- The next remote-only matrix is locally locked to four gravity-on,
+  effort-100 cases: baseline TGS; external forces applied each TGS position
+  iteration; then two velocity iterations; then damping `100 -> 50`.
+  Each stage changes exactly one field. Stiffness remains `10000`, position
+  iterations remain `8`, and the rejected effort-250 comparison is not
+  repeated.
+- Local evidence:
+  `artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json` and
+  `artifacts/dofbot/solver_drive_diagnostic_plan.json`.
+- Validation: all `178` repository tests passed, including Git LFS checks,
+  remote-command previews, velocity/solver contract tests, Python compilation,
+  targeted Ruff, shell syntax, JSON parsing, and `git diff --check`.
+- Acceptance: **offline velocity diagnosis passed / solver-drive plan passed /
+  remote Isaac result pending / pre-grasp and Viewer blocked**. No Brev,
+  Isaac, Viewer, camera, contact, grasp, hardware, policy, or checkpoint
+  command was issued during this local work.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
@@ -869,12 +905,11 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. First add finite-difference position velocity
-beside raw `joint_vel` and classify material disagreement as telemetry/runtime
-compatibility; then prepare a focused solver/drive diagnostic that preserves
-the gravity-off control and does not assume effort 250 is a fix. Only after
-local review, a fresh quote, and explicit approval may that diagnostic run.
-Rerun actuator calibration before `make dofbot-pregrasp`; open the Viewer only
-after the selected gravity-on baseline passes the independent `1°` tracking
-gate and every unchanged pre-grasp machine gate. Contact, closing, grasping,
-lifting, and placing remain unauthorized.
+Keep the Brev instance stopped and review/merge the velocity and solver/drive
+preparation PR. Only after a fresh live quote and explicit approval may
+`make dofbot-solver-drive` run on the retained instance. Retrieve the four
+case artifacts and summary, select only an evidence-supported correction, and
+rerun the selected gravity-on calibration before `make dofbot-pregrasp`.
+Open the Viewer only after the selected baseline passes the independent `1°`
+tracking gate and every unchanged pre-grasp machine gate. Contact, closing,
+grasping, lifting, and placing remain unauthorized.

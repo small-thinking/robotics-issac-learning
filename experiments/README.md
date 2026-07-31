@@ -13,7 +13,7 @@ learning narrative.
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
 | [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
-| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; actuator matrix proves gravity dependence, falsifies effort 250 alone, and blocks pre-grasp pending velocity/solver diagnosis |
+| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; position-derived settling and a four-stage solver/drive matrix pass local preparation; remote diagnosis and pre-grasp remain blocked |
 
 Every experiment section should leave:
 

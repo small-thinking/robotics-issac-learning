@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_solver_drive_diagnostic_plan",
+  "calibration_config": {
+    "path": "configs/dofbot/calibration/goal5_solver_drive_diagnostic.json",
+    "sha256": "5ae01f684857f78fb3eb973cf32655617a18eb3ec8d3847e20631140a0bb018d",
+    "value": {
+      "schema_version": 1,
+      "name": "goal5_solver_drive_diagnostic",
+      "controlled_joint_names": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4"
+      ],
+      "safe_angle_min_deg": 60,
+      "safe_angle_max_deg": 120,
+      "poses": [
+        {
+          "name": "neutral_start",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "name": "mid_load",
+          "angles_deg": [
+            90,
+            78,
+            78,
+            78
+          ]
+        },
+        {
+          "name": "pregrasp_candidate",
+          "angles_deg": [
+            90,
+            66,
+            66,
+            66
+          ]
+        },
+        {
+          "name": "neutral_return",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "trajectory": {
+        "duration_ms": 2000,
+        "settle_velocity_threshold_deg_s": 0.1,
+        "settle_hold_ms": 500,
+        "settle_timeout_ms": 5000,
+        "sample_every_physics_step": true,
+        "position_velocity_window_ms": 100,
+        "maximum_velocity_signal_mismatch_deg_s": 1.0
+      },
+      "cases": [
+        {
+          "name": "baseline_tgs",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": false
+        },
+        {
+          "name": "external_forces_each_iteration",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true
+        },
+        {
+          "name": "velocity_iterations_2",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 2,
+          "enable_external_forces_every_iteration": true
+        },
+        {
+          "name": "reduced_damping_50",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 50.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 2,
+          "enable_external_forces_every_iteration": true
+        }
+      ],
+      "acceptance": {
+        "maximum_target_buffer_error_deg": 0.05,
+        "maximum_settled_tracking_error_deg": 1.0,
+        "maximum_overshoot_deg": 2.0,
+        "maximum_contact_force_n": 0.5
+      }
+    }
+  },
+  "source_remote_result": {
+    "path": "artifacts/dofbot/actuator_calibration_result_2026-07-30.json",
+    "sha256": "1c1e4a2085efc1a4114b0756c40084cb33c0035125da2bccbedec9126a50f58a",
+    "machine_commit": "abd109f38dba838557910ed1ab439749cbd53120",
+    "matrix_decision": "settling_or_drive_stability_failure"
+  },
+  "hypotheses": [
+    {
+      "case": "external_forces_each_iteration",
+      "question": "Does applying external forces on every TGS position iteration repair raw velocity telemetry or tracking?"
+    },
+    {
+      "case": "velocity_iterations_2",
+      "question": "Conditional on external-force iteration, do two velocity iterations repair telemetry or tracking?"
+    },
+    {
+      "case": "reduced_damping_50",
+      "question": "Conditional on the two solver changes, does halving the implicit D-gain reduce the load-dependent position error?"
+    }
+  ],
+  "staged_single_factor_changes": [
+    {
+      "from": "baseline_tgs",
+      "to": "external_forces_each_iteration",
+      "changed_fields": [
+        "enable_external_forces_every_iteration"
+      ]
+    },
+    {
+      "from": "external_forces_each_iteration",
+      "to": "velocity_iterations_2",
+      "changed_fields": [
+        "solver_velocity_iteration_count"
+      ]
+    },
+    {
+      "from": "velocity_iterations_2",
+      "to": "reduced_damping_50",
+      "changed_fields": [
+        "damping"
+      ]
+    }
+  ],
+  "remote_case_order": [
+    "baseline_tgs",
+    "external_forces_each_iteration",
+    "velocity_iterations_2",
+    "reduced_damping_50"
+  ],
+  "trajectory_extrema": {
+    "maximum_transition_delta_deg": 24.0,
+    "smoothstep_peak_velocity_deg_s": 18.0,
+    "smoothstep_peak_acceleration_deg_s2": 36.0
+  },
+  "velocity_contract": {
+    "physical_settling_signal": "windowed finite difference of observed joint position",
+    "raw_joint_vel_role": "compatibility signal",
+    "window_ms": 100,
+    "settle_threshold_deg_s": 0.1,
+    "maximum_signal_mismatch_deg_s": 1.0,
+    "material_disagreement_fails_closed": true
+  },
+  "official_runtime_basis": [
+    "Isaac Lab 3.0 PhysxCfg.enable_external_forces_every_iteration is intended to improve noisy TGS velocity updates",
+    "Isaac implicit-actuator stiffness and damping are physics P-gain and D-gain"
+  ],
+  "decision_order": [
+    "contact_or_self_collision_interference",
+    "backend_or_target_buffer_mismatch",
+    "position_velocity_instrumentation_incomplete",
+    "baseline_tracking_identity_validated",
+    "external_force_iteration_resolves_tracking",
+    "velocity_iterations_resolve_tracking",
+    "reduced_damping_resolves_tracking",
+    "external_force_iteration_repairs_velocity_telemetry_only",
+    "velocity_iterations_repair_velocity_telemetry_only",
+    "reduced_damping_repairs_velocity_telemetry_only",
+    "solver_drive_ladder_no_resolution"
+  ],
+  "checks": {
+    "source_matrix_complete": true,
+    "source_gravity_off_resolved_tracking": true,
+    "source_effort_250_changed_force_limit": true,
+    "source_effort_250_did_not_change_sequence": true,
+    "source_velocity_warning_recorded": true,
+    "case_order_locked": true,
+    "every_case_keeps_gravity_on": true,
+    "every_case_keeps_effort_100": true,
+    "every_case_keeps_stiffness_10000": true,
+    "every_case_keeps_solver_position_iterations_8": true,
+    "each_stage_changes_exactly_one_field": true,
+    "position_velocity_is_windowed": true,
+    "velocity_mismatch_gate_is_bounded": true,
+    "pregrasp_viewer_contact_and_hardware_blocked": true
+  },
+  "local_preparation_passed": true,
+  "paid_gpu_run_authorized": false,
+  "viewer_authorized": false,
+  "pregrasp_authorized": false,
+  "contact_or_grasp_authorized": false
+}

@@ -290,6 +290,26 @@ assert_not_contains "$dofbot_actuator_calibration_output" '--livestream'
 assert_not_contains "$dofbot_actuator_calibration_output" '--viz'
 assert_contains "$dofbot_actuator_calibration_output" '[dry-run] Command displayed but not executed.'
 
+solver_drive_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_solver_drive_diagnostic.sh
+)"
+
+assert_contains "$solver_drive_output" 'goal5_solver_drive_diagnostic.json'
+assert_contains "$solver_drive_output" 'baseline_tgs'
+assert_contains "$solver_drive_output" 'external_forces_each_iteration'
+assert_contains "$solver_drive_output" 'velocity_iterations_2'
+assert_contains "$solver_drive_output" 'reduced_damping_50'
+assert_contains "$solver_drive_output" 'solver_drive_diagnostic_contract.json'
+assert_contains "$solver_drive_output" 'solver_drive_diagnostic_cases'
+assert_contains "$solver_drive_output" '[MATRIX_EXIT_CODE]'
+assert_contains "$solver_drive_output" '--device cpu'
+assert_contains "$solver_drive_output" '--headless'
+assert_not_contains "$solver_drive_output" '--livestream'
+assert_not_contains "$solver_drive_output" '--viz'
+assert_contains "$solver_drive_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \

@@ -10,13 +10,11 @@ from typing import Any
 
 try:
     from .dofbot_actuator_calibration import (
-        REQUIRED_CASE_NAMES,
         calibration_trajectory_extrema,
         load_actuator_calibration_config,
     )
 except ImportError:
     from dofbot_actuator_calibration import (
-        REQUIRED_CASE_NAMES,
         calibration_trajectory_extrema,
         load_actuator_calibration_config,
     )
@@ -58,6 +56,8 @@ def build_preview(
             and config.case("gravity_on_effort_250").gravity_enabled
         ),
         "records_actual_velocity_and_target_buffer": True,
+        "records_windowed_position_derived_velocity": True,
+        "fails_closed_on_raw_position_velocity_mismatch": True,
         "torque_telemetry_has_explicit_unavailable_state": True,
         "no_table_cube_contact_or_viewer": True,
         "real_hardware_disabled": True,
@@ -83,7 +83,7 @@ def build_preview(
             "sha256": failure_sha256,
             "maximum_observed_command_error_deg": observed_error,
         },
-        "remote_case_order": list(REQUIRED_CASE_NAMES),
+        "remote_case_order": list(config.case_names),
         "trajectory_extrema": trajectory_extrema,
         "per_physics_step_telemetry": [
             "api_command_angles_deg",
@@ -91,6 +91,8 @@ def build_preview(
             "joint_pos_target_angles_deg",
             "observed_joint_angles_deg",
             "observed_joint_velocities_deg_s",
+            "position_derived_joint_velocities_deg_s",
+            "raw_position_velocity_mismatch_deg_s",
             "joint_stiffness",
             "joint_damping",
             "joint_effort_limits",
@@ -101,8 +103,9 @@ def build_preview(
         ],
         "decision_order": [
             "contact_or_self_collision_interference",
-            "settling_or_drive_stability_failure",
             "backend_or_target_buffer_mismatch",
+            "joint_velocity_telemetry_compatibility_failure",
+            "position_derived_settling_failure",
             "instrumentation_or_runtime_compatibility_failure",
             "baseline_tracking_identity_validated",
             "effort_saturation_observed",

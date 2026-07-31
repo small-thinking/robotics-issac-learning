@@ -8,7 +8,8 @@ SHELL := /bin/bash
 	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
 	dofbot-pregrasp-pose-dry-run dofbot-pregrasp-reachability \
 	dofbot-pregrasp-taskspace dofbot-actuator-calibration-dry-run \
-	dofbot-actuator-calibration \
+	dofbot-actuator-calibration dofbot-solver-drive-dry-run \
+	dofbot-solver-drive dofbot-actuator-velocity-reanalysis \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
@@ -16,6 +17,7 @@ SHELL := /bin/bash
 	show-dofbot-reach show-dofbot-reach-view \
 	show-dofbot-pregrasp show-dofbot-pregrasp-view \
 	show-dofbot-actuator-calibration \
+	show-dofbot-solver-drive \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test
@@ -134,6 +136,24 @@ dofbot-actuator-calibration-dry-run:
 dofbot-actuator-calibration:
 	@./scripts/isaac/run_dofbot_actuator_calibration.sh
 
+dofbot-solver-drive-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/preview_dofbot_solver_drive_diagnostic.py \
+	 --config "$${SOLVER_DRIVE_DIAGNOSTIC:-configs/dofbot/calibration/goal5_solver_drive_diagnostic.json}" \
+	 --remote-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
+	 --output "$${DOFBOT_SOLVER_DRIVE_PLAN:-artifacts/dofbot/solver_drive_diagnostic_plan.json}"
+
+dofbot-solver-drive:
+	@./scripts/isaac/run_dofbot_solver_drive_diagnostic.sh
+
+dofbot-actuator-velocity-reanalysis:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/reanalyze_dofbot_velocity_signals.py \
+	 --config "$${SOLVER_DRIVE_DIAGNOSTIC:-configs/dofbot/calibration/goal5_solver_drive_diagnostic.json}" \
+	 --remote-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
+	 --input-dir "$${ACTUATOR_CALIBRATION_CASES:-artifacts/dofbot/actuator_calibration_cases}" \
+	 --output "$${DOFBOT_VELOCITY_REANALYSIS:-artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json}"
+
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh
 
@@ -218,6 +238,9 @@ show-dofbot-pregrasp-view:
 
 show-dofbot-actuator-calibration:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_actuator_calibration.sh
+
+show-dofbot-solver-drive:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_solver_drive_diagnostic.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

@@ -1481,3 +1481,52 @@
   effort-250-only fix rejected / velocity instrumentation correction required /
   pre-grasp and Viewer blocked**. The next work is free local instrumentation
   and solver/drive experiment design, not another task-scene retry.
+
+## 2026-07-30 — Position-derived settling and solver/drive matrix passed local preparation
+
+- Scope: local replay, contract implementation, and remote-command dry-run
+  only. No Brev, Isaac, Viewer, camera, pre-grasp, contact, gripper, real
+  hardware, policy, or checkpoint command was issued.
+- Source integrity: the replay loaded the three ignored retrieved case JSON
+  files and required their exact byte counts and SHA-256 hashes to match
+  `artifacts/dofbot/actuator_calibration_result_2026-07-30.json`.
+- Velocity contract: physical settling is a `100 ms` finite difference of
+  observed joint position held below `0.1°/s` for `500 ms`. Raw `joint_vel`
+  remains a required compatibility signal; mismatch above `1°/s` fails
+  diagnostic completeness rather than being interpreted as physical motion.
+- Offline result:
+
+  | Case | Max derived speed | Max raw speed | Max mismatch | Tracking error | Derived hold |
+  | --- | ---: | ---: | ---: | ---: | --- |
+  | gravity off / effort 100 | `0.025304°/s` | `0.045673°/s` | `0.085753°/s` | `0.003165°` | right-censored |
+  | gravity on / effort 100 | `0.041972°/s` | `16.363141°/s` | `16.444165°/s` | `4.974117°` | pass |
+  | gravity on / effort 250 | `0.041972°/s` | `16.363141°/s` | `16.444165°/s` | `4.974117°` | pass |
+
+- Interpretation: the gravity-on articulation is physically settled, so the
+  old raw-velocity-based stability diagnosis is rejected. The nearly
+  five-degree gravity-on position error is unchanged and remains the actual
+  control problem. Gravity-off's historical record ended on the former raw
+  gate before a complete new derived hold, so the replay marks that detail
+  rather than inventing missing samples.
+- Follow-up plan: four gravity-on, effort-100 cases change one factor per
+  stage: baseline TGS; `enable_external_forces_every_iteration=true`;
+  `solver_velocity_iteration_count=2`; and damping `100 -> 50`. Stiffness
+  remains `10000` and solver position iterations remain `8`.
+- Commands:
+
+  ```bash
+  make dofbot-actuator-velocity-reanalysis
+  make dofbot-solver-drive-dry-run
+  make show-dofbot-solver-drive
+  ```
+
+- Evidence:
+  `artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json` and
+  `artifacts/dofbot/solver_drive_diagnostic_plan.json`.
+- Validation: `178/178` repository tests, Git LFS attributes, remote-command
+  previews, targeted Ruff, Python compilation, shell syntax, JSON parsing, and
+  `git diff --check` passed.
+- Result: **offline reanalysis passed / four-stage dry-run passed / paid GPU
+  run not authorized / pre-grasp and Viewer blocked**. A future
+  `make dofbot-solver-drive` requires branch review, a fresh live quote, and
+  explicit approval.

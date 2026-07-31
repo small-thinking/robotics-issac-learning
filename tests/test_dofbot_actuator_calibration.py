@@ -57,10 +57,13 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
                 {
                     "name": pose.name,
                     "command_angles_deg": list(pose.angles_deg),
-                    "settled": settled,
+                    "settled_by_position_derived_velocity": settled,
                     "settle_elapsed_s": 1.5,
                     "terminal_observed_angles_deg": observed,
                     "terminal_actual_velocities_deg_s": [0.02] * 4,
+                    "terminal_position_derived_velocities_deg_s": [0.01] * 4,
+                    "maximum_settling_velocity_signal_mismatch_deg_s": 0.01,
+                    "raw_position_velocity_consistent": True,
                     "maximum_tracking_error_deg": tracking_error_deg,
                     "maximum_target_buffer_error_deg": target_error_deg,
                     "maximum_overshoot_deg": 0.1,
@@ -86,9 +89,12 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
         return {
             "checks": {
                 "contact_force_below_threshold": contact_ok,
-                "all_poses_settled_by_actual_velocity": settled,
+                "all_poses_settled_by_position_derived_velocity": settled,
                 "target_buffer_telemetry_available": target_ok,
                 "target_buffer_matches_backend_target": target_ok,
+                "actual_joint_velocity_telemetry_available": True,
+                "position_derived_velocity_available": True,
+                "raw_position_velocity_signals_consistent": True,
             },
             "diagnostic_complete": diagnostic_complete,
             "tracking_gate_passed": tracking_passed,
@@ -160,6 +166,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
             official_api_call_count=16,
             target_buffer_available=True,
             actual_velocity_available=True,
+            position_derived_velocity_available=True,
             torque_interpretation=(
                 "implicit_zero_or_unavailable_do_not_infer"
             ),
@@ -176,6 +183,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
             official_api_call_count=16,
             target_buffer_available=True,
             actual_velocity_available=True,
+            position_derived_velocity_available=True,
             torque_interpretation=(
                 "implicit_zero_or_unavailable_do_not_infer"
             ),
@@ -196,6 +204,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
                 official_api_call_count=16,
                 target_buffer_available=True,
                 actual_velocity_available=True,
+                position_derived_velocity_available=True,
                 torque_interpretation="zero_means_no_saturation",
                 torque_saturation_observed=False,
             )
@@ -352,7 +361,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
             self.assertIn(field, runner)
         self.assertIn("sample_every_physics_step", runner)
         self.assertIn(
-            "all_poses_settled_by_actual_velocity",
+            "all_poses_settled_by_position_derived_velocity",
             CONTRACT_PATH.read_text(encoding="utf-8"),
         )
         self.assertNotIn("CameraCfg", runner)
@@ -360,9 +369,10 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
         self.assertNotIn("Arm_Lib", runner)
         self.assertNotIn("--livestream", run_script)
         self.assertNotIn("--viz", run_script)
-        self.assertIn("run_case gravity_on_effort_100", run_script)
-        self.assertIn("run_case gravity_off_effort_100", run_script)
-        self.assertIn("run_case gravity_on_effort_250", run_script)
+        self.assertIn("gravity_on_effort_100", run_script)
+        self.assertIn("gravity_off_effort_100", run_script)
+        self.assertIn("gravity_on_effort_250", run_script)
+        self.assertIn('for case_name in "${case_names[@]}"', run_script)
         self.assertIn("[MATRIX_EXIT_CODE]", run_script)
         self.assertIn("timeout $quoted_case_timeout_seconds", run_script)
         self.assertIn("archive_dir=", run_script)

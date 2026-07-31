@@ -1013,6 +1013,47 @@ standard `brev ls --json` reached explicit `STOPPED` at 08:50:21 PDT after the
 asynchronous shutdown and list refresh. The existing instance and disk remain
 preserved.
 
+### Position-derived velocity and focused solver/drive preparation
+
+The free local follow-up replays the exact retrieved actuator samples without
+reconstructing or modifying them. Source byte counts and SHA-256 values must
+match the promoted remote result. A `100 ms` finite difference of observed
+joint position is now the physical settling signal; raw `joint_vel` remains a
+separate required compatibility signal and disagreement above `1°/s` fails
+closed.
+
+The replay passes. Both gravity-on cases settle on all four poses by position
+difference with at most `0.041972°/s` derived speed, while raw velocity reaches
+`16.363141°/s` and differs by as much as `16.444165°/s`. Their
+`4.974117°` position error remains. The gravity-off record ends below the
+derived threshold with only `0.085753°/s` mismatch, but is explicitly marked
+right-censored because its historical collection stopped before a complete
+new `500 ms` derived hold.
+
+The next matrix contains four gravity-on, effort-100 cases:
+
+1. the unchanged TGS baseline;
+2. external forces applied on every TGS position iteration;
+3. two solver velocity iterations;
+4. implicit damping reduced from 100 to 50.
+
+Each step changes exactly one field. Stiffness stays `10000`, position
+iterations stay `8`, and effort 250 is not repeated. The command preview and
+local plan pass, but `paid_gpu_run_authorized`, `viewer_authorized`, and
+`pregrasp_authorized` remain false.
+
+```bash
+make dofbot-actuator-velocity-reanalysis
+make dofbot-solver-drive-dry-run
+make show-dofbot-solver-drive
+```
+
+Evidence is
+`artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json` and
+`artifacts/dofbot/solver_drive_diagnostic_plan.json`. Acceptance is **offline
+velocity diagnosis passed / focused matrix prepared / remote Isaac pending /
+pre-grasp and Viewer blocked**.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to
