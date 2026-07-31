@@ -1694,3 +1694,44 @@
   no passing drive configuration / pre-grasp and Viewer blocked**. The next
   work is a GPU-free residual-force-semantics audit, not another broad paid
   sweep.
+
+## 2026-07-30 — Residual-force audit selected bounded gravity feed-forward
+
+- Scope: local replay and official semantics/source review only. No Brev
+  start, GPU, Isaac runtime, Viewer, pre-grasp, task scene, contact, gripper,
+  real hardware, policy, or checkpoint ran.
+- Command:
+
+  ```bash
+  make dofbot-residual-force-audit
+  ```
+
+- Source integrity: the replay verifies the exact promoted byte counts and
+  SHA-256 values for the ignored `force_damping_53` and
+  `force_authored_tuning` raw JSON files before analysis.
+- Machine evidence replay: all 647 selected physical samples and all pose
+  summaries are identical between runtime maximum-force readbacks `100` and
+  `5.2`.
+- Official semantics: PhysX release 109 scales articulation `maxForce` by the
+  timestep only when `eDRIVE_LIMITS_ARE_FORCES` is set; without it, the value
+  is an impulse. At the recorded 60 Hz, `5.2` is equivalent to `312` force
+  units per second and `100` to `6000`. This is recorded as a high-confidence
+  explanation, not a direct runtime-flag readback.
+- Cause ranking: gravity/load remains the selected cause because the matched
+  gravity-off case tracks within `0.0032°`. Static joint-frame/sign error is
+  rejected as the primary cause; the full explicit PD actuator remains a
+  fallback.
+- Selected next hypothesis: keep force `1048/53/100` unchanged and add bounded
+  PhysX gravity-compensation values as external actuation on joints 1-4. The
+  future runner must require and record gravity-compensation, actuation-force,
+  and incoming-joint-force APIs and preserve all target, settling, contact, and
+  one-degree gates.
+- Evidence:
+  `artifacts/dofbot/residual_force_audit_2026-07-30.json`.
+- Validation: all `192` repository tests, five focused audit tests, targeted
+  Ruff, deterministic artifact regeneration, source byte/SHA replay, JSON
+  parsing, Git LFS attributes, and `git diff --check` pass.
+- Acceptance: **local audit passed / implementation selected / paid GPU,
+  pre-grasp, and Viewer blocked**. The next paid gate, after implementation,
+  review, merge, fresh quote, and approval, is isolated headless gravity-on
+  calibration. Viewer remains third in the gate order after headless pre-grasp.

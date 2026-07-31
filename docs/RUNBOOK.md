@@ -278,8 +278,21 @@ residual audit locally:
 - prefer a falsifiable explicit-actuator or gravity-compensation proposal over
   another broad gain sweep.
 
-After applying the decision-specific change, rerun the selected gravity-on
-calibration.
+The completed audit command is:
+
+```bash
+make dofbot-residual-force-audit
+```
+
+It verifies both promoted raw source hashes, replays the 647 selected physical
+samples, and records the high-confidence impulse-limit explanation without
+claiming a direct articulation-flag readback. Its selected next implementation
+retains force drive `1048/53/100` and adds bounded
+`get_gravity_compensation_forces` values through
+`set_dof_actuation_forces`; a full explicit PD actuator is a fallback.
+
+After applying and locally testing that decision-specific change, rerun the
+selected gravity-on calibration.
 Only a complete calibration with the selected baseline meeting the `1°`
 tracking gate authorizes the unchanged task-scene headless command:
 

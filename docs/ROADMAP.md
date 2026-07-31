@@ -150,10 +150,16 @@ The detailed first-stage contract lives in
    as unstable and shows that official-scale stiffness/damping reduce the best
    stable error from `5.04065°` to `1.73936°`. Changing runtime maximum force
    from `100` to `5.2` leaves all selected physical samples identical. No case
-   passes; the next gate is a GPU-free residual-force-semantics audit covering
-   explicit actuators, gravity compensation, and runtime joint frames. The
-   separate `<=1°` tracking gate remains. Pre-grasp, Viewer, wrist
-   twist, gripper closing, target motion, contact, and grasp success remain
+   passes. The completed GPU-free residual-force audit explains that invariance
+   at high confidence through non-binding impulse-limit semantics: at 60 Hz,
+   `5.2` corresponds to `312` force units per second if the articulation force
+   flag is absent. The runtime flag itself was not directly recorded. The same
+   target/frame path passes at `0.0032°` with gravity off, so a static
+   joint-frame correction is rejected as the primary fix. The next free gate
+   is a bounded gravity-compensation feed-forward implementation on the stable
+   force `1048/53/100` baseline; a full explicit PD actuator is a fallback.
+   The separate `<=1°` tracking gate remains. Pre-grasp, Viewer, wrist twist,
+   gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning

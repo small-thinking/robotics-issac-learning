@@ -1186,6 +1186,56 @@ work is GPU-free: explain the maximum-force invariance and compare explicit
 actuator, gravity-compensation, and runtime joint-frame semantics before
 designing another paid run.
 
+### Residual-force semantics audit
+
+The GPU-free audit replays the exact retrieved
+`force_damping_53` and `force_authored_tuning` JSON sources after verifying
+their promoted byte counts and SHA-256 values:
+
+```bash
+make dofbot-residual-force-audit
+```
+
+All 647 selected API, backend-target, Isaac-target, observed-position,
+raw/derived-velocity, body-position, and contact samples remain identical;
+all pose summaries are also identical. The cases ran at 60 Hz. PhysX documents
+articulation `maxForce` as a force/torque only when
+`eDRIVE_LIMITS_ARE_FORCES` is set and as an impulse otherwise. Under the latter
+semantics, `5.2` corresponds to `312` force units per second and `100` to
+`6000`. This is the high-confidence explanation for the non-binding limit
+change. The recorded USD and tensor telemetry do not directly expose the
+runtime articulation flag, so the audit does not claim a direct flag readback.
+
+The residual ranking is now narrower:
+
+- gravity/load is selected: gravity-off effort-100 tracks within `0.0032°`,
+  while the matched gravity-on case misses by `4.9762°`; force tuning reduces
+  the residual to `1.73936°` but does not remove it;
+- a static joint-frame/sign correction is rejected as the primary fix because
+  the same joint chain and target-buffer path passes with gravity off;
+- a full explicit PD actuator remains a fallback because it adds new
+  discrete-time controller dynamics.
+
+The next implementation keeps the stable force `1048/53/100` baseline and
+adds bounded PhysX gravity-compensation values as external actuation on
+`joint1`-`joint4` only. The future runner must fail before motion unless
+gravity-compensation, external-DOF-actuation, and incoming-joint-force APIs are
+available; record all compensation, applied effort, incoming force, target,
+position, derived-velocity, and contact signals.
+
+Evidence is
+`artifacts/dofbot/residual_force_audit_2026-07-30.json`. Acceptance is
+**local residual audit passed / gravity feed-forward selected for
+implementation / paid GPU, pre-grasp, and Viewer blocked**. After the
+implementation is reviewed and merged, a paid run still requires a fresh quote
+and explicit approval. Its order is isolated gravity-on `<=1°` calibration,
+then the unchanged headless pre-grasp gate, then and only then Viewer
+acceptance.
+
+Validation: all `192` repository tests, five focused residual-audit tests,
+targeted Ruff, deterministic artifact regeneration, source SHA/size replay,
+JSON parsing, Git LFS attributes, and `git diff --check` pass.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

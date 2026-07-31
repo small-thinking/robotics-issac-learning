@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_residual_force_semantics_audit",
+  "source_evidence": {
+    "drive_model_result": {
+      "path": "artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json",
+      "bytes": 10355,
+      "sha256": "3f69262fcac8420d26a6074bdac46f2e1c827fa0ca796e70ec3c91894f38c5e7"
+    },
+    "actuator_result": {
+      "path": "artifacts/dofbot/actuator_calibration_result_2026-07-30.json",
+      "bytes": 7525,
+      "sha256": "1c1e4a2085efc1a4114b0756c40084cb33c0035125da2bccbedec9126a50f58a"
+    },
+    "asset_drive_audit": {
+      "path": "artifacts/dofbot/asset_drive_audit_2026-07-30.json",
+      "bytes": 5407,
+      "sha256": "7a806a2d6b01748cdf1954fcd4b8a2b5fa48a5af3d4832520f11cfa485e56e71"
+    },
+    "force_damping_53_raw": {
+      "path": "artifacts/dofbot/drive_model_diagnostic_cases/force_damping_53.json",
+      "bytes": 1634207,
+      "sha256": "36e8d9bfcfb344b5ec7d31063cb35d68c99f344e498eaaba98d05fb937c33b81"
+    },
+    "force_authored_tuning_raw": {
+      "path": "artifacts/dofbot/drive_model_diagnostic_cases/force_authored_tuning.json",
+      "bytes": 1664995,
+      "sha256": "4f7daf0ff07e28aacb5b79d7b6e2ae6ed40727112fa3c0c7762382761fa3ee86"
+    }
+  },
+  "official_semantics": {
+    "physx_release_109_source_commit": "176bc52d9605cedf79a5631ca42a42716f5f6d9d",
+    "physx_rule": "PxArticulationFlag::eDRIVE_LIMITS_ARE_FORCES makes maxForce a force or torque and the solver scales it by the timestep to obtain an impulse; without the flag maxForce is used directly as an impulse",
+    "physx_documentation": "https://nvidia-omniverse.github.io/PhysX/physx/5.7.0/docs/Articulations.html",
+    "physx_cpu_implementation": "https://github.com/NVIDIA-Omniverse/PhysX/blob/176bc52d9605cedf79a5631ca42a42716f5f6d9d/physx/source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp#L3010",
+    "runtime_flag_directly_recorded": false,
+    "usd_articulation_authors_drive_limit_unit_flag": false
+  },
+  "drive_limit_analysis": {
+    "physics_dt_s": 0.016666666666666666,
+    "physics_frequency_hz": 60.0,
+    "runtime_limits": {
+      "force_damping_53": 100.0,
+      "force_authored_tuning": 5.2
+    },
+    "if_limits_are_impulses_equivalent_force_per_second": {
+      "force_damping_53": 6000.0,
+      "force_authored_tuning": 312.0
+    },
+    "selected_physical_sample_count": 647,
+    "selected_physical_sequence_sha256": "97310179173f3470dd180e33f92eea980b83415dd3f9e877a0d031964b654e3b",
+    "physical_sequences_identical": true,
+    "pose_summaries_identical": true,
+    "maximum_absolute_implicit_pd_estimate": 768.74658203125,
+    "candidate_terminal_implicit_pd_estimate": [
+      0.02265348471701145,
+      31.814424514770508,
+      29.984729766845703,
+      0.1292695254087448
+    ],
+    "implicit_pd_estimate_is_not_solver_torque": true
+  },
+  "residual_cause_ranking": [
+    {
+      "candidate": "gravity_load_without_feed_forward",
+      "status": "selected_for_next_machine_test",
+      "evidence": "gravity-off tracks within 0.0032 degrees while the otherwise matched gravity-on case misses by 4.9762 degrees; force-drive tuning reduces but does not remove the residual"
+    },
+    {
+      "candidate": "drive_limit_impulse_semantics",
+      "status": "high_confidence_explanation_of_limit_invariance",
+      "evidence": "at 60 Hz an impulse limit of 5.2 is equivalent to 312 force units per second, and changing 100 to 5.2 leaves 647 selected physical samples identical",
+      "boundary": "the runtime articulation flag was not directly exposed by the recorded USD or tensor telemetry"
+    },
+    {
+      "candidate": "runtime_joint_frame_or_sign_error",
+      "status": "rejected_as_primary_cause",
+      "evidence": "the same target and joint-frame path passes with gravity off, the target buffer matches, and all four controlled joints retain the expected X-axis parent-child chain"
+    },
+    {
+      "candidate": "full_explicit_pd_actuator",
+      "status": "fallback_not_first_change",
+      "evidence": "an explicit actuator makes torque clipping observable but introduces a new discrete-time controller; test the smaller gravity-feed-forward correction first"
+    }
+  ],
+  "selected_next_machine_experiment": {
+    "name": "bounded_gravity_feed_forward",
+    "baseline": {
+      "drive_type": "force",
+      "stiffness": 1048.0,
+      "damping": 53.0,
+      "effort_limit_sim": 100.0,
+      "enable_external_forces_every_iteration": true
+    },
+    "single_changed_behavior": "read PhysX gravity compensation every step and apply the controlled joint components as bounded external actuation forces in addition to the unchanged implicit drive",
+    "required_runtime_apis": [
+      "ArticulationView.get_gravity_compensation_forces",
+      "ArticulationView.set_dof_actuation_forces",
+      "ArticulationView.get_link_incoming_joint_force"
+    ],
+    "runtime_api_documentation": "https://docs.omniverse.nvidia.com/kit/docs/omni_physics/109.0/extensions/runtime/source/omni.physics.tensors/docs/api/python.html",
+    "fail_closed_requirements": [
+      "all three runtime APIs are available before motion",
+      "gravity-compensation values are finite and recorded",
+      "only joint1 through joint4 receive feed-forward effort",
+      "feed-forward effort is bounded before application",
+      "position-derived settling and target-buffer identity remain",
+      "maximum gravity-on tracking error is at most 1 degree",
+      "zero monitored contact and unchanged safe trajectory"
+    ],
+    "full_explicit_pd_actuator_is_fallback": true
+  },
+  "gate_order": [
+    "implement_and_review_bounded_gravity_feed_forward",
+    "headless_gravity_on_calibration_at_most_1_degree",
+    "headless_pregrasp_machine_gate",
+    "viewer_visual_acceptance"
+  ],
+  "checks": {
+    "reviewed_drive_matrix_complete": true,
+    "reviewed_drive_matrix_selects_no_passing_case": true,
+    "raw_force_100_source_identity_matches": true,
+    "raw_force_5_2_source_identity_matches": true,
+    "physics_timestep_is_60_hz": true,
+    "runtime_max_force_readback_changed": true,
+    "all_selected_physical_samples_identical": true,
+    "all_pose_summaries_identical": true,
+    "gravity_off_tracking_passes": true,
+    "gravity_on_tracking_fails": true,
+    "best_force_tracking_still_fails": true,
+    "target_buffer_matches": true,
+    "all_controlled_joints_share_axis_and_chain": true,
+    "viewer_pregrasp_contact_and_hardware_blocked": true
+  },
+  "audit_passed": true,
+  "paid_gpu_run_authorized": false,
+  "pregrasp_authorized": false,
+  "viewer_authorized": false,
+  "contact_or_grasp_authorized": false
+}
