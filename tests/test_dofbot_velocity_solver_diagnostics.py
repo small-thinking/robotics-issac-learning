@@ -28,6 +28,10 @@ REMOTE_RESULT_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/actuator_calibration_result_2026-07-30.json"
 )
+SOLVER_DRIVE_RESULT_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json"
+)
 RUNNER_PATH = PROJECT_DIR / "tools/run_dofbot_actuator_calibration.py"
 RUN_SCRIPT_PATH = (
     PROJECT_DIR / "scripts/isaac/run_dofbot_actuator_calibration.sh"
@@ -194,6 +198,36 @@ class DofbotVelocitySolverDiagnosticsTest(unittest.TestCase):
             self.assertIn(value, runner)
         self.assertIn("DOFBOT_ACTUATOR_MATRIX_PROFILE", run_script)
         self.assertIn("solver_drive", run_script)
+
+    def test_promoted_remote_result_keeps_tracking_blocked(self) -> None:
+        result = json.loads(
+            SOLVER_DRIVE_RESULT_PATH.read_text(encoding="utf-8")
+        )
+        self.assertTrue(result["matrix"]["matrix_complete"])
+        self.assertEqual(result["matrix"]["matrix_exit_code"], 0)
+        self.assertEqual(
+            result["matrix"]["decision"],
+            "external_force_iteration_repairs_velocity_telemetry_only",
+        )
+        self.assertFalse(result["matrix"]["tracking_identity_validated"])
+        self.assertFalse(result["matrix"]["pregrasp_authorized"])
+        self.assertFalse(result["matrix"]["viewer_authorized"])
+        self.assertTrue(
+            result["comparisons"][
+                "external_force_iteration_repairs_raw_velocity_telemetry"
+            ]
+        )
+        self.assertFalse(
+            result["comparisons"][
+                "external_force_iteration_repairs_position_tracking"
+            ]
+        )
+        self.assertTrue(
+            all(
+                not case["tracking_gate_passed"]
+                for case in result["cases"].values()
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -9,17 +9,18 @@
   API endpoint remotely, but Isaac joint tracking still fails under load; the
   isolated three-case actuator matrix now proves gravity dependence, falsifies
   effort-250 as a sufficient fix, and the local follow-up now separates
-  position-derived settling from incompatible raw velocity and prepares a
-  four-case single-factor solver/drive diagnostic for later remote validation
+  position-derived settling from incompatible raw velocity; the completed
+  four-case solver/drive matrix repairs velocity telemetry but does not repair
+  the approximately five-degree gravity-on joint tracking error
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-30 08:50:21 PDT after artifact retrieval
+  2026-07-30 18:12:50 PDT after solver/drive artifact retrieval
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class was
-  `$1.58784/hour` compute; rechecked 2026-07-30 before the 08:16 restart
+  `$1.58784/hour` compute; rechecked 2026-07-30 before this matrix
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -548,6 +549,54 @@
   Isaac, Viewer, camera, contact, grasp, hardware, policy, or checkpoint
   command was issued during this local work.
 
+## DOFBOT solver/drive remote result
+
+- Provenance: merged `main@02f27d259d271a5bb01a9739c1c270db702de9f7`;
+  config SHA-256
+  `5ae01f684857f78fb3eb973cf32655617a18eb3ec8d3847e20631140a0bb018d`.
+  The approved retained instance remained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4,
+  at the rechecked `$1.58784/hour` compute quote.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-solver-drive
+  ```
+
+- Machine execution passed with `[MATRIX_EXIT_CODE] 0`,
+  `matrix_complete=true`, and decision
+  `external_force_iteration_repairs_velocity_telemetry_only`.
+- Results:
+  - baseline TGS: `4.97412°` tracking error, `0.04190°/s` derived speed,
+    `16.36310°/s` raw speed, and `16.44402°/s` mismatch;
+  - external forces every TGS iteration: mismatch fell to `0.09921°/s`,
+    but tracking error remained `5.04065°`;
+  - two velocity iterations: `5.04064°` tracking error, indistinguishable
+    from the preceding case;
+  - damping 50: tracking improved only to `4.88333°`, still far outside the
+    unchanged `1°` gate.
+- Every case settled by position difference, matched the backend target buffer
+  within `0.0000017°`, and recorded `0 N` monitored contact. Joint 3 remains
+  the largest-error controlled joint at the candidate pose.
+- Established: external-force iteration repairs the runtime's noisy raw
+  velocity telemetry. Falsified: that telemetry defect causes the position
+  error; two velocity iterations fix tracking; or halving damping fixes
+  tracking.
+- Durable evidence:
+  `artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json`. It binds
+  the ignored four multi-megabyte case JSON files, four logs, and retrieved
+  matrix contract by exact byte size and SHA-256.
+- Resource lifecycle: artifacts were retrieved before stop; standard
+  `brev ls --json` reached explicit `STOPPED` at 18:12:50 PDT. No instance or
+  disk was created, resized, or deleted.
+- Validation: `179/179` repository tests, Git LFS attributes, remote command
+  previews, targeted Ruff, promoted source SHA/size bindings, JSON parsing,
+  and `git diff --check` passed.
+- Acceptance: **matrix execution passed / velocity telemetry repair identified /
+  all four tracking gates failed / pre-grasp and Viewer blocked**. No table,
+  cube, camera, Viewer, pre-grasp, gripper, contact, hardware, policy, or
+  checkpoint command ran.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
@@ -905,11 +954,13 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and review/merge the velocity and solver/drive
-preparation PR. Only after a fresh live quote and explicit approval may
-`make dofbot-solver-drive` run on the retained instance. Retrieve the four
-case artifacts and summary, select only an evidence-supported correction, and
-rerun the selected gravity-on calibration before `make dofbot-pregrasp`.
-Open the Viewer only after the selected baseline passes the independent `1°`
-tracking gate and every unchanged pre-grasp machine gate. Contact, closing,
+Keep the Brev instance stopped. Retain
+`enable_external_forces_every_iteration=true` for trustworthy velocity
+telemetry, but do not adopt two velocity iterations or damping 50 as a
+tracking fix. Before another paid run, perform a GPU-free per-joint drive-force
+and official-asset mass/inertia/axis audit, concentrating on joint 3 and on why
+the applied-effort clamp remains saturated despite the small physical load.
+Design the next orthogonal matrix only from that evidence.
+`make dofbot-pregrasp` and Viewer remain blocked until a selected gravity-on
+calibration passes the independent `1°` tracking gate. Contact, closing,
 grasping, lifting, and placing remain unauthorized.
