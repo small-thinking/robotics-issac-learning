@@ -208,6 +208,23 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
                 torque_interpretation="zero_means_no_saturation",
                 torque_saturation_observed=False,
             )
+        with self.assertRaisesRegex(
+            ActuatorCalibrationError,
+            "cannot prove solver saturation",
+        ):
+            evaluate_calibration_case(
+                self.config,
+                self.config.case("gravity_on_effort_100"),
+                self._pose_summaries(),
+                official_api_call_count=16,
+                target_buffer_available=True,
+                actual_velocity_available=True,
+                position_derived_velocity_available=True,
+                torque_interpretation=(
+                    "implicit_pd_estimate_not_measured_solver_torque"
+                ),
+                torque_saturation_observed=True,
+            )
 
     def test_matrix_decision_tree_separates_root_cause_classes(self) -> None:
         baseline_fail = self._evaluation(tracking_passed=False)
@@ -241,7 +258,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
                 self.config,
                 observed_saturation,
             )["decision"],
-            "effort_saturation_observed",
+            "drive_gain_axis_solver_or_model_mapping_failure",
         )
 
         effort_sensitive = copy.deepcopy(all_fail)

@@ -11,10 +11,13 @@
   effort-250 as a sufficient fix, and the local follow-up now separates
   position-derived settling from incompatible raw velocity; the completed
   four-case solver/drive matrix repairs velocity telemetry but does not repair
-  the approximately five-degree gravity-on joint tracking error
+  the approximately five-degree gravity-on joint tracking error; the completed
+  official-asset audit now isolates acceleration-versus-force drive semantics
+  as the next testable hypothesis and corrects the prior torque-evidence
+  interpretation
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-30 18:12:50 PDT after solver/drive artifact retrieval
+  2026-07-30 19:29 PDT during the GPU-free drive audit
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -429,7 +432,7 @@
 - Per-physics-step evidence includes API command, backend interpolated target,
   Isaac `joint_pos_target`, observed `joint_pos` and actual `joint_vel`,
   resolved stiffness/damping/effort-limit buffers, computed/applied torque
-  when meaningful, optional PhysX mass/inertia/DOF properties, terminal body
+  as implicit PD estimates only, optional PhysX mass/inertia/DOF properties, terminal body
   positions, and monitored contact. Missing optional fields are recorded as
   null together with probe error details; implicit zero or unavailable torque
   buffers are explicitly
@@ -443,7 +446,8 @@
   36°/s² peak acceleration, inside the existing 20°/s and 60°/s² limits.
 - The decision tree prioritizes contact/self-collision, settling instability,
   target-buffer mismatch, and telemetry/runtime compatibility before comparing
-  direct measured saturation, gravity, and effort controls. The wrapper prints
+  gravity and effort controls. Implicit-actuator torque buffers do not directly
+  measure solver torque or prove saturation. The wrapper prints
   an internal matrix exit code while returning outer success to prevent Brev
   from retrying the paid matrix automatically; the local wrapper parses that
   code and fails `make` when the internal matrix failed.
@@ -487,7 +491,8 @@
     maximum terminal reported velocity `16.34411°/s`;
   - gravity on / effort 250 produced exactly the same selected target,
     position, and velocity sequence as effort 100, despite confirmed
-    `250` effort buffers, PhysX maximum force, and applied-torque clamp.
+    `250` effort buffers and PhysX maximum-force write. The recorded
+    applied-torque value is an implicit PD estimate, not measured solver torque.
 - The API, backend target, and Isaac target buffer agree within
   `0.0000013°`, and every case recorded `0 N` contact. Gravity dependence is
   therefore established, while increasing only `effort_limit_sim` from
@@ -596,6 +601,53 @@
   all four tracking gates failed / pre-grasp and Viewer blocked**. No table,
   cube, camera, Viewer, pre-grasp, gripper, contact, hardware, policy, or
   checkpoint command ran.
+
+## DOFBOT official-asset drive audit and next matrix preparation
+
+- Scope: GPU-free official-USD inspection, evidence correction, diagnostic
+  implementation, and remote-command preview. No Brev start, Isaac run,
+  Viewer, task scene, contact, gripper, hardware, policy, or checkpoint ran.
+- Official source: NVIDIA Isaac 6.0
+  `Robots/Yahboom/Dofbot/dofbot.usd`, 104,922,919 bytes, SHA-256
+  `52c524ebb26c38a3d164daee10f6cac0f15487fce5408a38c0c94199a37f1303`.
+  The source USD was inspected only from temporary storage and is not
+  committed.
+- Established asset contract: meter scale, Z-up, the expected
+  joint1-to-joint4 serial body chain, X axis on every controlled revolute
+  joint, and uniform authored angular drives with type `acceleration`,
+  stiffness `1048`, damping `53`, and maximum force `5.2`.
+- Current composition boundary: the project overrides stiffness `10000`,
+  damping `100`, and effort limit `100`, but previously did not override the
+  authored acceleration drive type. Joint 3 is the largest runtime error but
+  is not uniquely axised or uniquely tuned in the official USD.
+- Evidence correction: Isaac Lab implicit-actuator `computed_effort` and
+  `applied_effort` are approximate PD calculations, not measured PhysX solver
+  torque. The old 100-to-250 run proves the effort-limit and PhysX
+  maximum-force writes changed and the trajectory did not; it does not prove
+  physical torque saturation.
+- New five-case contract:
+  `configs/dofbot/calibration/goal5_drive_model_diagnostic.json`. It holds
+  gravity, trajectory, solver settings, and external-force iteration fixed,
+  then changes exactly one field per stage: drive type, stiffness, damping,
+  and maximum force. Runtime evidence reads back composed drive type, gains,
+  axis, bodies, and maximum force for every controlled joint before motion.
+- GPU-free commands:
+
+  ```bash
+  make dofbot-drive-model-dry-run
+  BREV_INSTANCE_NAME=preview-only make show-dofbot-drive-model
+  ```
+
+- Evidence:
+  `artifacts/dofbot/asset_drive_audit_2026-07-30.json` and
+  `artifacts/dofbot/drive_model_diagnostic_plan.json`.
+- Validation: `185/185` repository tests, targeted Ruff, Python compilation,
+  shell syntax, JSON parsing, Git LFS attribute checks, deterministic plan
+  regeneration, and the headless remote-command preview pass.
+- Acceptance: **official-asset audit passed / five-case plan passed locally /
+  root-cause hypothesis unproven / paid run, pre-grasp, and Viewer blocked**.
+  After merge, a fresh quote, and explicit approval, the next paid command is
+  `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.
 
 ## DOFBOT Goal 3 camera gate
 
@@ -954,13 +1006,12 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Retain
-`enable_external_forces_every_iteration=true` for trustworthy velocity
-telemetry, but do not adopt two velocity iterations or damping 50 as a
-tracking fix. Before another paid run, perform a GPU-free per-joint drive-force
-and official-asset mass/inertia/axis audit, concentrating on joint 3 and on why
-the applied-effort clamp remains saturated despite the small physical load.
-Design the next orthogonal matrix only from that evidence.
-`make dofbot-pregrasp` and Viewer remain blocked until a selected gravity-on
-calibration passes the independent `1°` tracking gate. Contact, closing,
-grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped. The GPU-free official-asset drive audit and
+five-case single-factor plan are complete. After review, merge, a fresh quote,
+and explicit approval, run only
+`BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.
+Review that headless matrix before adopting a configuration. Then rerun the
+selected gravity-on calibration and headless pre-grasp machine gate.
+`make dofbot-pregrasp-view` remains blocked until both machine gates pass the
+independent `1°` tracking threshold. Contact, closing, grasping, lifting, and
+placing remain unauthorized.

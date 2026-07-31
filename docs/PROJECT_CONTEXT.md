@@ -103,7 +103,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    effort 250 as a sufficient fix, and the local position-derived velocity
    contract plus four-stage solver/drive plan passed offline review. The
    focused remote matrix then repaired raw velocity telemetry without repairing
-   tracking. A GPU-free joint-3-focused asset/drive audit is next.
+   tracking. The completed official-asset audit found uniform X-axis
+   acceleration drives on joints 1-4 and corrected the earlier interpretation
+   of implicit-actuator torque buffers: they are PD estimates, not measured
+   PhysX solver torque. A five-case acceleration/force drive-model matrix is
+   now prepared locally; pre-grasp and Viewer remain blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -126,13 +130,15 @@ approach axis is `(0,+0.94213,+0.33526)`, closing remains monitor-only world
 gripper remain uncommanded.
 
 The exact next paid step, after review, merge, a fresh quote, and explicit
-approval, is `make dofbot-actuator-calibration`. It runs the same neutral,
-mid-load, candidate, and neutral-return poses under gravity-on/effort-100,
-gravity-off/effort-100, and gravity-on/effort-250 cases. It records actual
-joint velocity, the Isaac target buffer, resolved drive parameters, contact,
-and torque availability every physics step. Do not rerun pre-grasp or open the
-Viewer until that matrix is complete and its decision-specific correction
-passes calibration. Contact and grasping remain out of scope.
+approval, is `make dofbot-drive-model`. It runs the same neutral, mid-load,
+candidate, and neutral-return poses in five single-factor stages: reproduce the
+current acceleration drive, switch only to force drive, then restore the
+official stiffness, damping, and maximum force in order. The runner reads back
+the composed USD drive for every controlled joint and preserves target,
+position-derived settling, contact, and one-degree tracking gates. Do not
+rerun pre-grasp or open the Viewer until the matrix selects a correction and
+that correction passes calibration plus the headless pre-grasp machine gate.
+Contact and grasping remain out of scope.
 
 ## Sources of truth
 

@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_drive_model_diagnostic_plan",
+  "calibration_config": {
+    "path": "configs/dofbot/calibration/goal5_drive_model_diagnostic.json",
+    "sha256": "7644ca7f88f0fbcda2b041fc4eb5fd79f4aa21560dbf054c6da4e453f118bddd",
+    "value": {
+      "schema_version": 1,
+      "name": "goal5_drive_model_diagnostic",
+      "controlled_joint_names": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4"
+      ],
+      "safe_angle_min_deg": 60,
+      "safe_angle_max_deg": 120,
+      "poses": [
+        {
+          "name": "neutral_start",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "name": "mid_load",
+          "angles_deg": [
+            90,
+            78,
+            78,
+            78
+          ]
+        },
+        {
+          "name": "pregrasp_candidate",
+          "angles_deg": [
+            90,
+            66,
+            66,
+            66
+          ]
+        },
+        {
+          "name": "neutral_return",
+          "angles_deg": [
+            90,
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "trajectory": {
+        "duration_ms": 2000,
+        "settle_velocity_threshold_deg_s": 0.1,
+        "settle_hold_ms": 500,
+        "settle_timeout_ms": 5000,
+        "sample_every_physics_step": true,
+        "position_velocity_window_ms": 100,
+        "maximum_velocity_signal_mismatch_deg_s": 1.0
+      },
+      "cases": [
+        {
+          "name": "acceleration_runtime_tuning",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true,
+          "drive_type": "acceleration"
+        },
+        {
+          "name": "force_runtime_tuning",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 10000.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true,
+          "drive_type": "force"
+        },
+        {
+          "name": "force_stiffness_1048",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 1048.0,
+          "damping": 100.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true,
+          "drive_type": "force"
+        },
+        {
+          "name": "force_damping_53",
+          "gravity_enabled": true,
+          "effort_limit_sim": 100.0,
+          "stiffness": 1048.0,
+          "damping": 53.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true,
+          "drive_type": "force"
+        },
+        {
+          "name": "force_authored_tuning",
+          "gravity_enabled": true,
+          "effort_limit_sim": 5.2,
+          "stiffness": 1048.0,
+          "damping": 53.0,
+          "solver_position_iteration_count": 8,
+          "solver_velocity_iteration_count": 0,
+          "enable_external_forces_every_iteration": true,
+          "drive_type": "force"
+        }
+      ],
+      "acceptance": {
+        "maximum_target_buffer_error_deg": 0.05,
+        "maximum_settled_tracking_error_deg": 1.0,
+        "maximum_overshoot_deg": 2.0,
+        "maximum_contact_force_n": 0.5
+      }
+    }
+  },
+  "source_asset_audit": {
+    "path": "artifacts/dofbot/asset_drive_audit_2026-07-30.json",
+    "sha256": "7a806a2d6b01748cdf1954fcd4b8a2b5fa48a5af3d4832520f11cfa485e56e71",
+    "asset_sha256": "52c524ebb26c38a3d164daee10f6cac0f15487fce5408a38c0c94199a37f1303"
+  },
+  "source_solver_result": {
+    "path": "artifacts/dofbot/solver_drive_diagnostic_result_2026-07-30.json",
+    "sha256": "20e34025d26e07ba13c822b18ddc8777566e32a1bede8f213b661daed4ec1c4c",
+    "machine_commit": "02f27d259d271a5bb01a9739c1c270db702de9f7",
+    "decision": "external_force_iteration_repairs_velocity_telemetry_only"
+  },
+  "root_cause_boundary": {
+    "established": "joint1 through joint4 are uniform X-axis acceleration drives; the current runtime did not override drive type",
+    "hypothesis": "force-drive semantics repair or materially reduce the gravity-on position-tracking error",
+    "not_yet_claimed": "the drive type is the root cause or any candidate passes the one-degree tracking gate"
+  },
+  "staged_single_factor_changes": [
+    {
+      "from": "acceleration_runtime_tuning",
+      "to": "force_runtime_tuning",
+      "changed_fields": [
+        "drive_type"
+      ]
+    },
+    {
+      "from": "force_runtime_tuning",
+      "to": "force_stiffness_1048",
+      "changed_fields": [
+        "stiffness"
+      ]
+    },
+    {
+      "from": "force_stiffness_1048",
+      "to": "force_damping_53",
+      "changed_fields": [
+        "damping"
+      ]
+    },
+    {
+      "from": "force_damping_53",
+      "to": "force_authored_tuning",
+      "changed_fields": [
+        "effort_limit_sim"
+      ]
+    }
+  ],
+  "remote_case_order": [
+    "acceleration_runtime_tuning",
+    "force_runtime_tuning",
+    "force_stiffness_1048",
+    "force_damping_53",
+    "force_authored_tuning"
+  ],
+  "trajectory_extrema": {
+    "maximum_transition_delta_deg": 24.0,
+    "smoothstep_peak_velocity_deg_s": 18.0,
+    "smoothstep_peak_acceleration_deg_s2": 36.0
+  },
+  "runtime_requirements": {
+    "read_back_composed_usd_drive_type_per_controlled_joint": true,
+    "treat_implicit_torque_buffers_as_pd_estimates_only": true,
+    "position_derived_settling_required": true,
+    "target_buffer_identity_required": true,
+    "maximum_settled_tracking_error_deg": 1.0
+  },
+  "decision_order": [
+    "contact_or_self_collision_interference",
+    "backend_or_target_buffer_mismatch",
+    "position_velocity_instrumentation_incomplete",
+    "acceleration_runtime_tracking_validated",
+    "force_drive_resolves_tracking",
+    "force_stiffness_1048_resolves_tracking",
+    "force_damping_53_resolves_tracking",
+    "force_authored_tuning_resolves_tracking",
+    "drive_model_ladder_no_resolution"
+  ],
+  "checks": {
+    "source_solver_matrix_complete": true,
+    "source_tracking_still_blocked": true,
+    "source_decision_requires_drive_audit": true,
+    "official_asset_meter_scale": true,
+    "official_asset_not_committed": true,
+    "four_controlled_joint_drives": true,
+    "controlled_joint_order_locked": true,
+    "every_controlled_axis_is_x": true,
+    "every_authored_drive_is_acceleration": true,
+    "authored_tuning_is_uniform": true,
+    "previous_torque_claim_corrected": true,
+    "case_order_locked": true,
+    "every_case_keeps_gravity_on": true,
+    "every_case_keeps_external_force_iteration": true,
+    "each_stage_changes_exactly_one_field": true,
+    "reference_reproduces_composed_acceleration_drive": true,
+    "final_case_tests_authored_tuning_as_force": true,
+    "pregrasp_viewer_contact_and_hardware_blocked": true
+  },
+  "local_preparation_passed": true,
+  "paid_gpu_run_authorized": false,
+  "viewer_authorized": false,
+  "pregrasp_authorized": false,
+  "contact_or_grasp_authorized": false
+}

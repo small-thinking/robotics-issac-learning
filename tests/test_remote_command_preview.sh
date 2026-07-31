@@ -310,6 +310,27 @@ assert_not_contains "$solver_drive_output" '--livestream'
 assert_not_contains "$solver_drive_output" '--viz'
 assert_contains "$solver_drive_output" '[dry-run] Command displayed but not executed.'
 
+drive_model_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_drive_model_diagnostic.sh
+)"
+
+assert_contains "$drive_model_output" 'goal5_drive_model_diagnostic.json'
+assert_contains "$drive_model_output" 'acceleration_runtime_tuning'
+assert_contains "$drive_model_output" 'force_runtime_tuning'
+assert_contains "$drive_model_output" 'force_stiffness_1048'
+assert_contains "$drive_model_output" 'force_damping_53'
+assert_contains "$drive_model_output" 'force_authored_tuning'
+assert_contains "$drive_model_output" 'drive_model_diagnostic_contract.json'
+assert_contains "$drive_model_output" 'drive_model_diagnostic_cases'
+assert_contains "$drive_model_output" '[MATRIX_EXIT_CODE]'
+assert_contains "$drive_model_output" '--device cpu'
+assert_contains "$drive_model_output" '--headless'
+assert_not_contains "$drive_model_output" '--livestream'
+assert_not_contains "$drive_model_output" '--viz'
+assert_contains "$drive_model_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \

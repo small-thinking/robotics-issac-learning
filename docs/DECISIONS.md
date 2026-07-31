@@ -201,12 +201,13 @@ gravity-on/effort-250 with identical poses and per-physics-step telemetry.
 Actual joint velocity defines settling. The Isaac target buffer must match the
 backend interpolated target before a drive-dynamics conclusion is allowed.
 
-Computed/applied torque is optional evidence for implicit actuators: present,
-nonzero buffers may support a saturation conclusion, while zero or unavailable
-buffers are explicitly inconclusive. Tracking failure is a valid calibration
-result and must still be written. Pre-grasp may resume only after the matrix
-selects a cause-specific correction and the chosen baseline passes the
-independent one-degree tracking gate.
+Computed/applied torque from an Isaac Lab implicit actuator is an approximate
+PD calculation, not measured PhysX solver torque. It may diagnose whether the
+software-side estimate reached its configured clip, but it cannot establish
+physical torque saturation. Tracking failure is a valid calibration result and
+must still be written. Pre-grasp may resume only after the matrix selects a
+cause-specific correction and the chosen baseline passes the independent
+one-degree tracking gate.
 
 ## 2026-07-30 — Do not treat effort 250 or raw TGS velocity as the actuator fix
 
@@ -215,11 +216,12 @@ same API poses within `0.0032°`, while gravity-on effort-100 misses by
 `4.976°`. This establishes a load-dependent actuator/model problem without
 task contact or a target-buffer mismatch.
 
-Effort 250 is not accepted as the correction. Isaac effort buffers, PhysX DOF
-maximum forces, and the applied-torque clamp all changed from 100 to 250, but
-the complete selected gravity-on target, position, and reported-velocity
-sequence did not change. A higher configured clamp that leaves the measured
-trajectory byte-identical is not evidence of improved control.
+Effort 250 is not accepted as the correction. Isaac effort buffers and PhysX
+DOF maximum forces changed from 100 to 250, and the implicit-actuator PD
+estimate reached the corresponding software-side clip, but the complete
+selected gravity-on target, position, and reported-velocity sequence did not
+change. This proves the configuration write and falsifies an effort-only fix;
+it does not prove measured solver-torque saturation.
 
 Raw `joint_vel` also cannot remain the sole settling authority in this runtime.
 The final position samples vary only by microdegrees while the buffer reports
@@ -272,3 +274,23 @@ GPU-free per-joint audit of the official USD's drive-force interpretation,
 mass/inertia, axis, and transmission semantics, focused on joint 3. Only that
 evidence may define a new orthogonal paid matrix. The one-degree gate and all
 pre-grasp, Viewer, contact, and grasp blocks remain unchanged.
+
+## 2026-07-30 — Audit and override drive type before another task retry
+
+The official NVIDIA DOFBOT USD is meter-scaled and authors the same X-axis
+angular drive on joints 1-4: type `acceleration`, stiffness `1048`, damping
+`53`, and maximum force `5.2`. The project configuration had overridden gains
+and effort limit while leaving drive type inherited. Joint 3 is the largest
+runtime error, but its official axis and tuning are not unique.
+
+Treat force-drive semantics as a falsifiable hypothesis, not a fix. The next
+headless matrix first reproduces the composed acceleration drive, switches
+only drive type to `force`, then restores official stiffness, damping, and
+maximum force one field at a time. Each case must read back the composed drive
+type, axis, connected bodies, gains, and maximum force before motion.
+
+The matrix cannot authorize pre-grasp or Viewer directly. A selected
+configuration must first pass the unchanged one-degree gravity-on calibration
+and then the headless pre-grasp machine gate. If no drive case passes, inspect
+gravity generalized forces, runtime joint frames, and explicit actuator
+alternatives rather than moving the scene or loosening acceptance gates.

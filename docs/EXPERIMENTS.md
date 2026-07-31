@@ -1376,15 +1376,14 @@
   stability proxy. A two-second smoothstep bounds the largest transition to
   18°/s peak velocity and 36°/s² peak acceleration, below the existing
   20°/s and 60°/s² limits.
-- Torque contract: computed/applied buffers are classified as measured only
-  when both are present and nonzero. Zero or unavailable implicit-actuator
-  buffers explicitly do not disprove saturation. With meaningful buffers,
-  applied effort at least 98% of the configured limit plus a nonzero
-  computed/applied gap is routed as observed saturation.
+- Torque contract correction: implicit-actuator computed/applied buffers are
+  approximate PD estimates, not measured PhysX solver torque. A nonzero gap
+  may show that the software-side estimate reached its configured clip, but
+  neither nonzero nor missing buffers establish physical saturation.
 - Failure routing order: contact/self-collision, actual-velocity settling,
   target-buffer mismatch, telemetry/runtime compatibility, baseline identity,
-  directly observed effort saturation, gravity sensitivity, effort
-  sensitivity, then drive/axis/solver/model mapping.
+  gravity sensitivity, effort sensitivity, then drive/axis/solver/model
+  mapping.
 - Operational safety: each tracking failure still writes its case artifact.
   The wrapper runs all three cases and summary, prints `[MATRIX_EXIT_CODE]`,
   and returns outer success so Brev cannot automatically retry a paid
@@ -1452,9 +1451,10 @@
 - Gravity on / effort 100: diagnostic and tracking gates failed; maximum
   tracking error `4.976193°`, maximum terminal reported velocity
   `16.344113°/s`, maximum target-buffer error `0.000001271°`, contact `0 N`;
-  maximum applied torque reached the configured `100`.
-- Gravity on / effort 250: the effort buffer, PhysX maximum force, and maximum
-  applied torque all changed to `250`, but every selected target, observed
+  the implicit PD estimate reached its configured `100` clip.
+- Gravity on / effort 250: the effort buffer and PhysX maximum force changed
+  to `250`, and the implicit PD estimate reached the corresponding clip, but
+  every selected target, observed
   position, and reported-velocity sample was identical to effort 100. Maximum
   tracking error remained `4.976193°`; contact remained `0 N`.
 - Established: the API/backend/Isaac target path agrees; gravity removal
@@ -1581,3 +1581,57 @@
 - Acceptance: **remote matrix complete / velocity telemetry repaired /
   tracking unresolved / pre-grasp and Viewer blocked**. The next work is a
   GPU-free asset/drive audit before designing another paid matrix.
+
+## 2026-07-30 — Official-asset drive audit and force-drive matrix passed local preparation
+
+- Scope: temporary download and read-only inspection of NVIDIA's official
+  Isaac 6.0 DOFBOT USD, diagnostic implementation, local dry-run, and remote
+  command preview only. No GPU, Isaac runtime, Viewer, task scene, contact,
+  gripper, real hardware, policy, or checkpoint ran.
+- Source:
+  `Robots/Yahboom/Dofbot/dofbot.usd`, 104,922,919 bytes, SHA-256
+  `52c524ebb26c38a3d164daee10f6cac0f15487fce5408a38c0c94199a37f1303`.
+  The 100 MB source and its schema layer were inspected from temporary
+  storage and were not added to the repository or Git LFS.
+- Established: the asset is meter-scaled and Z-up. Joints 1-4 form the
+  expected serial body chain, all use axis X, and all author an angular
+  `acceleration` drive with stiffness `1048`, damping `53`, maximum force
+  `5.2`, and joint friction `0`. Runtime body masses total approximately
+  `1.03481 kg`.
+- Falsified: joint 3 has a unique official axis or drive tuning; the asset is
+  centimeter-scaled; or implicit-actuator `computed_effort` and
+  `applied_effort` are measured solver torque.
+- Evidence correction: the prior 100-to-250 run still proves that the
+  effort-limit and PhysX maximum-force writes changed and that the full
+  gravity-on trajectory did not. Its implicit torque buffers are approximate
+  PD estimates and cannot prove physical saturation.
+- Hypothesis, not conclusion: changing composed drive type from
+  `acceleration` to `force` repairs or materially reduces gravity-on tracking
+  error.
+- The new matrix holds gravity, poses, trajectory, external-force iteration,
+  and solver settings fixed. It first reproduces acceleration with current
+  runtime tuning, switches only drive type to force, then restores official
+  stiffness, damping, and maximum force one field per stage. Before motion,
+  the runtime reads back the composed drive type, axis, connected bodies,
+  gains, and maximum force for every controlled joint and fails closed on a
+  mismatch.
+- Local commands:
+
+  ```bash
+  make dofbot-drive-model-dry-run
+  BREV_INSTANCE_NAME=preview-only make show-dofbot-drive-model
+  ```
+
+- Evidence:
+  `artifacts/dofbot/asset_drive_audit_2026-07-30.json` and
+  `artifacts/dofbot/drive_model_diagnostic_plan.json`.
+- Validation: `185/185` repository tests, targeted Ruff, Python compilation,
+  shell syntax, JSON parsing, Git LFS attribute checks, deterministic dry-run,
+  and headless remote preview pass.
+- Resource lifecycle: standard `brev ls --json` returned explicit `STOPPED`
+  at 19:29 PDT. No instance or disk was created, started, resized, or deleted.
+- Acceptance: **official-asset audit passed / single-factor matrix prepared /
+  drive-type root cause unproven / paid GPU, pre-grasp, and Viewer blocked**.
+  After review, merge, a fresh quote, and explicit approval, the next paid
+  command is
+  `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.

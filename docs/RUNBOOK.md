@@ -171,7 +171,8 @@ Inspect, for every pose:
 - observed `joint_pos` and actual `joint_vel`;
 - actual-velocity settling for the configured hold period;
 - stiffness, damping, and effort-limit buffers;
-- computed/applied torque only when the contract marks them meaningful;
+- computed/applied torque only as implicit-actuator PD estimates, never as
+  measured PhysX solver torque;
 - contact force and body positions;
 - `physics_snapshot.optional_probe_errors` whenever an optional PhysX field is
   null.
@@ -179,8 +180,8 @@ Inspect, for every pose:
 Follow only the matrix decision:
 
 - target-buffer mismatch: repair the API/backend/Isaac target path;
-- meaningful applied torque reaches the configured limit with a
-  computed/applied gap: treat saturation as directly observed;
+- implicit PD estimate reaches the configured limit with a computed/applied
+  gap: record a software-side estimate clip, not physical saturation;
 - gravity-off resolves the error: isolate gravity/load and tune the lowest
   stable effort or gain;
 - effort-250 resolves the error: validate the lowest sufficient effort;
@@ -195,8 +196,9 @@ position sequence, do not classify the pose as physically oscillating from
 raw velocity alone. Record both signals, retain the mismatch and TGS warning
 as compatibility evidence, and repair the diagnostic before tuning the task.
 The same run proved that changing effort 100 to 250 can update Isaac/PhysX
-effort limits and applied-torque clamps without changing the gravity-on
-trajectory; do not repeat an effort-only matrix as the next paid step.
+effort limits and the implicit PD estimate clip without changing the
+gravity-on trajectory; do not repeat an effort-only matrix as the next paid
+step or interpret the estimate as measured solver torque.
 
 The GPU-free replacement contract and next matrix are:
 
@@ -232,12 +234,32 @@ separate decisions.
 
 The 2026-07-30 matrix selected the telemetry-only branch. Preserve
 `enable_external_forces_every_iteration=true` in later diagnostics, but do not
-adopt velocity iterations 2 or damping 50 as tracking fixes. Before another
-paid matrix, inspect the retrieved physics snapshot and pose summaries
-offline: joint 3 is the dominant error, every target buffer agrees, every pose
-is physically settled, and every monitored contact is zero. Audit drive force,
-mass/inertia, axis, and transmission semantics before selecting another
-parameter.
+adopt velocity iterations 2 or damping 50 as tracking fixes. The subsequent
+official-asset audit found uniform X-axis acceleration drives on joints 1-4;
+joint 3 is not uniquely axised or tuned. It also corrected the implicit torque
+buffers to PD estimates rather than solver measurements.
+
+Prepare and preview the next single-factor matrix with:
+
+```bash
+make dofbot-drive-model-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-drive-model
+```
+
+The plan must show exactly five gravity-on stages:
+`acceleration_runtime_tuning`, `force_runtime_tuning`,
+`force_stiffness_1048`, `force_damping_53`, and
+`force_authored_tuning`. The four transitions must change only drive type,
+stiffness, damping, and maximum force respectively. After review, merge, a
+fresh quote, and explicit approval, run:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model
+```
+
+Require composed-USD readback for every controlled joint and
+`[MATRIX_EXIT_CODE] 0`. Retrieve all five case JSON/log files and the matrix
+contract, then stop to explicit `STOPPED` before selecting a configuration.
 
 After applying the decision-specific change, rerun the selected gravity-on
 calibration.
