@@ -15,7 +15,10 @@
   official-asset audit corrected the prior torque-evidence interpretation; the
   completed five-case drive-model matrix rejects the old high-gain force drive
   as unstable and improves the best stable error to `1.73936°`, but no case
-  passes the unchanged one-degree gate
+  passes the unchanged one-degree gate; the completed GPU-free residual-force
+  audit explains the `100`/`5.2` invariance at high confidence as a non-binding
+  impulse limit, rejects joint-frame correction as the primary fix, and
+  selects bounded gravity-compensation feed-forward for the next machine test
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
   2026-07-30 20:05:30 PDT after drive-model artifact retrieval
@@ -1065,13 +1068,16 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. The drive-model matrix materially improves the
-stable error but selects no passing configuration. Before another paid run,
-perform a GPU-free residual-force-semantics audit: explain why controlled
-PhysX maximum forces `100` and `5.2` produce byte-identical physical samples,
-and evaluate explicit-actuator, gravity-compensation, and runtime joint-frame
-alternatives without another broad parameter sweep. Only a reviewed correction
-that passes the independent `1°` gravity-on calibration may proceed to the
-headless pre-grasp machine gate. `make dofbot-pregrasp-view` remains blocked
-until both machine gates pass. Contact, closing, grasping, lifting, and placing
-remain unauthorized.
+Keep the Brev instance stopped. The residual-force audit is complete and
+selects one next implementation: retain the stable force-drive
+`1048/53/100` baseline and add bounded, recorded PhysX gravity-compensation
+feed-forward through external DOF actuation. Do not change frames, scene
+geometry, gains, or the one-degree gate in the same step. A full explicit PD
+actuator remains a fallback, not the first correction.
+
+After that implementation is reviewed and merged, a new paid run still
+requires a fresh quote and explicit approval. Its first gate is the isolated
+headless gravity-on calibration, not the Viewer. Only a complete calibration
+at or below `1°` may proceed to the unchanged headless pre-grasp machine gate.
+`make dofbot-pregrasp-view` remains blocked until both machine gates pass.
+Contact, closing, grasping, lifting, and placing remain unauthorized.

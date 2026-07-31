@@ -255,6 +255,18 @@ instrumentation label to `drive_model_ladder_no_resolution`, binds the ignored
 11.7 MB of raw JSON/log evidence by exact size and SHA-256, and keeps
 pre-grasp, Viewer, contact, and grasp authorization false.
 
+`residual_force_audit_2026-07-30.json` is the GPU-free replay and decision
+artifact for the final two force-drive cases. It verifies the exact ignored
+raw JSON byte counts and SHA-256 values, confirms all 647 selected physical
+samples and pose summaries remain identical between runtime limits `100` and
+`5.2`, and records their 60 Hz impulse-equivalent values as `6000` and `312`.
+It preserves the evidence boundary that the runtime articulation flag was not
+directly recorded. Gravity-off tracking and the unchanged X-axis body chain
+reject a static joint-frame/sign correction as the primary fix. The artifact
+selects bounded gravity-compensation feed-forward on force `1048/53/100` as
+the next single-factor machine hypothesis and keeps paid GPU, pre-grasp,
+Viewer, contact, and grasp authorization false.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

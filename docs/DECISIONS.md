@@ -319,3 +319,32 @@ Before another paid matrix, audit drive-limit semantics, gravity generalized
 forces, runtime joint frames, and explicit-actuator or gravity-compensation
 alternatives locally. Do not spend another window on a broad gain sweep, move
 the scene, loosen the one-degree gate, or open pre-grasp Viewer.
+
+## 2026-07-30 — Test bounded gravity feed-forward before a full explicit actuator
+
+PhysX documents articulation `maxForce` as a force/torque only when
+`eDRIVE_LIMITS_ARE_FORCES` is set; otherwise it is an impulse. The retrieved
+DOFBOT cases ran at 60 Hz, so `5.2` would correspond to `312` force units per
+second under impulse semantics. This is a high-confidence explanation for why
+runtime maximum-force readbacks of `100` and `5.2` produced identical 647-step
+physical sequences. It is not recorded as a direct flag readback because the
+USD and tensor evidence do not expose that articulation flag.
+
+Reject a runtime joint-frame/sign change as the next correction. The same
+joint chain and target-buffer path tracks within `0.0032°` with gravity off,
+while gravity on creates the residual. A static frame or zero-offset defect
+would not depend on gravity in that way.
+
+Select one smaller machine hypothesis before replacing the actuator model:
+retain force drive `1048/53/100` and add bounded gravity-compensation values
+from PhysX inverse dynamics as external DOF actuation on `joint1`-`joint4`
+only. Record compensation, applied effort, incoming joint force, targets,
+positions, derived velocities, and contact every step. Fail before motion if
+the required APIs are unavailable or values are non-finite. A full explicit
+PD actuator remains the fallback because it introduces new discrete-time
+controller dynamics.
+
+This decision authorizes implementation and local tests only. A paid headless
+run still needs review, merge, a fresh quote, and explicit approval. The
+gravity-on `<=1°` calibration and headless pre-grasp gates remain sequential;
+Viewer, contact, and grasp stay blocked.

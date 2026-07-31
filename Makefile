@@ -10,7 +10,7 @@ SHELL := /bin/bash
 	dofbot-pregrasp-taskspace dofbot-actuator-calibration-dry-run \
 	dofbot-actuator-calibration dofbot-solver-drive-dry-run \
 	dofbot-solver-drive dofbot-drive-model-dry-run dofbot-drive-model \
-	dofbot-actuator-velocity-reanalysis \
+	dofbot-actuator-velocity-reanalysis dofbot-residual-force-audit \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
@@ -165,6 +165,11 @@ dofbot-actuator-velocity-reanalysis:
 	 --remote-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
 	 --input-dir "$${ACTUATOR_CALIBRATION_CASES:-artifacts/dofbot/actuator_calibration_cases}" \
 	 --output "$${DOFBOT_VELOCITY_REANALYSIS:-artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json}"
+
+dofbot-residual-force-audit:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/audit_dofbot_residual_force.py \
+	 --output "$${DOFBOT_RESIDUAL_FORCE_AUDIT:-artifacts/dofbot/residual_force_audit_2026-07-30.json}"
 
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh

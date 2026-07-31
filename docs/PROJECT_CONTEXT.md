@@ -110,7 +110,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    rejected the prior high-gain force drive as unstable and reduced the best
    stable error from `5.04065°` to `1.73936°` with official-scale stiffness
    and damping. No case passed the unchanged one-degree gate, so pre-grasp and
-   Viewer remain blocked.
+   Viewer remain blocked. The follow-up residual-force audit explains the
+   `100`/`5.2` invariance at high confidence as a non-binding
+   force-versus-impulse limit and rejects a static joint-frame error as the
+   primary cause. It selects bounded gravity-compensation feed-forward as the
+   next single-factor machine hypothesis.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -132,11 +136,19 @@ approach axis is `(0,+0.94213,+0.33526)`, closing remains monitor-only world
 `+X`, and only `joint1`-`joint4` cross the Yahboom API. Wrist twist and the
 gripper remain uncommanded.
 
-The exact next step is GPU-free. Preserve the stable force-drive evidence but
-do not adopt it as a passing correction. Audit why PhysX maximum-force values
-`100` and `5.2` produced identical physical samples and whether the residual
-requires explicit-actuator semantics, gravity compensation, or a runtime
-joint-frame correction. Do not rerun pre-grasp or open the Viewer until a
+The residual-force audit is complete. At the recorded 60 Hz timestep, a PhysX
+`maxForce` value of `5.2` corresponds to `312` force units per second if the
+articulation uses impulse-limit semantics. That is a high-confidence
+explanation for why limits `100` and `5.2` left all 647 selected physical
+samples identical, but the runtime articulation flag was not directly exposed
+by the recorded USD or tensor telemetry and the audit preserves that boundary.
+
+The exact next step remains GPU-free: implement and review a bounded
+gravity-compensation feed-forward case on top of the stable force-drive
+`1048/53/100` baseline. Gravity-off tracking at `0.0032°` and matched target
+buffers reject a static joint-frame/sign error as the primary cause. A full
+explicit PD actuator remains a fallback because it introduces a new
+discrete-time controller. Do not rerun pre-grasp or open the Viewer until the
 selected correction passes the one-degree gravity-on calibration plus the
 headless pre-grasp machine gate. Any further paid run still requires review,
 merge, a fresh quote, and explicit approval. Contact and grasping remain out
