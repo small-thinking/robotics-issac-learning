@@ -151,6 +151,8 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "BoundedGravityFeedForward(",
             "controlled_joint_drive_snapshot()",
             "drive_snapshot_matches_runtime(",
+            "expected_drive_runtime",
+            "actual={drive_snapshot}",
             "evaluate_gravity_feed_forward_telemetry(",
             '"accepted_actuator_machine_evidence_bound": True',
             '"live_actuator_drive_matches_selected_contract"',

@@ -911,8 +911,16 @@ def main() -> None:
         effort_limit_sim=actuator_runtime.effort_limit_sim,
     )
     if not live_actuator_drive_matches:
+        expected_drive_runtime = {
+            "drive_type": actuator_runtime.drive_type,
+            "stiffness": actuator_runtime.stiffness,
+            "damping": actuator_runtime.damping,
+            "effort_limit_sim": actuator_runtime.effort_limit_sim,
+        }
         raise PregraspPoseError(
-            "composed USD drives do not match the accepted actuator runtime"
+            "composed USD drives do not match the accepted actuator runtime: "
+            f"expected={expected_drive_runtime}; "
+            f"actual={drive_snapshot}"
         )
     required_bodies = {
         pose.grasp_frame.wrist_body_name,
