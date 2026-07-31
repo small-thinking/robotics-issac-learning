@@ -164,7 +164,9 @@ from dofbot_motion_plan import (
 from dofbot_gravity_feed_forward_runtime import (
     BoundedGravityFeedForward,
     controlled_joint_drive_snapshot,
+    controlled_joint_runtime_effort_limits,
     drive_snapshot_matches_runtime,
+    effort_limits_match_runtime,
 )
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_NAMES,
@@ -768,6 +770,7 @@ def _failure_decision(failed_checks: list[str]) -> str:
     actuator_checks = {
         "accepted_actuator_machine_evidence_bound",
         "live_actuator_drive_matches_selected_contract",
+        "live_actuator_effort_limits_match_selected_contract",
         "gravity_compensation_runtime_apis_available",
         "gravity_compensation_values_finite",
         "incoming_joint_force_values_finite",
@@ -902,15 +905,26 @@ def main() -> None:
         recorded_contract,
         _live_asset_contract(scene),
     )
+    controlled_joint_ids = _controlled_joint_ids(scene)
     drive_snapshot = controlled_joint_drive_snapshot()
     live_actuator_drive_matches = drive_snapshot_matches_runtime(
         drive_snapshot,
         drive_type=actuator_runtime.drive_type,
         stiffness=actuator_runtime.stiffness,
         damping=actuator_runtime.damping,
+    )
+    runtime_effort_limits = controlled_joint_runtime_effort_limits(
+        scene=scene,
+        controlled_joint_ids=controlled_joint_ids,
+    )
+    live_actuator_effort_limits_match = effort_limits_match_runtime(
+        runtime_effort_limits,
         effort_limit_sim=actuator_runtime.effort_limit_sim,
     )
-    if not live_actuator_drive_matches:
+    if not (
+        live_actuator_drive_matches
+        and live_actuator_effort_limits_match
+    ):
         expected_drive_runtime = {
             "drive_type": actuator_runtime.drive_type,
             "stiffness": actuator_runtime.stiffness,
@@ -920,7 +934,8 @@ def main() -> None:
         raise PregraspPoseError(
             "composed USD drives do not match the accepted actuator runtime: "
             f"expected={expected_drive_runtime}; "
-            f"actual={drive_snapshot}"
+            f"actual_usd_drives={drive_snapshot}; "
+            f"actual_runtime_effort_limits={runtime_effort_limits}"
         )
     required_bodies = {
         pose.grasp_frame.wrist_body_name,
@@ -929,7 +944,6 @@ def main() -> None:
         *pose.collision.critical_body_names,
     }
     body_ids = _body_ids(scene, required_bodies)
-    controlled_joint_ids = _controlled_joint_ids(scene)
     backend = _IsaacJointPositionBackend(
         scene=scene,
         controlled_joint_ids=controlled_joint_ids,
@@ -1108,6 +1122,9 @@ def main() -> None:
             "live_actuator_drive_matches_selected_contract": (
                 live_actuator_drive_matches
             ),
+            "live_actuator_effort_limits_match_selected_contract": (
+                live_actuator_effort_limits_match
+            ),
             "physical_table_prim_present": table_present,
             "static_target_cube_prim_present": (
                 target_present and target_is_static
@@ -1229,6 +1246,9 @@ def main() -> None:
                 "policy_free": True,
                 "actuator_runtime": actuator_runtime.to_dict(),
                 "live_controlled_joint_drive_snapshot": drive_snapshot,
+                "live_controlled_joint_runtime_effort_limits": (
+                    runtime_effort_limits
+                ),
             },
             "measurement": {
                 "cycle_index": cycle_index,
