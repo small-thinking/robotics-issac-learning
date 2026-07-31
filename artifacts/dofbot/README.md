@@ -283,6 +283,16 @@ files, both logs, and the machine contract. It establishes actuator tracking
 only; the pre-grasp runner still needs to adopt the selected runtime contract
 before a separate machine gate, and Viewer/contact/grasp remain blocked.
 
+`pregrasp_live_actuator_gate_result_2026-07-31.json` promotes the first
+integrated headless pre-grasp run. It records the corrected distinction between
+the official USD drive's authored `maxForce=5.199999809` and the live Isaac
+runtime effort limit `100`, then preserves the complete task result: actuator,
+gravity, safety, API, and reset gates passed while final position and joint
+tracking failed. It binds the retrieved 2,237,400-byte raw artifact by SHA-256
+and records the evidence-backed follow-up: hold the completed candidate target
+without repeatedly restarting the Yahboom API interpolation. Viewer, contact,
+gripper, grasp, lift, place, hardware, policy, and checkpoint remain blocked.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

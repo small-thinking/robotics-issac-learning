@@ -23,6 +23,7 @@ from isaaclab.app import AppLauncher
 
 from dofbot_pregrasp_pose import (
     POSE_IK_CONTROL_MODE,
+    VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
     PregraspPoseConfig,
     PregraspPoseError,
     derive_grasp_frame,
@@ -619,6 +620,45 @@ def _run_pose_controller(
         if prior["evaluation"]["passed"] and command_trajectory_settled:
             break
         _precommand_safety_checks(prior)
+        if (
+            pose.solver.control_mode
+            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
+            and command_trajectory_settled
+        ):
+            if not _step_simulation(
+                scene=scene,
+                sim=sim,
+                backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
+                gravity_samples=gravity_samples,
+                physics_steps=physics_steps,
+                render=render,
+            ):
+                return None
+            observation = _observation(
+                scene=scene,
+                arm=arm,
+                pose=pose,
+                scene_config=scene_config,
+                body_ids=body_ids,
+                contact_reporter=contact_reporter,
+                velocities_deg_s=zero,
+                accelerations_deg_s2=zero,
+                step_index=step_index,
+            )
+            observations.append(observation)
+            print(
+                "[PREGRASP] "
+                f"step={step_index} "
+                "mode=candidate_settle_without_api_reissue "
+                f"angles_deg={observation['angles_deg']} "
+                f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
+                f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
+                f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
+                f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
+                flush=True,
+            )
+            continue
         current_angles = _observed_angles_deg(arm)
         frame_value = prior["grasp_frame"]
         frame = derive_grasp_frame(
@@ -1074,7 +1114,7 @@ def main() -> None:
         official_api_calls = (
             initialization_api_calls + controller_api_calls + reset_api_calls
         )
-        expected_api_calls = 4 + (len(observations) - 1) * 4 + 4
+        expected_api_calls = 4 + len(controller_command_angles) * 4 + 4
         all_api_command_angles = [
             list(NEUTRAL_ANGLES_DEG),
             *controller_command_angles,

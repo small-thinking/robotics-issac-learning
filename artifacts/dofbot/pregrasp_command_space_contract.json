@@ -24,11 +24,11 @@
     },
     "pregrasp_runner": {
       "path": "tools/run_dofbot_pregrasp.py",
-      "sha256": "b871644bcf8853b84cffe438fea0878c86f2097d120095b87dbf3029f8c79290"
+      "sha256": "f26ae6d70a8e9a9149a8b9036a414b4c85f199912830c24b614079a699e3c404"
     },
     "gravity_feed_forward_runtime": {
       "path": "tools/dofbot_gravity_feed_forward_runtime.py",
-      "sha256": "836d81806c363b22ea1bc737a65db04fe6d251db89cdb1d629ba0cb04a63bbd0"
+      "sha256": "4b93ee17590d1054ed00def2cfa0fa482b722a13daba32362780cbcfa65577d6"
     }
   },
   "actuator_runtime": {

@@ -1882,3 +1882,64 @@
   bug remains known; runtime-only defects cannot be counted before the actual
   machine gate. After review, merge, fresh quote, and approval, run the
   headless gate only. Viewer remains subsequent.
+
+## 2026-07-31 — Integrated pre-grasp reached the task gate and exposed API reissue lag
+
+- Scope: approved headless execution only on retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at
+  `$1.58784/hour` plus the existing approximately `$0.04/hour` disk. No
+  Viewer, contact task, gripper, target motion, grasp, real hardware, policy,
+  camera controller, or checkpoint ran.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- First fail-closed result: before any pose command, live readback disproved
+  the integration assumption that USD drive `maxForce` equals Isaac implicit
+  actuator `effort_limit_sim`. Controlled USD drives were uniformly
+  `force/1048/53/5.199999809`; runtime controlled-joint effort limits were
+  uniformly `100`.
+- Minimal repair (`7ce2276`): independently gate the composed USD type/gains
+  and the runtime articulation effort-limit buffer. No physics setting, pose,
+  effort value, or acceptance threshold changed.
+- Provenance repair (`fc48a2c`): retain the already-written full machine result
+  for expected acceptance failures instead of overwriting it with a short
+  runtime-failure artifact.
+- Repaired run: actuator evidence, both live readback gates, required PhysX
+  APIs, finite/bounded gravity effort, uncontrolled-DOF isolation, safe joint
+  envelope, velocity/acceleration, table/cube clearance, no-contact, static
+  target, exact candidate command, API accounting, and neutral reset all
+  passed.
+- Failed checks: final position `0.0318076 m > 0.025 m`; final joint tracking
+  `4.16578 deg > 1 deg`. Position improved by `0.223922 m`; approach error was
+  `7.88737 deg`, closing error `0.339104 deg`, contact `0 N`, and reset error
+  `0.002216 deg`.
+- Final command/observation: `[90,66,66,66] deg` versus
+  `[90.0083,68.5085,70.1658,67.2060] deg`. The run recorded 248/248 expected
+  API calls and 900 finite feed-forward samples; maximum applied effort was
+  `0.330320`, with zero clipping at `5.2`.
+- Evidence: retrieved raw artifact 2,237,400 bytes, SHA-256
+  `b970b2e90c90274c86e334a392c15f58fe4de1bd497f410887e38c090230f57b`;
+  concise promotion
+  `artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json`.
+- Cross-run diagnosis: the successful isolated calibration sent the candidate
+  once, held the target, and reached `0.001261 deg` error after `2.65 s`.
+  Pre-grasp reached the stopped candidate at step 8 but reissued the same four
+  API calls every `0.2 s` through step 60, restarting smoothstep from the
+  loaded position each time.
+- GPU-free follow-up: once the validated candidate is stopped, retain the
+  existing target and settle physics without another Yahboom API call. The
+  unchanged maximum-step timeout and every safety/task gate remain active;
+  expected API accounting now excludes no-op retries.
+- Validation: 205/205 repository tests, 45 focused tests, changed-file Ruff,
+  Python compilation, deterministic 27/27 artifact generation, remote command
+  previews, Git LFS, JSON, and `git diff --check` pass.
+- Resource lifecycle: all evidence was retrieved before stop. The normal list
+  briefly remained stale at `STOPPING`; `brev ls --all --json` confirmed
+  explicit `STOPPED` at 11:56:36 PDT. No instance or disk was created, resized,
+  reset, or deleted.
+- Acceptance: **live actuator gate passed / first integrated task run failed
+  and classified / settle repair passed locally / repaired headless rerun
+  pending / Viewer blocked**.

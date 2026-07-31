@@ -126,8 +126,23 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         )
         self.assertIn("initialization_api_calls", self.runner)
         self.assertIn(
-            "4 + (len(observations) - 1) * 4 + 4",
+            "4 + len(controller_command_angles) * 4 + 4",
             self.runner,
+        )
+        self.assertIn(
+            "mode=candidate_settle_without_api_reissue",
+            self.runner,
+        )
+        settle_branch = self.runner.index(
+            "== VALIDATED_JOINT_CANDIDATE_CONTROL_MODE"
+        )
+        next_command = self.runner.index(
+            "command = next_pregrasp_command(",
+            settle_branch,
+        )
+        self.assertLess(
+            self.runner.index("continue", settle_branch),
+            next_command,
         )
         self.assertIn(
             "Isaac requested a zero-code exit before pre-grasp completion",
