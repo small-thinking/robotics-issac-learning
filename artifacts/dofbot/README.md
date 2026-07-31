@@ -246,6 +246,15 @@ It verifies that every stage changes exactly one field, requires composed-USD
 drive readback at runtime, and keeps paid GPU, pre-grasp, Viewer, contact,
 grasp, hardware, policy, and checkpoint authorization false.
 
+`drive_model_diagnostic_result_2026-07-30.json` is the reviewed promotion of
+the completed five-case remote matrix. It records the unstable high-gain force
+case, the stable reduction from `5.04065°` to `1.73936°`, the unchanged
+failure of the one-degree gate, and the byte-identical physical trajectories
+under force limits `100` and `5.2`. It corrects the machine summary's
+instrumentation label to `drive_model_ladder_no_resolution`, binds the ignored
+11.7 MB of raw JSON/log evidence by exact size and SHA-256, and keeps
+pre-grasp, Viewer, contact, and grasp authorization false.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

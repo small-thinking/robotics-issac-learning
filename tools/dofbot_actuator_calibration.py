@@ -1181,6 +1181,12 @@ def _classify_drive_model_matrix(
         return bool(case.get("checks", {}).get(name))
 
     ordered = [cases[name] for name in DRIVE_MODEL_CASE_NAMES]
+    unstable_case_names = [
+        name
+        for name, case in zip(DRIVE_MODEL_CASE_NAMES, ordered, strict=True)
+        if check(case, "position_derived_velocity_available")
+        and not check(case, "all_poses_settled_by_position_derived_velocity")
+    ]
     if any(not check(case, "contact_force_below_threshold") for case in ordered):
         decision = "contact_or_self_collision_interference"
         next_action = "inspect contact actors before interpreting drive changes"
@@ -1193,11 +1199,10 @@ def _classify_drive_model_matrix(
         next_action = "repair the target path before interpreting drive changes"
     elif any(
         not check(case, "position_derived_velocity_available")
-        or not check(case, "all_poses_settled_by_position_derived_velocity")
         for case in ordered
     ):
         decision = "position_velocity_instrumentation_incomplete"
-        next_action = "repair position-derived settling before another paid run"
+        next_action = "repair position-derived telemetry before another paid run"
     else:
         (
             acceleration_runtime,
@@ -1224,8 +1229,8 @@ def _classify_drive_model_matrix(
         else:
             decision = "drive_model_ladder_no_resolution"
             next_action = (
-                "inspect gravity generalized forces, runtime joint frames, "
-                "and explicit actuator alternatives"
+                "reject unstable drive cases and inspect gravity generalized "
+                "forces, runtime joint frames, and explicit actuator alternatives"
             )
 
     return {
@@ -1239,6 +1244,7 @@ def _classify_drive_model_matrix(
             "force_damping_53_resolves_tracking",
             "force_authored_tuning_resolves_tracking",
         },
+        "unstable_case_names": unstable_case_names,
         "next_action": next_action,
         "unchanged_pregrasp_gates": {
             "maximum_position_error_m": 0.025,

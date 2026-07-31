@@ -261,6 +261,23 @@ Require composed-USD readback for every controlled joint and
 `[MATRIX_EXIT_CODE] 0`. Retrieve all five case JSON/log files and the matrix
 contract, then stop to explicit `STOPPED` before selecting a configuration.
 
+The completed 2026-07-30 matrix selected no configuration. Treat
+`force_runtime_tuning` as a rejected unstable drive, not an instrumentation
+failure. The stable `force_damping_53` and `force_authored_tuning` cases both
+reach `1.73936°`, outside the one-degree gate. Do not continue directly to
+calibration or pre-grasp.
+
+Before another paid run, verify the promoted source bindings and perform the
+residual audit locally:
+
+- compare controlled PhysX stiffness, damping, and maximum-force readbacks;
+- verify that the force-limit `100` and `5.2` physical sample sequences are
+  identical while the implicit PD estimates differ;
+- inspect force-versus-impulse drive-limit semantics, gravity generalized
+  forces, and runtime joint frames;
+- prefer a falsifiable explicit-actuator or gravity-compensation proposal over
+  another broad gain sweep.
+
 After applying the decision-specific change, rerun the selected gravity-on
 calibration.
 Only a complete calibration with the selected baseline meeting the `1°`

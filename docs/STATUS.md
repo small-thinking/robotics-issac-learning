@@ -12,12 +12,13 @@
   position-derived settling from incompatible raw velocity; the completed
   four-case solver/drive matrix repairs velocity telemetry but does not repair
   the approximately five-degree gravity-on joint tracking error; the completed
-  official-asset audit now isolates acceleration-versus-force drive semantics
-  as the next testable hypothesis and corrects the prior torque-evidence
-  interpretation
+  official-asset audit corrected the prior torque-evidence interpretation; the
+  completed five-case drive-model matrix rejects the old high-gain force drive
+  as unstable and improves the best stable error to `1.73936°`, but no case
+  passes the unchanged one-degree gate
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-30 19:29 PDT during the GPU-free drive audit
+  2026-07-30 20:05:30 PDT after drive-model artifact retrieval
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -649,6 +650,64 @@
   After merge, a fresh quote, and explicit approval, the next paid command is
   `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.
 
+## DOFBOT drive-model remote result
+
+- Provenance: merged `main@d2abb247a188c23889778cfdd1f211f2bc8dd1a1`;
+  config SHA-256
+  `7644ca7f88f0fbcda2b041fc4eb5fd79f4aa21560dbf054c6da4e453f118bddd`.
+  The retained instance remained AWS `g6.4xlarge` / NVIDIA L4 at the freshly
+  confirmed `$1.58784/hour` quote.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model
+  ```
+
+- Machine execution completed all five case JSON/log pairs with
+  `[MATRIX_EXIT_CODE] 0`, `matrix_complete=true`, exact target-buffer
+  agreement, composed drive-type readback, and `0 N` monitored contact.
+- Results:
+
+  | Case | Drive / stiffness / damping / max force | Tracking error | Result |
+  | --- | --- | ---: | --- |
+  | acceleration runtime | acceleration / 10000 / 100 / 100 | `5.04065°` | fail |
+  | force runtime | force / 10000 / 100 / 100 | `221160.35°` | unstable, rejected |
+  | force stiffness 1048 | force / 1048 / 100 / 100 | `3.22899°` | fail |
+  | force damping 53 | force / 1048 / 53 / 100 | `1.73936°` | fail |
+  | force authored tuning | force / 1048 / 53 / 5.2 | `1.73936°` | fail |
+
+- Established: force semantics plus official-scale stiffness and damping reduce
+  the stable residual by `3.30129°` or `65.49%`, and lowering damping from
+  `100` to `53` supplies `1.48963°` of that improvement. The best stable
+  cases settle by position difference and pass the two-degree overshoot
+  diagnostic, but remain outside the independent one-degree tracking gate.
+- Maximum-force finding: PhysX readback changes from `100` to `5.2`, and the
+  implicit PD estimate clip changes with it, but all 647 API targets, backend
+  targets, Isaac targets, observed positions, raw/derived velocities, contact
+  samples, and pose summaries remain identical. Lowering maximum force is not
+  a tracking correction in this runtime.
+- Decision correction: the machine summary labeled the high-gain force
+  divergence as `position_velocity_instrumentation_incomplete`. Position-
+  derived telemetry was present and recorded genuine unbounded dynamics.
+  The local classifier now rejects unstable cases separately while continuing
+  the later ladder; the reviewed decision is
+  `drive_model_ladder_no_resolution`.
+- Evidence:
+  `artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json`. It binds
+  the ignored 5 case JSON files, 5 logs, and raw matrix contract by exact byte
+  size and SHA-256.
+- Resource lifecycle: approved start `19:51:11 PDT`; matrix summary generated
+  `19:54:41 PDT`; artifacts were retrieved before stop; standard
+  `brev ls --json` reached explicit `STOPPED` at `20:05:30 PDT`. The
+  14-minute-19-second window cost approximately `$0.379` at the quoted rate.
+  No instance or disk was created, resized, or deleted.
+- Validation: `187/187` repository tests, 23 focused drive/actuator/solver
+  tests, targeted Ruff, JSON parsing, raw source byte/SHA bindings, Git LFS
+  checks, remote-command previews, and `git diff --check` pass.
+- Acceptance: **remote matrix complete / drive hypothesis materially improves
+  tracking / no case passes / high-gain force rejected / pre-grasp and Viewer
+  blocked**.
+
 ## DOFBOT Goal 3 camera gate
 
 - Branch: `codex/dofbot-camera-contract`
@@ -1006,12 +1065,13 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. The GPU-free official-asset drive audit and
-five-case single-factor plan are complete. After review, merge, a fresh quote,
-and explicit approval, run only
-`BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-drive-model`.
-Review that headless matrix before adopting a configuration. Then rerun the
-selected gravity-on calibration and headless pre-grasp machine gate.
-`make dofbot-pregrasp-view` remains blocked until both machine gates pass the
-independent `1°` tracking threshold. Contact, closing, grasping, lifting, and
-placing remain unauthorized.
+Keep the Brev instance stopped. The drive-model matrix materially improves the
+stable error but selects no passing configuration. Before another paid run,
+perform a GPU-free residual-force-semantics audit: explain why controlled
+PhysX maximum forces `100` and `5.2` produce byte-identical physical samples,
+and evaluate explicit-actuator, gravity-compensation, and runtime joint-frame
+alternatives without another broad parameter sweep. Only a reviewed correction
+that passes the independent `1°` gravity-on calibration may proceed to the
+headless pre-grasp machine gate. `make dofbot-pregrasp-view` remains blocked
+until both machine gates pass. Contact, closing, grasping, lifting, and placing
+remain unauthorized.
