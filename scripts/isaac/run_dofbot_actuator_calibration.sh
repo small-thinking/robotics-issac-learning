@@ -34,8 +34,16 @@ elif [[ "$matrix_profile" == "drive_model" ]]; then
     force_damping_53
     force_authored_tuning
   )
+elif [[ "$matrix_profile" == "gravity_feed_forward" ]]; then
+  default_config="configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json"
+  default_output_dir="$project_dir/artifacts/dofbot/gravity_feed_forward_cases"
+  default_summary="$project_dir/artifacts/dofbot/gravity_feed_forward_contract.json"
+  case_names=(
+    force_damping_53_baseline
+    bounded_gravity_feed_forward
+  )
 else
-  printf 'DOFBOT_ACTUATOR_MATRIX_PROFILE must be actuator, solver_drive, or drive_model\n' >&2
+  printf 'DOFBOT_ACTUATOR_MATRIX_PROFILE must be actuator, solver_drive, drive_model, or gravity_feed_forward\n' >&2
   exit 2
 fi
 calibration_config="${DOFBOT_ACTUATOR_CALIBRATION_CONFIG:-${ACTUATOR_CALIBRATION:-$default_config}}"

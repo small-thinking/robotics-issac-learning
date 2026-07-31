@@ -23,11 +23,18 @@ from isaaclab.app import AppLauncher
 
 from dofbot_actuator_calibration import (
     ActuatorCalibrationError,
+    GRAVITY_FEED_FORWARD_CASE_NAMES,
     calibration_trajectory_extrema,
     evaluate_calibration_case,
     load_actuator_calibration_config,
     position_derived_velocity_deg_s,
     velocity_signal_mismatch_deg_s,
+)
+from dofbot_gravity_feed_forward import (
+    REQUIRED_GRAVITY_RUNTIME_APIS,
+    GravityFeedForwardError,
+    evaluate_gravity_feed_forward_telemetry,
+    prepare_bounded_gravity_feed_forward,
 )
 
 parser = argparse.ArgumentParser(
@@ -97,6 +104,7 @@ CONTROLLED_JOINT_PRIM_PATHS = {
     "joint3": "/World/envs/env_0/Dofbot/link2/joint3",
     "joint4": "/World/envs/env_0/Dofbot/link3/joint4",
 }
+CONTROLLED_CHILD_BODY_NAMES = ("link1", "link2", "link3", "link4")
 
 
 def _load_json_object(path: Path) -> tuple[dict[str, Any], str]:
@@ -147,6 +155,19 @@ def _terminal_body_ids(scene: InteractiveScene) -> dict[str, int]:
             f"live articulation is missing terminal bodies: {missing}"
         )
     return {name: name_to_index[name] for name in TERMINAL_BODY_NAMES}
+
+
+def _controlled_child_body_ids(scene: InteractiveScene) -> list[int]:
+    names = list(scene["dofbot"].body_names)
+    name_to_index = {name: index for index, name in enumerate(names)}
+    missing = [
+        name for name in CONTROLLED_CHILD_BODY_NAMES if name not in name_to_index
+    ]
+    if missing:
+        raise ActuatorCalibrationError(
+            f"live articulation is missing controlled child bodies: {missing}"
+        )
+    return [name_to_index[name] for name in CONTROLLED_CHILD_BODY_NAMES]
 
 
 class _IsaacJointPositionBackend:
@@ -228,6 +249,159 @@ class _IsaacJointPositionBackend:
             .tolist()
         )
         return dict(zip(CONTROLLED_JOINT_NAMES, values, strict=True))
+
+
+class _BoundedGravityFeedForward:
+    """Apply bounded generalized-gravity effort after Isaac writes PD targets."""
+
+    def __init__(
+        self,
+        *,
+        scene: InteractiveScene,
+        controlled_joint_ids: list[int],
+        controlled_child_body_ids: list[int],
+        enabled: bool,
+        maximum_effort: float,
+        device: str,
+    ) -> None:
+        self._robot = scene["dofbot"]
+        self._view = getattr(self._robot, "root_physx_view", None)
+        if self._view is None:
+            raise GravityFeedForwardError(
+                "root_physx_view is unavailable"
+            )
+        self._controlled_joint_ids = controlled_joint_ids
+        self._controlled_child_body_ids = controlled_child_body_ids
+        self._enabled = enabled
+        self._maximum_effort = maximum_effort
+        self._device = device
+        self._dof_count = len(self._robot.joint_names)
+        self._body_count = len(self._robot.body_names)
+        self.api_availability = {
+            name: callable(getattr(self._view, name, None))
+            for name in REQUIRED_GRAVITY_RUNTIME_APIS
+        }
+        if not all(self.api_availability.values()):
+            missing = [
+                name
+                for name, available in self.api_availability.items()
+                if not available
+            ]
+            raise GravityFeedForwardError(
+                f"required gravity runtime APIs are unavailable: {missing}"
+            )
+        self._indices = torch.tensor(
+            [0],
+            device=self._device,
+            dtype=torch.long,
+        )
+        # Probe every required API and write a zero vector before any API pose
+        # command. This fails closed on incompatible Isaac/PhysX releases.
+        self._gravity_matrix()
+        self._incoming_joint_force_matrix()
+        self._view.set_dof_actuation_forces(
+            torch.zeros(
+                (1, self._dof_count),
+                device=self._device,
+                dtype=torch.float32,
+            ),
+            self._indices,
+        )
+
+    def _tensor(
+        self,
+        value: Any,
+        *,
+        label: str,
+        shape: tuple[int, ...],
+    ) -> torch.Tensor:
+        try:
+            if hasattr(value, "detach"):
+                tensor = value.detach().to(
+                    device=self._device,
+                    dtype=torch.float32,
+                )
+            elif hasattr(value, "numpy"):
+                tensor = torch.as_tensor(
+                    value.numpy(),
+                    device=self._device,
+                    dtype=torch.float32,
+                )
+            elif hasattr(value, "tolist"):
+                tensor = torch.tensor(
+                    value.tolist(),
+                    device=self._device,
+                    dtype=torch.float32,
+                )
+            else:
+                tensor = torch.tensor(
+                    value,
+                    device=self._device,
+                    dtype=torch.float32,
+                )
+            if tensor.numel() != math.prod(shape):
+                raise GravityFeedForwardError(
+                    f"{label} has {tensor.numel()} values, expected "
+                    f"{math.prod(shape)}"
+                )
+            tensor = tensor.reshape(shape)
+            if not bool(torch.isfinite(tensor).all()):
+                raise GravityFeedForwardError(
+                    f"{label} contains non-finite values"
+                )
+            return tensor
+        except GravityFeedForwardError:
+            raise
+        except Exception as error:
+            raise GravityFeedForwardError(
+                f"{label} cannot be converted to a finite tensor: "
+                f"{type(error).__name__}: {error}"
+            ) from error
+
+    def _gravity_matrix(self) -> torch.Tensor:
+        value = self._view.get_gravity_compensation_forces()
+        return self._tensor(
+            value,
+            label="gravity compensation forces",
+            shape=(1, self._dof_count),
+        )
+
+    def _incoming_joint_force_matrix(self) -> torch.Tensor:
+        value = self._view.get_link_incoming_joint_force()
+        return self._tensor(
+            value,
+            label="incoming joint forces",
+            shape=(1, self._body_count, 6),
+        )
+
+    def apply_before_step(self) -> dict[str, Any]:
+        gravity = self._gravity_matrix()[0].detach().cpu().tolist()
+        prepared = prepare_bounded_gravity_feed_forward(
+            gravity_compensation_efforts=gravity,
+            dof_count=self._dof_count,
+            controlled_joint_ids=self._controlled_joint_ids,
+            enabled=self._enabled,
+            maximum_effort=self._maximum_effort,
+        )
+        self._view.set_dof_actuation_forces(
+            torch.tensor(
+                [prepared["applied_all_dof_efforts"]],
+                device=self._device,
+                dtype=torch.float32,
+            ),
+            self._indices,
+        )
+        return prepared
+
+    def read_controlled_incoming_joint_forces(self) -> list[list[float]]:
+        incoming = self._incoming_joint_force_matrix()[0]
+        return [
+            [
+                float(value)
+                for value in incoming[body_id].detach().cpu().tolist()
+            ]
+            for body_id in self._controlled_child_body_ids
+        ]
 
 
 class _CriticalContactReporter:
@@ -391,6 +565,7 @@ def _sample(
     pose_step: int,
     elapsed_s: float,
     api_command_angles_deg: tuple[int, int, int, int],
+    gravity_feed_forward: dict[str, Any] | None,
 ) -> dict[str, Any]:
     robot = scene["dofbot"]
     observed_rad = [
@@ -472,6 +647,7 @@ def _sample(
         "computed_torque": computed_torque,
         "applied_torque": applied_torque,
         "critical_contact_force_n": contact_reporter.maximum_force_n(),
+        "gravity_feed_forward": gravity_feed_forward,
         "body_positions_world_m": _body_positions_world_m(
             scene,
             body_ids,
@@ -593,6 +769,7 @@ def _run_pose(
     settle_timeout_ms: int,
     position_velocity_window_ms: int,
     maximum_velocity_signal_mismatch_deg_s: float,
+    gravity_feed_forward: _BoundedGravityFeedForward | None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], int]:
     robot = scene["dofbot"]
     start_angles_deg = _angles_deg_from_rad(
@@ -626,8 +803,17 @@ def _run_pose(
             )
         backend.advance(physics_dt)
         scene.write_data_to_sim()
+        gravity_sample = (
+            gravity_feed_forward.apply_before_step()
+            if gravity_feed_forward is not None
+            else None
+        )
         sim.step(render=False)
         scene.update(physics_dt)
+        if gravity_sample is not None:
+            gravity_sample["controlled_incoming_joint_forces"] = (
+                gravity_feed_forward.read_controlled_incoming_joint_forces()
+            )
         elapsed_s += physics_dt
         observation = _sample(
             scene=scene,
@@ -639,6 +825,7 @@ def _run_pose(
             pose_step=len(samples),
             elapsed_s=elapsed_s,
             api_command_angles_deg=target_angles_deg,
+            gravity_feed_forward=gravity_sample,
         )
         samples.append(observation)
         position_derived_velocities = position_derived_velocity_deg_s(
@@ -804,6 +991,7 @@ def main() -> None:
 
     controlled_joint_ids = _controlled_joint_ids(scene)
     body_ids = _terminal_body_ids(scene)
+    controlled_child_body_ids = _controlled_child_body_ids(scene)
     backend = _IsaacJointPositionBackend(
         scene=scene,
         controlled_joint_ids=controlled_joint_ids,
@@ -812,6 +1000,24 @@ def main() -> None:
     arm = DofbotArm(backend)
     yahboom_api = YahboomServoApiAdapter(arm)
     contact_reporter = _CriticalContactReporter(sim.get_physics_dt())
+    gravity_feed_forward: _BoundedGravityFeedForward | None = None
+    if config.case_names == GRAVITY_FEED_FORWARD_CASE_NAMES:
+        if case.gravity_compensation_feed_forward is None:
+            raise ActuatorCalibrationError(
+                "gravity feed-forward case is missing its enabled flag"
+            )
+        if case.gravity_compensation_effort_limit is None:
+            raise ActuatorCalibrationError(
+                "gravity feed-forward case is missing its effort limit"
+            )
+        gravity_feed_forward = _BoundedGravityFeedForward(
+            scene=scene,
+            controlled_joint_ids=controlled_joint_ids,
+            controlled_child_body_ids=controlled_child_body_ids,
+            enabled=case.gravity_compensation_feed_forward,
+            maximum_effort=case.gravity_compensation_effort_limit,
+            device=args_cli.device,
+        )
 
     pose_summaries: list[dict[str, Any]] = []
     all_samples: list[dict[str, Any]] = []
@@ -839,6 +1045,7 @@ def main() -> None:
             maximum_velocity_signal_mismatch_deg_s=(
                 config.trajectory.maximum_velocity_signal_mismatch_deg_s
             ),
+            gravity_feed_forward=gravity_feed_forward,
         )
         pose_summaries.append(summary)
         all_samples.extend(samples)
@@ -910,6 +1117,36 @@ def main() -> None:
             "saturation_observed"
         ],
     )
+    gravity_feed_forward_telemetry: dict[str, Any] | None = None
+    if gravity_feed_forward is not None:
+        gravity_feed_forward_telemetry = (
+            evaluate_gravity_feed_forward_telemetry(
+                samples=[
+                    sample["gravity_feed_forward"] for sample in all_samples
+                ],
+                runtime_api_availability=(
+                    gravity_feed_forward.api_availability
+                ),
+                controlled_joint_ids=controlled_joint_ids,
+                feed_forward_enabled=bool(
+                    case.gravity_compensation_feed_forward
+                ),
+                maximum_effort=float(
+                    case.gravity_compensation_effort_limit
+                ),
+            )
+        )
+        evaluation["checks"].update(
+            gravity_feed_forward_telemetry["checks"]
+        )
+        evaluation["diagnostic_complete"] = all(
+            evaluation["checks"].values()
+        )
+        evaluation["tracking_gate_passed"] = (
+            evaluation["diagnostic_complete"]
+            and evaluation["maximum_settled_tracking_error_deg"]
+            <= config.acceptance.maximum_settled_tracking_error_deg
+        )
     optional_physx_probe_errors: dict[str, str] = {}
     result = {
         "schema_version": 1,
@@ -942,6 +1179,12 @@ def main() -> None:
                 case.enable_external_forces_every_iteration
             ),
             "requested_drive_type": case.drive_type,
+            "gravity_compensation_feed_forward": (
+                case.gravity_compensation_feed_forward
+            ),
+            "gravity_compensation_effort_limit": (
+                case.gravity_compensation_effort_limit
+            ),
             "composed_controlled_drive_types": {
                 name: value["drive_type"]
                 for name, value in controlled_drive_snapshot.items()
@@ -1005,6 +1248,7 @@ def main() -> None:
             "torque_metrics": torque_metrics,
             "implicit_torque_buffers_are_pd_estimates_not_solver_measurements": True,
             "zero_or_missing_implicit_torque_does_not_disprove_saturation": True,
+            "gravity_feed_forward": gravity_feed_forward_telemetry,
         },
         "measurement": {
             "sample_every_physics_step": True,

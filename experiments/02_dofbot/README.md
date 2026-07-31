@@ -1236,6 +1236,43 @@ Validation: all `192` repository tests, five focused residual-audit tests,
 targeted Ruff, deterministic artifact regeneration, source SHA/size replay,
 JSON parsing, Git LFS attributes, and `git diff --check` pass.
 
+### Bounded gravity feed-forward preparation
+
+The selected correction is now implemented as a two-case, headless diagnostic:
+
+1. stable force `1048/53/100` with zero external DOF actuation;
+2. the identical case with bounded gravity compensation enabled.
+
+The feed-forward enable flag is the only changed field. Both cases keep
+gravity on, use external-force iteration, run the unchanged
+`[90,90,90,90] → [90,78,78,78] → [90,66,66,66] → [90,90,90,90]`
+trajectory through the Yahboom API, and retain the one-degree tracking gate.
+Before any pose command, the runner requires
+`get_gravity_compensation_forces`, `set_dof_actuation_forces`, and
+`get_link_incoming_joint_force`. Each step reads generalized gravity effort,
+clamps only joints 1-4 to `±5.2`, forces all other DOF actuation to zero, then
+records the raw/applied effort and controlled-child incoming 6D joint forces.
+Missing APIs, wrong shapes, non-finite values, unbounded effort, uncontrolled
+DOF actuation, target mismatch, settling failure, or contact fail closed.
+
+```bash
+make dofbot-gravity-feed-forward-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-gravity-feed-forward
+```
+
+Evidence is `artifacts/dofbot/gravity_feed_forward_plan.json`. All `200`
+repository tests, eight focused feed-forward tests, targeted Ruff, Python
+compilation, shell syntax, JSON parsing, Git LFS checks, deterministic plan
+generation, and the headless remote-command preview pass. `brev ls --json`
+reconfirmed the retained `g6.4xlarge` L4 instance `92xbacz46` as `STOPPED`;
+no resource was started, created, resized, stopped, or deleted.
+
+Acceptance is **local implementation and safety contract passed / isolated
+Isaac machine calibration pending / pre-grasp and Viewer blocked**. After
+review and merge, a fresh quote and explicit approval are still required
+before `make dofbot-gravity-feed-forward`. A machine `<=1°` pass advances only
+to the separate headless pre-grasp gate; Viewer remains third.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

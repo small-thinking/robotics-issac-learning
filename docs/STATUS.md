@@ -18,7 +18,9 @@
   passes the unchanged one-degree gate; the completed GPU-free residual-force
   audit explains the `100`/`5.2` invariance at high confidence as a non-binding
   impulse limit, rejects joint-frame correction as the primary fix, and
-  selects bounded gravity-compensation feed-forward for the next machine test
+  selects bounded gravity-compensation feed-forward; that implementation now
+  passes its GPU-free single-factor, safety, telemetry, and command-preview
+  gates, while isolated machine calibration remains pending
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
   2026-07-30 20:05:30 PDT after drive-model artifact retrieval
@@ -1066,18 +1068,47 @@
 - Phase 1 training log:
   `/workspace/phase1/artifacts/logs/train_cartpole_manager.log`
 
+## DOFBOT bounded gravity feed-forward preparation
+
+- Branch: `codex/dofbot-gravity-feed-forward`
+- Scope: local implementation, deterministic plan generation, fail-closed
+  tests, and remote-command preview only; no paid instance start, remote Isaac
+  execution, Viewer, pre-grasp, contact, gripper, hardware, policy, or
+  checkpoint
+- Single-factor cases: stable force `1048/53/100` with feed-forward disabled,
+  then the identical case with feed-forward enabled; both retain gravity,
+  external-force iteration, safe poses, Yahboom API calls, and the `<=1°` gate
+- Runtime safety: require gravity-compensation, external-DOF-actuation, and
+  incoming-joint-force APIs before motion; clamp only joints 1-4 to `±5.2`;
+  write zero to all other DOFs; record raw/applied effort and controlled-child
+  incoming 6D forces every physics step
+- Evidence: `artifacts/dofbot/gravity_feed_forward_plan.json`
+- Local acceptance: **passed**; `200/200` repository tests, eight focused
+  tests, targeted Ruff, Python compilation, shell syntax, JSON parsing,
+  deterministic generation, Git LFS checks, and remote-command previews pass
+- Resource state: `brev ls --json` reconfirmed
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, as
+  explicit `STOPPED` at 2026-07-30 21:53 PDT; no resource mutation occurred
+- Current acceptance: **local passed / isolated machine calibration pending /
+  pre-grasp and Viewer blocked**
+
 ## Exact next action
 
-Keep the Brev instance stopped. The residual-force audit is complete and
-selects one next implementation: retain the stable force-drive
-`1048/53/100` baseline and add bounded, recorded PhysX gravity-compensation
-feed-forward through external DOF actuation. Do not change frames, scene
-geometry, gains, or the one-degree gate in the same step. A full explicit PD
-actuator remains a fallback, not the first correction.
+Keep the Brev instance stopped. Review and merge the locally complete bounded
+gravity feed-forward implementation. It retains force `1048/53/100`, changes
+only the feed-forward enable flag between its two cases, requires all selected
+Omni Physics APIs before motion, clamps joints 1-4 to `±5.2`, and writes zero
+external actuation to every uncontrolled DOF.
 
-After that implementation is reviewed and merged, a new paid run still
-requires a fresh quote and explicit approval. Its first gate is the isolated
-headless gravity-on calibration, not the Viewer. Only a complete calibration
-at or below `1°` may proceed to the unchanged headless pre-grasp machine gate.
-`make dofbot-pregrasp-view` remains blocked until both machine gates pass.
-Contact, closing, grasping, lifting, and placing remain unauthorized.
+After merge, obtain a fresh quote and explicit approval before running:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-gravity-feed-forward
+```
+
+This is an isolated headless gravity-on calibration, not the Viewer. Only a
+complete result at or below `1°` may proceed to the unchanged headless
+pre-grasp machine gate. `make dofbot-pregrasp-view` remains blocked until both
+machine gates pass. Contact, closing, grasping, lifting, and placing remain
+unauthorized.

@@ -113,8 +113,9 @@ The CartPole stage is complete. The canonical next-stage plan is
    Viewer remain blocked. The follow-up residual-force audit explains the
    `100`/`5.2` invariance at high confidence as a non-binding
    force-versus-impulse limit and rejects a static joint-frame error as the
-   primary cause. It selects bounded gravity-compensation feed-forward as the
-   next single-factor machine hypothesis.
+   primary cause. The bounded gravity-compensation feed-forward implementation
+   now passes its GPU-free single-factor, safety, telemetry, and remote-command
+   preparation gates; its isolated machine result remains pending.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -143,16 +144,19 @@ explanation for why limits `100` and `5.2` left all 647 selected physical
 samples identical, but the runtime articulation flag was not directly exposed
 by the recorded USD or tensor telemetry and the audit preserves that boundary.
 
-The exact next step remains GPU-free: implement and review a bounded
-gravity-compensation feed-forward case on top of the stable force-drive
-`1048/53/100` baseline. Gravity-off tracking at `0.0032°` and matched target
-buffers reject a static joint-frame/sign error as the primary cause. A full
-explicit PD actuator remains a fallback because it introduces a new
-discrete-time controller. Do not rerun pre-grasp or open the Viewer until the
-selected correction passes the one-degree gravity-on calibration plus the
-headless pre-grasp machine gate. Any further paid run still requires review,
-merge, a fresh quote, and explicit approval. Contact and grasping remain out
-of scope.
+The bounded gravity-compensation feed-forward implementation is now locally
+prepared on top of the stable force-drive `1048/53/100` baseline. Its two cases
+change only the feed-forward enable flag; both require the three Omni Physics
+runtime APIs before motion, clamp only joints 1-4 to `±5.2`, zero every other
+DOF, and preserve target, position-derived settling, incoming-force, contact,
+trajectory, and one-degree gates. Gravity-off tracking at `0.0032°` and
+matched target buffers still reject a static joint-frame/sign error as the
+primary cause. A full explicit PD actuator remains a fallback because it
+introduces a new discrete-time controller. After review and merge, the next
+step is a fresh quote plus explicit approval for the isolated headless
+two-case calibration. Do not rerun pre-grasp or open the Viewer until that
+calibration and the separate headless pre-grasp machine gate both pass.
+Contact and grasping remain out of scope.
 
 ## Sources of truth
 
