@@ -1325,14 +1325,51 @@
   created, resized, reset, or deleted, and the retained instance is explicitly
   `STOPPED`. The existing persistent disk remains approximately `$0.04/hour`.
 
+## DF-028 target/torque discriminator completed; PhysX effort is next
+
+- Branch: `codex/dofbot-df028-capacity-retry`, based on merged PR #43 at
+  `main@d6f5597`.
+- The fresh identity/price gate matched the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, L4 at
+  `$1.58784/hour`. One detached start at 21:29:34 UTC reached shell `READY` and
+  exposed `NVIDIA L4, 23034 MiB`; the earlier zone-capacity failure was
+  transient and no machine, zone, disk, or controller factor changed.
+- The exact `[90,66,66,66]°` API target reached the backend with zero error and
+  live `joint_pos_target` within `0.000000668°`. Command propagation therefore
+  passed, while the unchanged articulation again settled at
+  `[89.999642,68.493213,70.177019,67.221305]°`, leaving `4.177019°` joint and
+  `0.0318089 m` position error.
+- `computed_torque` and `applied_torque` were equal at every observation and
+  peaked at `76.4262`, but Isaac Lab defines those ImplicitActuator fields as
+  approximate PD torque because PhysX does not expose that torque directly.
+  They do not prove physical effort application. `DF-030` records this partial
+  localization; the next unchanged discriminator is PhysX
+  `get_dof_projected_joint_forces`.
+- A separate wrapper defect became visible: `isaaclab.sh` masked the Python
+  machine exception, then the verifier called absent `python3` and emitted
+  sentinel `127`. `DF-031` records it. The local wrapper now uses the installed
+  `./_isaac_sim/python.sh`, and the runner is prepared to capture projected
+  PhysX joint effort on the next run.
+- Promoted evidence:
+  `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json`; the
+  ignored raw artifact is bound by byte count `2,269,037` and SHA-256
+  `d6cf7552bbf50cfeb2bc007bd9eb8ff2f863abf65a93660369e39f0544e5d6ef`.
+- Resource lifecycle: artifact retrieval completed before stop;
+  `brev ls --all --json` confirmed explicit `STOPPED` at 14:44 PDT. No instance
+  or disk was created, resized, reset, or deleted; no Viewer ran.
+- Current acceptance: **target propagation proven / physical-effort boundary
+  still open / pre-grasp machine failed / Viewer blocked**.
+
 ## Exact next action
 
-Keep the Brev instance stopped and review the `DF-029` operational record.
-After this record is merged, a fresh quote and explicit approval are required
-for another attempt. Use one detached start, refresh stale CLI state, and
-require both `RUNNING` and shell `READY` before repository sync. Then run only
-the unchanged `DF-028` headless discriminator, collecting backend target, live
-`joint_pos_target`, `computed_torque`, and `applied_torque` without changing
-the pose, gains, effort limit, or thresholds. `make dofbot-pregrasp-view`
-remains blocked until the unchanged machine gates all pass. Contact tasks,
-closing, grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped and merge the `DF-030`/`DF-031` evidence and
+local instrumentation first. A future paid run requires a fresh quote and
+explicit approval, must cite `DF-030`, and may run only the unchanged headless
+pre-grasp discriminator. Its new evidence is the measured PhysX
+`get_dof_projected_joint_forces` value beside the approximate implicit-actuator
+torque buffers. Pose, gains, effort limit, solver settings, feed-forward,
+scene, and acceptance thresholds remain fixed. The same run must also prove
+that the installed-Python semantic verifier produces a reliable nonzero
+sentinel for a failed artifact. `make dofbot-pregrasp-view` remains blocked
+until every machine gate passes. Contact, closing, grasping, lifting, and
+placing remain unauthorized.

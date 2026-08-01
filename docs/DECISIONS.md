@@ -392,3 +392,26 @@ must update the ledger in the same pull request. Another paid run is blocked
 unless it names an unresolved ID, introduces a specific new discriminator,
 states the evidence fields to retrieve, and explains why it does not repeat a
 falsified case.
+
+## 2026-08-01 — Measure PhysX projected effort before changing control
+
+The unchanged DF-028 run proved that the Yahboom API target reaches both the
+interpolating backend and Isaac `joint_pos_target` buffer. It also reproduced
+the same loaded residual. This rejects another command-write repair as the
+next move.
+
+Do not interpret equality between ImplicitActuator `computed_torque` and
+`applied_torque` as physical-effort proof. Isaac Lab calculates those values as
+approximate PD torque because PhysX does not expose the implicit drive torque.
+This boundary follows the official
+[ImplicitActuator API documentation](https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.actuators.html#isaaclab.actuators.ImplicitActuator).
+Select PhysX `get_dof_projected_joint_forces` as the next measurement and keep
+pose, gains, limits, solver settings, feed-forward, and acceptance gates fixed.
+Only that measured effort can distinguish a solver/drive application problem
+from a physical equilibrium or modeling problem before another controller
+change.
+
+The remote semantic verifier must use the installed
+`./_isaac_sim/python.sh`; generic `python3` is not present in the retained
+Launchable container. This is an orchestration repair only and does not change
+the scientific gate.

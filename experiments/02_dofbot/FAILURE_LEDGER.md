@@ -47,12 +47,16 @@ ledger ID and state:
 4. why the run does not repeat a `FALSIFIED` case;
 5. the stop deadline and the machine gate that blocks Viewer launch.
 
-The current unresolved scientific item is **DF-028**. The next run may add
-target-buffer and torque telemetry to distinguish command propagation from
-post-write actuator behavior. It must not change the pose, gains, effort limit,
-or acceptance thresholds at the same time. `DF-029` records that the
-first approved attempt to collect that discriminator never left the Brev
-startup layer; it is not controller evidence and does not supersede `DF-028`.
+The target-buffer part of **DF-028** is now resolved by **DF-030**: the exact
+API target reached both the backend and live `joint_pos_target` buffer, while
+the loaded residual remained unchanged. Isaac Lab documents the recorded
+implicit-actuator torque fields as approximate PD estimates, not measured
+PhysX effort, so **DF-030** remains the current scientific item. The next run
+must measure `get_dof_projected_joint_forces` without changing the pose, gains,
+effort limit, solver settings, feed-forward, or acceptance thresholds.
+**DF-031** is the separate wrapper prerequisite: its Isaac-Python correction
+has passed local tests but must prove that a failed semantic contract produces
+a nonzero remote sentinel. Viewer remains blocked.
 
 ## Consolidated ledger
 
@@ -87,6 +91,8 @@ startup layer; it is not controller evidence and does not supersede `DF-028`.
 | DF-027 | 2026-07-31 | Exit propagation | Python raised an acceptance error while `isaaclab.sh`, the sentinel, and outer Make still returned zero; sentinel-only hardening was insufficient. | RESOLVED | `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json` | Remove stale output first and semantically verify a fresh commit-bound passing artifact; process status alone cannot authorize success. |
 | DF-028 | 2026-07-31 | Current pre-grasp residual | With no reissue, `[90,66,66,66]` still settled at 4.177019-degree joint error and 0.0318089 m position error; the artifact lacked backend/live target and torque discriminators. | OPEN | `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json` | Next run records backend target, live `joint_pos_target`, `computed_torque`, and `applied_torque` without changing pose/gains/limits/gates; Viewer remains blocked. |
 | DF-029 | 2026-08-01 | Brev startup | The approved target/torque run never reached compute: normal and detached start requests plus `brev refresh` left the retained instance `STOPPED`, shell `NOT READY`, and SSH timed out before sync or Isaac. | OPERATIONAL | `artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json` | Do not interpret this as controller evidence or rerun Isaac/change parameters. After fresh quote and approval, require one detached start to reach `RUNNING` and shell `READY`, refresh stale CLI state, then sync and run only the unchanged DF-028 discriminator. |
+| DF-030 | 2026-08-01 | Actuation boundary | The unchanged DF-028 run propagated `[90,66,66,66]` exactly to the backend and within 0.000000668 degrees to live `joint_pos_target`, yet retained 4.177019 degrees joint error and 0.0318089 m position error. The equal `computed_torque` and `applied_torque` buffers are only ImplicitActuator PD estimates, not measured PhysX effort. | PARTIAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Do not revisit API write loss or claim that the approximate torque buffers prove physical application. Keep every control factor fixed and record PhysX `get_dof_projected_joint_forces` as the next discriminator before changing the drive or controller. |
+| DF-031 | 2026-08-01 | Remote semantic verifier | `isaaclab.sh` again masked the Python acceptance exception, then the semantic verifier called absent container command `python3`, overwriting the scientific result with sentinel 127 even though a fresh failed artifact existed. | OPERATIONAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Use the installed `./_isaac_sim/python.sh` for the verifier and retain artifact-first interpretation. Local preview/tests pass; a future remote run must still prove the failing semantic contract emits a reliable nonzero sentinel. |
 
 ## Current evidence boundary
 

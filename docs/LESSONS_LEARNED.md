@@ -241,3 +241,28 @@ shows it was not the full root cause, add a superseding entry rather than
 rewriting history. The `DF-026` to `DF-028` sequence is the reference example:
 repeated API writes were a real defect, but the no-reissue machine rerun proved
 they were insufficient to explain the loaded residual.
+
+## Implicit-actuator torque buffers are not measured PhysX effort
+
+Isaac Lab's `ImplicitActuator` lets PhysX perform the continuous-time PD
+control. Its `computed_torque` and `applied_torque` fields are approximate PD
+values calculated for consistency because PhysX does not directly expose that
+torque. Equality between those two buffers proves neither solver application
+nor absence of a lower-level drive/constraint problem.
+
+Use backend and live `joint_pos_target` fields to verify command propagation.
+When that path passes but the articulation still stalls, use PhysX projected
+joint-force or joint-wrench measurement as the next discriminator. Preserve
+the distinction in artifact wording; do not promote an estimate into a
+measured physical fact.
+
+## A semantic verifier must use the runtime's installed interpreter
+
+The Isaac Launchable container can run scripts through
+`./_isaac_sim/python.sh` while exposing no `python3` command on PATH. A wrapper
+that correctly decides to inspect a fresh artifact can still replace the
+scientific status with exit 127 if it assumes a generic interpreter.
+
+Use the already proven Isaac interpreter for post-run verification, preserve
+the retrieved artifact regardless of wrapper status, and test the emitted
+sentinel separately from the launcher exit code.

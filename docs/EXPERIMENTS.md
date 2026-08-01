@@ -2100,3 +2100,48 @@
   had not started compute later. No instance or disk was created, resized,
   reset, or deleted. A future attempt requires a fresh quote and explicit
   approval, then must prove `RUNNING` and shell `READY` before sync.
+
+## 2026-08-01 — DF-028 target propagation passed; measured PhysX effort remains open
+
+- Pre-run gate: the complete failure ledger was reread and `DF-028` selected.
+  The run held pose, scene, force `1048/53/100`, `5.2` bounded native-Warp
+  feed-forward, solver settings, safety gates, and acceptance thresholds fixed.
+- Infrastructure: one detached start of retained
+  `isaac-launchable-f150a5` (`92xbacz46`) at the refreshed `$1.58784/hour`
+  quote reached shell `READY`; `nvidia-smi` returned `NVIDIA L4, 23034 MiB`.
+  This time-only recovery classifies the earlier AWS zone-capacity issue as
+  transient rather than a controller or persistent instance defect.
+- Commands:
+
+  ```bash
+  PROJECT_GIT_BRANCH=main \
+    BREV_INSTANCE_NAME=isaac-launchable-f150a5 make sync
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Machine result: failed only `grasp_origin_reached_pregrasp_position` and
+  `final_api_joint_tracking_within_tolerance`. The unchanged residual was
+  `4.177019° > 1°` and `0.0318089 m > 0.025 m`; contact stayed `0 N`, API
+  accounting was `40/40`, and neutral reset error was `0.002216°`.
+- Target discriminator: final backend target equaled `[90,66,66,66]°` exactly;
+  live `joint_pos_target` differed by at most `0.000000668°`. API/backend write
+  loss is rejected as the remaining cause.
+- Torque boundary: all sampled `computed_torque` values equaled
+  `applied_torque`, with maximum magnitude `76.4262`. Official Isaac Lab
+  semantics say these ImplicitActuator fields are approximate PD torque because
+  PhysX does not expose that torque directly. They do not prove measured
+  physical effort. `DF-030` therefore selects
+  `get_dof_projected_joint_forces` as the next unchanged discriminator.
+- Wrapper failure: `isaaclab.sh` again masked the expected Python exception;
+  the semantic verifier then called absent `python3` and emitted
+  `[PREGRASP_EXIT_CODE] 127`. `DF-031` records this independently. The local
+  wrapper now uses `./_isaac_sim/python.sh`, and the next runner records the
+  PhysX-projected effort field.
+- Evidence: raw artifact `2,269,037` bytes, SHA-256
+  `d6cf7552bbf50cfeb2bc007bd9eb8ff2f863abf65a93660369e39f0544e5d6ef`;
+  promoted summary
+  `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json`.
+- Safety: artifact retrieval preceded stop; explicit `STOPPED` was verified at
+  14:44 PDT. No instance/disk was created, resized, reset, or deleted, and no
+  Viewer, contact, grasp, policy, checkpoint, camera controller, or hardware
+  command ran.
