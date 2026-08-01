@@ -1,6 +1,6 @@
 # Status
 
-- Updated: 2026-07-31 America/Los_Angeles
+- Updated: 2026-08-01 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
@@ -27,19 +27,22 @@
   smoothstep reissue lag; the repaired headless rerun proves no-reissue is
   active but insufficient, with `4.17702°` tracking error and `0.0318089 m`
   position error; the local follow-up now validates the fresh artifact after
-  the exit-masking launcher and adds target-buffer/torque telemetry; 28
+  the exit-masking launcher and adds target-buffer/torque telemetry; the first
+  approved attempt to collect that discriminator never left the Brev startup
+  layer, so no new controller evidence was produced; 29
   historical failure, falsification, partial-fix, and operational cases are
   consolidated in `experiments/02_dofbot/FAILURE_LEDGER.md`, with `DF-028` as
   the only current unresolved discriminator; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-07-31 21:50 PDT during the local failure-ledger consolidation
+- Instance state: `STOPPED`, re-verified after `brev refresh` with
+  `brev ls --all --json` at 2026-08-01 10:08:11 PDT after the delayed-start
+  safety audit
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
-  `$1.58784/hour` compute; rechecked 2026-07-31 before this rerun
+  `$1.58784/hour` compute; rechecked 2026-08-01 before this startup attempt
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1293,14 +1296,43 @@
 - Acceptance: **historical ledger backfill passed / anti-loop policy and test
   passed / current scientific issue remains `DF-028` open / Viewer blocked**.
 
+## DF-028 target/torque rerun blocked at Brev startup
+
+- Branch: `codex/dofbot-pregrasp-target-telemetry-rerun`, based on merged
+  failure-ledger PR #42 at `main@8b59eaa`
+- Approved scope: one unchanged headless `make dofbot-pregrasp` discriminator
+  on the retained instance; no Viewer, contact, gripper, target motion,
+  hardware, policy, or checkpoint
+- Preflight: instance identity and live quote matched the approved
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, L4 at
+  `$1.58784/hour`; local tests and remote preview had already passed
+- Operational result: a foreground start at 09:55:03 PDT and one detached
+  retry never moved the instance from `STOPPED`. The shell remained
+  `NOT READY`; a host SSH probe timed out; repeated JSON status polls remained
+  stopped through 10:03:24; `brev refresh` completed and the final 10:04:53
+  poll was still `STOPPED`
+- Delayed-start safety audit: a second `brev refresh` plus JSON status poll at
+  10:08:11 PDT again returned explicit `STOPPED`; the detached request did not
+  start compute later
+- Scientific boundary: repository sync, Isaac, `make dofbot-pregrasp`, Viewer,
+  and target/torque artifact generation never started. `DF-028` therefore
+  remains open; no controller, actuator, task-space, or machine-gate claim is
+  changed
+- Evidence:
+  `artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json`; the new
+  ledger entry is `DF-029` with verdict `OPERATIONAL`
+- Resource safety: no running compute was observed, no instance/disk was
+  created, resized, reset, or deleted, and the retained instance is explicitly
+  `STOPPED`. The existing persistent disk remains approximately `$0.04/hour`.
+
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the canonical failure-ledger
-change before another debugging iteration. The merged target-buffer telemetry
-repair is indexed as open item `DF-028`; only after the ledger change is merged,
-a fresh quote is checked, and explicit approval is given may one instrumented
-headless rerun occur. It must collect backend target, live `joint_pos_target`,
-`computed_torque`, and `applied_torque` without changing the pose, gains,
-effort limit, or thresholds. `make dofbot-pregrasp-view` remains blocked until
-the unchanged machine gates all pass. Contact tasks, closing, grasping,
-lifting, and placing remain unauthorized.
+Keep the Brev instance stopped and review the `DF-029` operational record.
+After this record is merged, a fresh quote and explicit approval are required
+for another attempt. Use one detached start, refresh stale CLI state, and
+require both `RUNNING` and shell `READY` before repository sync. Then run only
+the unchanged `DF-028` headless discriminator, collecting backend target, live
+`joint_pos_target`, `computed_torque`, and `applied_torque` without changing
+the pose, gains, effort limit, or thresholds. `make dofbot-pregrasp-view`
+remains blocked until the unchanged machine gates all pass. Contact tasks,
+closing, grasping, lifting, and placing remain unauthorized.

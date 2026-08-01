@@ -308,6 +308,16 @@ real but insufficient cause. It also records that `isaaclab.sh` masked the
 Python acceptance exception with exit zero, motivating fresh-artifact semantic
 verification and target-buffer/torque telemetry before another paid run.
 
+`pregrasp_startup_operational_2026-08-01.json` records the first approved
+attempt to collect that target/torque discriminator. The retained
+`g6.4xlarge` L4 matched the fresh `$1.58784/hour` quote, but normal and
+detached start requests never changed the authoritative Brev state from
+`STOPPED`; the shell remained `NOT READY`, an SSH probe timed out, and a
+subsequent `brev refresh` did not reveal a stale running state. Repository
+sync, Isaac, the scientific command, Viewer, and artifact generation never
+started. This is operational evidence only: it leaves `DF-028` open and does
+not support a controller or actuator conclusion.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

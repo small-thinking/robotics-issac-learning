@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 LEDGER_PATH = PROJECT_DIR / "experiments/02_dofbot/FAILURE_LEDGER.md"
+STARTUP_EVIDENCE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json"
+)
 ALLOWED_VERDICTS = {
     "RESOLVED",
     "FALSIFIED",
@@ -33,6 +38,7 @@ REQUIRED_EVIDENCE = {
     "artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json",
     "artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json",
     "artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json",
+    "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json",
 }
 REQUIRED_POLICY_FILES = (
     "AGENTS.md",
@@ -62,7 +68,7 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         cls.rows = ledger_rows(cls.text)
 
     def test_rows_are_complete_sequential_and_use_known_verdicts(self) -> None:
-        self.assertGreaterEqual(len(self.rows), 28)
+        self.assertGreaterEqual(len(self.rows), 29)
         ids = []
         for row in self.rows:
             self.assertEqual(len(row), 7, row)
@@ -99,6 +105,23 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         self.assertIn("applied_torque", current[6])
         self.assertIn("Viewer remains blocked", current[6])
         self.assertIn("must not change the pose, gains, effort limit", self.text)
+
+    def test_startup_failure_does_not_replace_scientific_discriminator(self) -> None:
+        startup = next(row for row in self.rows if row[0] == "DF-029")
+        self.assertEqual(startup[4], "OPERATIONAL")
+        self.assertIn("never reached compute", startup[3])
+        self.assertIn("DF-028", startup[6])
+        self.assertIn("RUNNING", startup[6])
+        self.assertIn("READY", startup[6])
+
+    def test_startup_evidence_makes_no_scientific_claim(self) -> None:
+        evidence = json.loads(STARTUP_EVIDENCE_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(evidence["conclusion"]["classification"], "operational_startup_failure")
+        self.assertEqual(evidence["conclusion"]["scientific_claim"], "none")
+        self.assertEqual(evidence["conclusion"]["df_028_status"], "open")
+        self.assertFalse(evidence["scope"]["scientific_command_started"])
+        self.assertFalse(evidence["scope"]["viewer_started"])
+        self.assertEqual(evidence["attempt"]["final_status"], "STOPPED")
 
     def test_repo_policy_links_the_canonical_ledger(self) -> None:
         for relative_path in REQUIRED_POLICY_FILES:

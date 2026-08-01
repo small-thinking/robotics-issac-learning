@@ -35,7 +35,9 @@ pre-grasp machine gate still failed at `4.177019°` joint tracking and
 `0.0318089 m` position error. The next paid run must collect backend target,
 live `joint_pos_target`, `computed_torque`, and `applied_torque` without also
 changing pose, gains, limits, or acceptance thresholds. The Viewer remains
-blocked.
+blocked. `DF-029` separately records that the first approved collection
+attempt never left Brev startup; it is operational evidence, not a new
+controller result, and `DF-028` remains open.
 
 ## First stage: asset, motion, and camera
 
@@ -1490,6 +1492,29 @@ focused tests pass 14/14, all repository Python tests pass 210/210, and the
 Python compilation, shell syntax, remote preview, JSON, Git LFS, and
 `git diff --check` pass. The instance was explicitly `STOPPED` at 21:23 PDT;
 Viewer remains blocked.
+
+### Target/torque rerun blocked before compute
+
+The first approved attempt to collect the `DF-028` discriminator used only the
+retained `isaac-launchable-f150a5` (`92xbacz46`), whose AWS `g6.4xlarge` L4
+identity and live `$1.58784/hour` price matched approval. A foreground start
+request at 09:55:03 PDT and one detached retry did not move the authoritative
+state from `STOPPED`. The shell stayed `NOT READY`; the read-only SSH probe
+timed out; and repeated `brev ls --all --json` polls remained stopped. Because
+this CLI has previously exposed stale list state, `brev refresh` was run before
+the final 10:04:53 PDT poll; the result was still `STOPPED`.
+
+Repository sync, Isaac, `make dofbot-pregrasp`, Viewer, and artifact generation
+therefore never started. This attempt makes no claim about command
+propagation, live target buffers, torque, tracking, or task-space behavior.
+The concise operational record is
+`artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json`, indexed as
+`DF-029`. `DF-028` remains the unresolved scientific discriminator and Viewer
+remains blocked. A future attempt must obtain a fresh quote and approval,
+reach both `RUNNING` and shell `READY` after one detached start plus stale-state
+refresh, and only then run the unchanged headless command.
+A second refresh and delayed-start safety audit at 10:08:11 PDT again returned
+explicit `STOPPED`.
 
 ## Later milestones
 

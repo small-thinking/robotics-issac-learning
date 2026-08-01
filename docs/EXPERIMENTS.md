@@ -2062,3 +2062,41 @@
 - Acceptance: **ledger backfill passed / anti-loop policy and regression guard
   passed / no scientific gate changed / `DF-028` remains open / Viewer
   blocked**.
+
+## 2026-08-01 — Target/torque rerun failed at Brev startup before compute
+
+- Approved scope: one headless `DF-028` discriminator on the existing
+  `isaac-launchable-f150a5` (`92xbacz46`) only; no Viewer, contact, gripper,
+  target motion, hardware, policy, or checkpoint
+- Pre-start evidence: `brev ls --all --json` returned `STOPPED`, AWS
+  `g6.4xlarge`, NVIDIA L4; the fresh matching quote was `$1.58784/hour` plus
+  the existing approximately `$0.04/hour` persistent disk
+- Intended scientific command:
+
+  ```bash
+  PROJECT_GIT_BRANCH=codex/dofbot-pregrasp-target-telemetry-rerun \
+    BREV_INSTANCE_NAME=isaac-launchable-f150a5 make sync
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Startup evidence: the foreground start request began at 09:55:03 PDT. A
+  detached retry was used after the foreground waiter continued to report the
+  old stopped state. The instance never transitioned from `STOPPED`, its shell
+  remained `NOT READY`, and a read-only host SSH probe timed out.
+- Stale-state discriminator: repeated JSON polls remained stopped through
+  10:03:24. `brev refresh` then completed successfully, and the final poll at
+  10:04:53 still returned `STOPPED / NOT READY / UNHEALTHY`.
+- Scientific boundary: the intended sync and headless commands above were
+  never executed. Isaac did not start and no
+  `pregrasp_machine_contract.json` was generated, so no target-buffer, torque,
+  tracking, or task-space conclusion is available. `DF-028` remains open and
+  Viewer remains blocked.
+- Durable evidence:
+  `artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json`; ledger entry
+  `DF-029`, verdict `OPERATIONAL`.
+- Resource outcome: no running GPU compute was observed; final state is
+  explicit `STOPPED`. A second `brev refresh` and delayed-start safety poll at
+  10:08:11 PDT again returned `STOPPED`, confirming that the detached request
+  had not started compute later. No instance or disk was created, resized,
+  reset, or deleted. A future attempt requires a fresh quote and explicit
+  approval, then must prove `RUNNING` and shell `READY` before sync.
