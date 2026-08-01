@@ -310,6 +310,13 @@ tracking gate authorizes the unchanged task-scene headless command:
 BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
 ```
 
+The wrapper treats Brev transport status and the inner Isaac process status as
+separate gates. The remote shell prints exactly one
+`[PREGRASP_EXIT_CODE] N`; local execution accepts only `N=0`. A nonzero,
+missing, duplicate, or malformed marker is a hard failure even if the Brev CLI
+returns zero. Do not interpret a green outer transport exit alone as a machine
+pass.
+
 Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`.
 Confirm `validated_joint_candidate_command_reached`,
 `final_api_joint_tracking_within_tolerance`, the unchanged `0.025 m / 12°`

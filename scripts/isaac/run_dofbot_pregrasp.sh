@@ -34,6 +34,7 @@ remote_command="
 set -euo pipefail
 mkdir -p \"\$(dirname $quoted_output)\"
 git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
+set +e
 ./isaaclab.sh -p $quoted_project_dir/tools/run_dofbot_pregrasp.py \
   --asset-contract $quoted_asset_contract \
   --scene-config $quoted_scene_config \
@@ -46,6 +47,30 @@ git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
   --git-commit \"\$git_commit\" \
   --device cpu \
   --headless
+pregrasp_exit_code=\"\$?\"
+set -e
+printf '[PREGRASP_EXIT_CODE] %s\\n' \"\$pregrasp_exit_code\"
+exit 0
 "
 
-exec "$(dirname "$0")/../brev/remote_exec.sh" "$remote_command"
+remote_exec_script="$(dirname "$0")/../brev/remote_exec.sh"
+
+if [[ "${REMOTE_DRY_RUN:-0}" == "1" ]]; then
+  exec "$remote_exec_script" "$remote_command"
+fi
+
+pregrasp_log="$(mktemp -t dofbot-pregrasp.XXXXXX)"
+trap 'rm -f "$pregrasp_log"' EXIT
+
+set +e
+"$remote_exec_script" "$remote_command" | tee "$pregrasp_log"
+transport_exit_code="${PIPESTATUS[0]}"
+set -e
+
+if [[ "$transport_exit_code" -ne 0 ]]; then
+  echo "Brev transport failed with exit code $transport_exit_code." >&2
+  exit "$transport_exit_code"
+fi
+
+"$(dirname "$0")/../brev/require_zero_exit_sentinel.sh" \
+  "$pregrasp_log" PREGRASP_EXIT_CODE

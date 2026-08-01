@@ -22,11 +22,14 @@
   Warp/Torch setter-boundary error and a minimal native-Warp repair, the
   isolated machine matrix now reduces the worst settled error from `1.73936°`
   to `0.002391°` with zero contact and zero effort clipping; the accepted
-  actuator contract now passes GPU-free pre-grasp runtime integration, while
-  the separate pre-grasp machine gate and Viewer remain blocked
+  actuator contract now passes GPU-free pre-grasp runtime integration; the
+  first integrated machine run passed its actuator gates, exposed repeated
+  smoothstep reissue lag, and the no-reissue settle repair plus fail-closed
+  remote exit-status transport now pass locally; the repaired headless rerun
+  remains pending and Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with standard `brev ls --json` at
-  2026-07-31 11:21 PDT after local pre-grasp runtime integration
+- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
+  2026-07-31 20:43 PDT after local exit-status hardening
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -1220,11 +1223,15 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the live actuator/settle
-repair. Only after merge, a fresh quote, and explicit approval may the same
-headless `make dofbot-pregrasp` gate rerun. The expected behavioral difference
-is one candidate API endpoint followed by a no-reissue settle interval, not a
-new pose or relaxed threshold. `make dofbot-pregrasp-view` remains blocked
-until the machine artifact passes its unchanged position, orientation,
-tracking, collision, contact, API-accounting, and reset gates. Contact tasks,
-closing, grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped. The live actuator/settle repair is merged;
+review and merge the remote exit-status hardening. Only after that merge, a
+fresh quote, and explicit approval may the same headless
+`make dofbot-pregrasp` gate rerun.
+The expected behavioral difference is one candidate API endpoint followed by
+a no-reissue settle interval, not a new pose or relaxed threshold. The wrapper
+must observe exactly one `[PREGRASP_EXIT_CODE] 0`; any nonzero, missing,
+duplicate, or malformed marker fails locally even if Brev masks the inner
+process status. `make dofbot-pregrasp-view` remains blocked until the machine
+artifact passes its unchanged position, orientation, tracking, collision,
+contact, API-accounting, and reset gates. Contact tasks, closing, grasping,
+lifting, and placing remain unauthorized.
