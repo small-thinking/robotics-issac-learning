@@ -126,8 +126,23 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         )
         self.assertIn("initialization_api_calls", self.runner)
         self.assertIn(
-            "4 + (len(observations) - 1) * 4 + 4",
+            "4 + len(controller_command_angles) * 4 + 4",
             self.runner,
+        )
+        self.assertIn(
+            "mode=candidate_settle_without_api_reissue",
+            self.runner,
+        )
+        settle_branch = self.runner.index(
+            "== VALIDATED_JOINT_CANDIDATE_CONTROL_MODE"
+        )
+        next_command = self.runner.index(
+            "command = next_pregrasp_command(",
+            settle_branch,
+        )
+        self.assertLess(
+            self.runner.index("continue", settle_branch),
+            next_command,
         )
         self.assertIn(
             "Isaac requested a zero-code exit before pre-grasp completion",
@@ -150,10 +165,17 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             "JointDrivePropertiesCfg(",
             "BoundedGravityFeedForward(",
             "controlled_joint_drive_snapshot()",
+            "controlled_joint_runtime_effort_limits(",
             "drive_snapshot_matches_runtime(",
+            "effort_limits_match_runtime(",
+            "expected_drive_runtime",
+            "actual_usd_drives={drive_snapshot}",
+            "actual_runtime_effort_limits={runtime_effort_limits}",
             "evaluate_gravity_feed_forward_telemetry(",
             '"accepted_actuator_machine_evidence_bound": True',
             '"live_actuator_drive_matches_selected_contract"',
+            '"live_actuator_effort_limits_match_selected_contract"',
+            '"live_controlled_joint_runtime_effort_limits"',
             '"gravity_feed_forward_samples": gravity_samples',
         ):
             self.assertIn(expected, self.runner)
@@ -184,6 +206,11 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         ):
             self.assertIn(decision, self.runner)
         self.assertIn("def _write_runtime_failure(", self.runner)
+        self.assertIn("class PregraspMachineAcceptanceError(", self.runner)
+        self.assertIn(
+            "if not isinstance(reported_error, PregraspMachineAcceptanceError):",
+            self.runner,
+        )
         self.assertIn("actuator_runtime_exception", self.runner)
         self.assertIn("pregrasp_runtime_exception", self.runner)
         self.assertIn(

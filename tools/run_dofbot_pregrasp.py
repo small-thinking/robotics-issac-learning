@@ -23,6 +23,7 @@ from isaaclab.app import AppLauncher
 
 from dofbot_pregrasp_pose import (
     POSE_IK_CONTROL_MODE,
+    VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
     PregraspPoseConfig,
     PregraspPoseError,
     derive_grasp_frame,
@@ -38,6 +39,11 @@ from dofbot_gravity_feed_forward import (
     load_accepted_gravity_feed_forward_runtime,
 )
 from dofbot_reaching import DofbotReachingConfig, load_reaching_config
+
+
+class PregraspMachineAcceptanceError(RuntimeError):
+    """Raised after a complete machine-failure artifact has been written."""
+
 
 parser = argparse.ArgumentParser(
     description="Run fail-closed pose-aware DOFBOT pre-grasp validation."
@@ -164,7 +170,9 @@ from dofbot_motion_plan import (
 from dofbot_gravity_feed_forward_runtime import (
     BoundedGravityFeedForward,
     controlled_joint_drive_snapshot,
+    controlled_joint_runtime_effort_limits,
     drive_snapshot_matches_runtime,
+    effort_limits_match_runtime,
 )
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_NAMES,
@@ -612,6 +620,45 @@ def _run_pose_controller(
         if prior["evaluation"]["passed"] and command_trajectory_settled:
             break
         _precommand_safety_checks(prior)
+        if (
+            pose.solver.control_mode
+            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
+            and command_trajectory_settled
+        ):
+            if not _step_simulation(
+                scene=scene,
+                sim=sim,
+                backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
+                gravity_samples=gravity_samples,
+                physics_steps=physics_steps,
+                render=render,
+            ):
+                return None
+            observation = _observation(
+                scene=scene,
+                arm=arm,
+                pose=pose,
+                scene_config=scene_config,
+                body_ids=body_ids,
+                contact_reporter=contact_reporter,
+                velocities_deg_s=zero,
+                accelerations_deg_s2=zero,
+                step_index=step_index,
+            )
+            observations.append(observation)
+            print(
+                "[PREGRASP] "
+                f"step={step_index} "
+                "mode=candidate_settle_without_api_reissue "
+                f"angles_deg={observation['angles_deg']} "
+                f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
+                f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
+                f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
+                f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
+                flush=True,
+            )
+            continue
         current_angles = _observed_angles_deg(arm)
         frame_value = prior["grasp_frame"]
         frame = derive_grasp_frame(
@@ -768,6 +815,7 @@ def _failure_decision(failed_checks: list[str]) -> str:
     actuator_checks = {
         "accepted_actuator_machine_evidence_bound",
         "live_actuator_drive_matches_selected_contract",
+        "live_actuator_effort_limits_match_selected_contract",
         "gravity_compensation_runtime_apis_available",
         "gravity_compensation_values_finite",
         "incoming_joint_force_values_finite",
@@ -902,17 +950,37 @@ def main() -> None:
         recorded_contract,
         _live_asset_contract(scene),
     )
+    controlled_joint_ids = _controlled_joint_ids(scene)
     drive_snapshot = controlled_joint_drive_snapshot()
     live_actuator_drive_matches = drive_snapshot_matches_runtime(
         drive_snapshot,
         drive_type=actuator_runtime.drive_type,
         stiffness=actuator_runtime.stiffness,
         damping=actuator_runtime.damping,
+    )
+    runtime_effort_limits = controlled_joint_runtime_effort_limits(
+        scene=scene,
+        controlled_joint_ids=controlled_joint_ids,
+    )
+    live_actuator_effort_limits_match = effort_limits_match_runtime(
+        runtime_effort_limits,
         effort_limit_sim=actuator_runtime.effort_limit_sim,
     )
-    if not live_actuator_drive_matches:
+    if not (
+        live_actuator_drive_matches
+        and live_actuator_effort_limits_match
+    ):
+        expected_drive_runtime = {
+            "drive_type": actuator_runtime.drive_type,
+            "stiffness": actuator_runtime.stiffness,
+            "damping": actuator_runtime.damping,
+            "effort_limit_sim": actuator_runtime.effort_limit_sim,
+        }
         raise PregraspPoseError(
-            "composed USD drives do not match the accepted actuator runtime"
+            "composed USD drives do not match the accepted actuator runtime: "
+            f"expected={expected_drive_runtime}; "
+            f"actual_usd_drives={drive_snapshot}; "
+            f"actual_runtime_effort_limits={runtime_effort_limits}"
         )
     required_bodies = {
         pose.grasp_frame.wrist_body_name,
@@ -921,7 +989,6 @@ def main() -> None:
         *pose.collision.critical_body_names,
     }
     body_ids = _body_ids(scene, required_bodies)
-    controlled_joint_ids = _controlled_joint_ids(scene)
     backend = _IsaacJointPositionBackend(
         scene=scene,
         controlled_joint_ids=controlled_joint_ids,
@@ -1047,7 +1114,7 @@ def main() -> None:
         official_api_calls = (
             initialization_api_calls + controller_api_calls + reset_api_calls
         )
-        expected_api_calls = 4 + (len(observations) - 1) * 4 + 4
+        expected_api_calls = 4 + len(controller_command_angles) * 4 + 4
         all_api_command_angles = [
             list(NEUTRAL_ANGLES_DEG),
             *controller_command_angles,
@@ -1099,6 +1166,9 @@ def main() -> None:
             "accepted_actuator_machine_evidence_bound": True,
             "live_actuator_drive_matches_selected_contract": (
                 live_actuator_drive_matches
+            ),
+            "live_actuator_effort_limits_match_selected_contract": (
+                live_actuator_effort_limits_match
             ),
             "physical_table_prim_present": table_present,
             "static_target_cube_prim_present": (
@@ -1221,6 +1291,9 @@ def main() -> None:
                 "policy_free": True,
                 "actuator_runtime": actuator_runtime.to_dict(),
                 "live_controlled_joint_drive_snapshot": drive_snapshot,
+                "live_controlled_joint_runtime_effort_limits": (
+                    runtime_effort_limits
+                ),
             },
             "measurement": {
                 "cycle_index": cycle_index,
@@ -1261,7 +1334,7 @@ def main() -> None:
             flush=True,
         )
         if not machine["machine_passed"]:
-            raise RuntimeError(
+            raise PregraspMachineAcceptanceError(
                 "DOFBOT pre-grasp machine acceptance failed: "
                 + ", ".join(failed_checks)
             )
@@ -1278,14 +1351,15 @@ if __name__ == "__main__":
             reported_error = RuntimeError(
                 "Isaac requested a zero-code exit before pre-grasp completion"
             )
-        try:
-            _write_runtime_failure(reported_error)
-        except Exception as write_error:
-            print(
-                "[ERROR] unable to write pre-grasp runtime failure artifact: "
-                f"{type(write_error).__name__}: {write_error}",
-                flush=True,
-            )
+        if not isinstance(reported_error, PregraspMachineAcceptanceError):
+            try:
+                _write_runtime_failure(reported_error)
+            except Exception as write_error:
+                print(
+                    "[ERROR] unable to write pre-grasp runtime failure artifact: "
+                    f"{type(write_error).__name__}: {write_error}",
+                    flush=True,
+                )
         if reported_error is not error:
             raise reported_error from error
         raise

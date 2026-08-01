@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-31T18:56:36Z",
+  "experiment": "dofbot_goal5_integrated_pregrasp_live_actuator_gate",
+  "scope": "approved headless pre-grasp machine gate and GPU-free follow-up",
+  "provenance": {
+    "merged_base_commit": "56fddc5b7d7036c98ed6ca6e8c91ef2018e1dfb9",
+    "diagnostic_commit": "0e893e0",
+    "live_actuator_gate_fix_commit": "7ce2276",
+    "machine_artifact_preservation_commit": "fc48a2c845cdee8aef18bd7382885603acae8004",
+    "machine_command": "BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp",
+    "local_follow_up_branch": "codex/dofbot-pregrasp-live-actuator-gate"
+  },
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "live_compute_quote_usd_per_hour": 1.58784,
+    "persistent_disk_quote_usd_per_hour_approx": 0.04,
+    "terminal_instance_state": "STOPPED",
+    "terminal_state_command": "brev ls --all --json",
+    "terminal_state_verified_at": "2026-07-31T11:56:36-07:00",
+    "ordinary_list_was_temporarily_stale_at_stopping": true,
+    "repeat_stop_response_established_backend_already_stopped": true,
+    "instance_or_disk_created_resized_reset_or_deleted": false
+  },
+  "initial_failure": {
+    "motion_started": false,
+    "decision": "pregrasp_runtime_exception",
+    "message": "composed USD drives do not match the accepted actuator runtime",
+    "root_cause": "The integration incorrectly compared the official USD angular-drive maxForce with the Isaac implicit actuator runtime effort_limit_sim.",
+    "repair": "Gate USD drive type, stiffness, and damping independently from the live articulation joint_effort_limits buffer.",
+    "acceptance_thresholds_changed": false
+  },
+  "live_actuator_contract": {
+    "controlled_joint_names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4"
+    ],
+    "composed_usd_drive": {
+      "drive_type": "force",
+      "stiffness": 1048.0,
+      "damping": 53.0,
+      "max_force": 5.199999809265137
+    },
+    "runtime_effort_limits": {
+      "joint1": 100.0,
+      "joint2": 100.0,
+      "joint3": 100.0,
+      "joint4": 100.0
+    },
+    "usd_drive_gate_passed": true,
+    "runtime_effort_limit_gate_passed": true
+  },
+  "machine_result": {
+    "machine_passed": false,
+    "decision": "joint_tracking_failed",
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "final_api_joint_tracking_within_tolerance"
+    ],
+    "initial_position_error_m": 0.2557291596536446,
+    "final_position_error_m": 0.031807593137687634,
+    "maximum_allowed_position_error_m": 0.025,
+    "position_improvement_m": 0.223921566515957,
+    "final_api_command_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_observed_angles_deg": [
+      90.00827894216233,
+      68.50851437087327,
+      70.16578293334871,
+      67.20599046596267
+    ],
+    "maximum_final_joint_tracking_error_deg": 4.165782933348709,
+    "maximum_allowed_final_joint_tracking_error_deg": 1.0,
+    "final_approach_error_deg": 7.88737204376463,
+    "final_closing_error_deg": 0.3391040263850929,
+    "maximum_contact_force_n": 0.0,
+    "maximum_neutral_reset_error_deg": 0.002215934480787496,
+    "official_api_call_count": 248,
+    "expected_official_api_call_count": 248,
+    "gravity_feed_forward_sample_count": 900,
+    "maximum_absolute_applied_feed_forward_effort": 0.33032044768333435,
+    "configured_feed_forward_effort_limit": 5.2,
+    "clipped_sample_count": 0,
+    "actuator_runtime_and_safety_checks_passed": true,
+    "viewer_authorized": false
+  },
+  "retrieved_machine_artifact": {
+    "remote_path": "/workspace/robotics-issac-learning/artifacts/dofbot/pregrasp_machine_contract.json",
+    "bytes": 2237400,
+    "sha256": "b970b2e90c90274c86e334a392c15f58fe4de1bd497f410887e38c090230f57b",
+    "experiment": "dofbot_goal5_angled_pregrasp",
+    "git_commit": "fc48a2c845cdee8aef18bd7382885603acae8004"
+  },
+  "cross_run_diagnosis": {
+    "accepted_calibration_raw_source_sha256": "b5fcf7964bda7973ff90cb53ebdbabea8735070886645a2f67b38977bac49964",
+    "calibration_candidate_terminal_error_deg": 0.0012612095883071106,
+    "calibration_candidate_settle_elapsed_s": 2.6499999999999955,
+    "calibration_behavior": "Issue the candidate once, finish interpolation, and hold the exact target while physics settles.",
+    "pregrasp_behavior": "After reaching the stopped candidate at controller step 8, reissue the same four servo calls every 0.2 seconds through step 60 because task-space acceptance remains false.",
+    "root_cause": "Each no-op API retry restarts smoothstep from the loaded measured position, maintaining a steady tracking lag rather than holding the completed target.",
+    "selected_follow_up": "After the exact stopped candidate is issued, retain the current backend target and advance physics without another Yahboom API write until acceptance, timeout, or a safety failure.",
+    "pose_or_gate_changed": false
+  },
+  "local_follow_up": {
+    "candidate_settle_without_api_reissue": true,
+    "api_accounting_counts_only_actual_writes": true,
+    "maximum_step_timeout_preserved": true,
+    "safety_and_task_gates_preserved": true,
+    "command_space_checks_passed": 27,
+    "command_space_checks_total": 27,
+    "repository_tests_passed": 205,
+    "focused_tests_passed": 45,
+    "ruff_passed": true,
+    "python_compilation_passed": true,
+    "remote_command_preview_passed": true,
+    "git_lfs_checks_passed": true
+  },
+  "conclusion": {
+    "established": [
+      "The accepted force-drive and bounded gravity-feed-forward runtime is correctly composed and active inside the pre-grasp scene.",
+      "USD drive maxForce and Isaac runtime implicit-actuator effort limits are distinct live properties and must be gated separately.",
+      "The first integrated pre-grasp reaches the intended command with zero monitored contact but fails unchanged position and joint-tracking gates.",
+      "Repeated no-op Yahboom API writes after the stopped candidate differ from the successful isolated calibration's target-hold behavior."
+    ],
+    "not_established": [
+      "repaired headless pre-grasp machine acceptance",
+      "Viewer acceptance",
+      "contact, grasp, lift, or place success",
+      "real-hardware behavior"
+    ],
+    "next_action": "Review and merge the no-reissue candidate-settle repair, then rerun the same headless gate after a fresh quote and approval. Viewer remains blocked until it passes."
+  }
+}

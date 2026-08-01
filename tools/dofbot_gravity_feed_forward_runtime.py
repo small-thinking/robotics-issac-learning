@@ -60,17 +60,77 @@ def drive_snapshot_matches_runtime(
     drive_type: str,
     stiffness: float,
     damping: float,
-    effort_limit_sim: float,
 ) -> bool:
-    """Return whether every composed drive matches the selected contract."""
+    """Return whether every composed USD drive matches its selected fields.
+
+    ``ImplicitActuatorCfg.effort_limit_sim`` is applied to the live PhysX
+    articulation. It does not replace the source USD drive's authored
+    ``maxForce``, so that runtime limit is checked through the articulation
+    data buffer instead of this composed-USD snapshot.
+    """
     if set(snapshot) != set(CONTROLLED_JOINT_PRIM_PATHS):
         return False
     return all(
         value.get("drive_type") == drive_type
-        and math.isclose(float(value.get("stiffness")), stiffness)
-        and math.isclose(float(value.get("damping")), damping)
-        and math.isclose(float(value.get("max_force")), effort_limit_sim)
+        and math.isclose(
+            float(value.get("stiffness")),
+            stiffness,
+            rel_tol=1.0e-6,
+            abs_tol=1.0e-6,
+        )
+        and math.isclose(
+            float(value.get("damping")),
+            damping,
+            rel_tol=1.0e-6,
+            abs_tol=1.0e-6,
+        )
         for value in snapshot.values()
+    )
+
+
+def controlled_joint_runtime_effort_limits(
+    *,
+    scene: Any,
+    controlled_joint_ids: list[int],
+) -> dict[str, float]:
+    """Read the live PhysX effort limits for the controlled joints."""
+    values = getattr(scene["dofbot"].data, "joint_effort_limits", None)
+    if values is None:
+        raise GravityFeedForwardError(
+            "live articulation joint_effort_limits buffer is unavailable"
+        )
+    try:
+        selected = values[0, controlled_joint_ids].detach().cpu().tolist()
+        limits = [float(value) for value in selected]
+    except (AttributeError, IndexError, TypeError, ValueError) as error:
+        raise GravityFeedForwardError(
+            "live articulation joint_effort_limits cannot be read"
+        ) from error
+    if len(limits) != len(CONTROLLED_JOINT_PRIM_PATHS) or not all(
+        math.isfinite(value) and value >= 0.0 for value in limits
+    ):
+        raise GravityFeedForwardError(
+            "live controlled-joint effort limits are incomplete or invalid"
+        )
+    return dict(zip(CONTROLLED_JOINT_PRIM_PATHS, limits, strict=True))
+
+
+def effort_limits_match_runtime(
+    limits: dict[str, float],
+    *,
+    effort_limit_sim: float,
+) -> bool:
+    """Return whether live controlled-joint effort limits match the config."""
+    if set(limits) != set(CONTROLLED_JOINT_PRIM_PATHS):
+        return False
+    return all(
+        math.isclose(
+            value,
+            effort_limit_sim,
+            rel_tol=1.0e-6,
+            abs_tol=1.0e-6,
+        )
+        for value in limits.values()
     )
 
 

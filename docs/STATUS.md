@@ -1168,19 +1168,63 @@
   instance as explicit `STOPPED` at 11:21 PDT; no remote resource was started,
   created, resized, stopped, or deleted in this integration step.
 
+## DOFBOT integrated pre-grasp headless result and settle repair
+
+- Paid scope: one approved headless window on retained instance
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4. Live
+  compute quote was `$1.58784/hour`; the existing disk remained approximately
+  `$0.04/hour`. No Viewer, contact, gripper, target motion, grasp, hardware,
+  policy, or checkpoint ran.
+- Initial merged commit: `main@56fddc5`. The first probe failed before pose
+  motion because it equated official USD `maxForce=5.199999809` with Isaac's
+  runtime implicit-actuator effort limit `100`.
+- Layer-correct repair: commit `7ce2276` separately verifies composed USD
+  drive type/stiffness/damping and the live articulation effort-limit buffer.
+  All four drives read `force/1048/53/5.199999809`; all four runtime limits read
+  `100`. Both independent gates passed on the repaired run.
+- Evidence-preservation repair: commit `fc48a2c` prevents the top-level runtime
+  handler from replacing a complete expected machine-failure artifact. The
+  retrieved full payload is 2,237,400 bytes, SHA-256
+  `b970b2e90c90274c86e334a392c15f58fe4de1bd497f410887e38c090230f57b`.
+- Machine outcome: failed only
+  `grasp_origin_reached_pregrasp_position` and
+  `final_api_joint_tracking_within_tolerance`. Position improved
+  `0.255729 -> 0.0318076 m` against a `0.025 m` gate. The exact final API target
+  `[90,66,66,66] deg` produced observed
+  `[90.0083,68.5085,70.1658,67.2060] deg`, maximum tracking error
+  `4.16578 deg` against `1 deg`.
+- Passed evidence: approach `7.88737 deg`, closing `0.339104 deg`, contact
+  `0 N`, neutral reset `0.002216 deg`, 248/248 API calls, all live actuator and
+  gravity-runtime checks, static target, collision clearances, and 900 finite
+  gravity samples with maximum effort `0.330320` and zero clipping.
+- Next root cause: once the candidate command stopped at step 8, the runner
+  reissued the same four servo calls every `0.2 s` through step 60 because the
+  measured pose had not passed. Every reissue restarted smoothstep from the
+  loaded position. The accepted calibration instead issued the candidate once,
+  held it, and reached `0.001261 deg` error after `2.65 s`.
+- Local repair: after the exact stopped candidate command, retain the existing
+  target and advance physics without another API write. Continue all safety
+  checks and the unchanged timeout/gates; count only actual API calls.
+- Promoted result:
+  `artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json`.
+- Validation: 205/205 repository tests, 45 focused tests, changed-file Ruff,
+  Python compilation, deterministic 27/27 preparation regeneration, remote
+  previews, Git LFS, JSON, and `git diff --check` pass.
+- Resource lifecycle: evidence was retrieved before stop. The ordinary list
+  temporarily remained at `STOPPING`; a repeat stop reported that the backend
+  was already stopped, and `brev ls --all --json` then confirmed explicit
+  `STOPPED` at 11:56:36 PDT. The existing instance and disk were retained.
+- Current acceptance: **actuator runtime passed remotely / first pre-grasp
+  classified / candidate settle repair passed locally / repaired headless
+  gate pending / Viewer blocked**.
+
 ## Exact next action
 
-Keep the Brev instance stopped. Review and merge the local pre-grasp actuator
-integration. Its deterministic preparation now passes `27/27`; all `205`
-repository tests, targeted Ruff, Python compilation, shell syntax, JSON,
-remote-command preview, Git LFS, and `git diff --check` pass. It binds the
-accepted calibration config and machine-result SHA-256 values and fails before
-motion on evidence drift, missing APIs, a non-native setter path, or composed
-drive mismatch.
-
-Only after merge, a fresh quote, and explicit approval may the separate
-headless `make dofbot-pregrasp` machine gate run. `make dofbot-pregrasp-view`
-remains blocked until the pre-grasp
-machine artifact passes its unchanged position, orientation, tracking,
-collision, contact, and reset gates. Contact tasks, closing, grasping, lifting,
-and placing remain unauthorized.
+Keep the Brev instance stopped. Review and merge the live actuator/settle
+repair. Only after merge, a fresh quote, and explicit approval may the same
+headless `make dofbot-pregrasp` gate rerun. The expected behavioral difference
+is one candidate API endpoint followed by a no-reissue settle interval, not a
+new pose or relaxed threshold. `make dofbot-pregrasp-view` remains blocked
+until the machine artifact passes its unchanged position, orientation,
+tracking, collision, contact, API-accounting, and reset gates. Contact tasks,
+closing, grasping, lifting, and placing remain unauthorized.

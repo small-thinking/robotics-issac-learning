@@ -1357,6 +1357,73 @@ After review and merge, a fresh quote and explicit approval are required for
 machine artifact passes. Contact, gripper closing, grasp, lift, place, and real
 hardware remain out of scope.
 
+### First integrated headless pre-grasp result
+
+The approved headless run used the retained `isaac-launchable-f150a5`
+(`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the unchanged live quote of
+`$1.58784/hour` plus the existing approximately `$0.04/hour` disk. It synced
+merged `main@56fddc5` and ran:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+```
+
+The first fail-closed probe stopped before any Yahboom pose because the
+integration compared the official USD drive's authored `maxForce` directly
+with the Isaac implicit actuator's runtime effort limit. The exact live values
+showed that these are separate layers: all four composed USD drives were
+`force`, stiffness `1048`, damping `53`, and `maxForce=5.199999809`; the live
+articulation effort-limit buffer was `[100,100,100,100]`. Commit `7ce2276`
+therefore keeps the USD type/gain gate and independently checks the runtime
+effort buffer. It does not relax a physics or acceptance threshold.
+
+After that repair, the complete controller ran with zero monitored contact and
+passed the actuator-evidence, runtime API, finite/bounded feed-forward,
+uncontrolled-DOF isolation, collision-clearance, static-target, API-accounting,
+command-margin, exact-candidate-command, and neutral-reset gates. Its final
+machine result was still a failure:
+
+| Metric | Result | Gate |
+| --- | ---: | ---: |
+| position error | `0.0318076 m` | `<=0.025 m` |
+| joint tracking error | `4.16578 deg` | `<=1 deg` |
+| approach error | `7.88737 deg` | pass |
+| closing-axis error | `0.339104 deg` | pass |
+| maximum contact force | `0 N` | pass |
+| neutral reset error | `0.002216 deg` | pass |
+
+The exact final API target was `[90,66,66,66] deg`; observed joints were
+`[90.0083,68.5085,70.1658,67.2060] deg`. All 248 expected API calls were
+recorded, 900 gravity samples were finite, feed-forward effort peaked at
+`0.330320`, and no sample clipped at `5.2`. Commit `fc48a2c` preserves this
+complete machine-failure artifact instead of overwriting it with a short
+runtime exception record. The retrieved raw artifact is 2,237,400 bytes with
+SHA-256 `b970b2e90c90274c86e334a392c15f58fe4de1bd497f410887e38c090230f57b`;
+the reviewed concise record is
+`artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json`.
+
+Comparing that run with the exact accepted calibration payload identifies the
+next control defect without another GPU sweep. Calibration sent the candidate
+once, held its target, and reached maximum error `0.001261 deg` after
+`2.65 s`. Pre-grasp reached the same stopped command at step 8 but, because the
+task-space check had not yet passed, sent the same four servo commands again
+every `0.2 s` through step 60. Each call reset the smoothstep start to the
+current measured position, maintaining a load-dependent lag instead of holding
+the completed target. The local follow-up now enters a bounded physics-settle
+phase after the exact candidate command and performs no additional Yahboom API
+write until success, timeout, or a safety failure. API accounting counts only
+actual writes.
+
+All 205 repository tests, the 45 focused pre-grasp/gravity tests, changed-file
+Ruff, Python compilation, deterministic `27/27` command-space regeneration,
+remote previews, Git LFS checks, and `git diff --check` pass. Acceptance is
+**live actuator integration passed / first task run classified / candidate
+settle fix passed locally / repaired headless gate pending / Viewer blocked**.
+No contact, gripper, target motion, grasp, lift, place, policy, camera control,
+or real hardware was authorized. Stop was requested after evidence retrieval;
+after a temporarily stale ordinary listing, `brev ls --all --json` confirmed
+explicit `STOPPED` at 11:56:36 PDT. The instance and disk were retained.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to
