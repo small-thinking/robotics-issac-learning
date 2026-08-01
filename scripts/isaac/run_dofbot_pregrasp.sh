@@ -8,6 +8,7 @@ pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/preg
 actuator_config="${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-${GRAVITY_FEED_FORWARD_DIAGNOSTIC:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}}"
 actuator_result="${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}"
 output="${DOFBOT_PREGRASP_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_machine_contract.json}"
+isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"
 
 if [[ "$scene_config" != /* ]]; then
   scene_config="$project_dir/$scene_config"
@@ -29,6 +30,7 @@ printf -v quoted_pose_config '%q' "$pose_config"
 printf -v quoted_actuator_config '%q' "$actuator_config"
 printf -v quoted_actuator_result '%q' "$actuator_result"
 printf -v quoted_output '%q' "$output"
+printf -v quoted_isaac_python '%q' "$isaac_python"
 
 remote_command="
 set -euo pipefail
@@ -50,7 +52,7 @@ set +e
   --headless
 pregrasp_exit_code=\"\$?\"
 if [[ \"\$pregrasp_exit_code\" -eq 0 ]]; then
-  python3 $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
+  $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
     --contract $quoted_output \
     --expected-git-commit \"\$git_commit\"
   pregrasp_exit_code=\"\$?\"

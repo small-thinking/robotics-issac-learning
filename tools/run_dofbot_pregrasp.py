@@ -514,6 +514,7 @@ def _observation(
     scene: InteractiveScene,
     arm: DofbotArm,
     backend: _IsaacJointPositionBackend,
+    gravity_feed_forward: BoundedGravityFeedForward,
     controlled_joint_ids: list[int],
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
@@ -584,6 +585,9 @@ def _observation(
             controlled_joint_ids,
             "applied_torque",
         ),
+        "physx_projected_joint_forces": (
+            gravity_feed_forward.read_controlled_projected_joint_forces()
+        ),
         "command_velocities_deg_s": list(velocities_deg_s),
         "command_accelerations_deg_s2": list(accelerations_deg_s2),
         "maximum_critical_contact_force_n": contact_force,
@@ -647,6 +651,7 @@ def _run_pose_controller(
             scene=scene,
             arm=arm,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
             controlled_joint_ids=controlled_joint_ids,
             pose=pose,
             scene_config=scene_config,
@@ -699,6 +704,7 @@ def _run_pose_controller(
                 scene=scene,
                 arm=arm,
                 backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
                 controlled_joint_ids=controlled_joint_ids,
                 pose=pose,
                 scene_config=scene_config,
@@ -791,6 +797,7 @@ def _run_pose_controller(
             scene=scene,
             arm=arm,
             backend=backend,
+            gravity_feed_forward=gravity_feed_forward,
             controlled_joint_ids=controlled_joint_ids,
             pose=pose,
             scene_config=scene_config,
@@ -889,6 +896,7 @@ def _failure_decision(failed_checks: list[str]) -> str:
         "joint_target_buffer_telemetry_available",
         "backend_target_matches_final_api_command",
         "joint_position_target_buffer_matches_backend_target",
+        "physx_projected_joint_force_telemetry_available",
     }
     if any(name in actuator_checks for name in failed_checks):
         return "actuator_runtime_or_telemetry_failed"
@@ -1222,6 +1230,18 @@ def main() -> None:
         target_buffer_telemetry_available = (
             backend_target_available and joint_position_target_available
         )
+        final_physx_projected_joint_forces = observations[-1][
+            "physx_projected_joint_forces"
+        ]
+        physx_projected_joint_force_telemetry_available = (
+            isinstance(final_physx_projected_joint_forces, list)
+            and len(final_physx_projected_joint_forces)
+            == len(final_controller_command)
+            and all(
+                math.isfinite(float(value))
+                for value in final_physx_projected_joint_forces
+            )
+        )
         backend_target_api_error = (
             max(
                 abs(float(actual) - float(expected))
@@ -1311,6 +1331,9 @@ def main() -> None:
                 and target_buffer_backend_error
                 <= TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG
             ),
+            "physx_projected_joint_force_telemetry_available": (
+                physx_projected_joint_force_telemetry_available
+            ),
             "final_api_joint_tracking_within_tolerance": (
                 maximum_final_joint_tracking_error
                 <= pose.acceptance.maximum_final_joint_tracking_error_deg
@@ -1349,6 +1372,14 @@ def main() -> None:
             ),
             "final_joint_position_target_angles_deg": (
                 final_joint_position_target
+            ),
+            "final_physx_projected_joint_forces": (
+                final_physx_projected_joint_forces
+            ),
+            "implicit_actuator_torque_telemetry_semantics": (
+                "computed_torque and applied_torque are Isaac Lab PD "
+                "estimates; PhysX-projected joint force is the measured "
+                "effort discriminator"
             ),
             "maximum_backend_target_api_error_deg": (
                 backend_target_api_error

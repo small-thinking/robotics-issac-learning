@@ -30,14 +30,14 @@ falsified or partial correction, superseded diagnosis, runtime/telemetry
 incompatibility, artifact/transport defect, and paid-window failure must update
 that ledger in the same pull request.
 
-The current open item is `DF-028`: no-reissue executed correctly, but the
-pre-grasp machine gate still failed at `4.177019°` joint tracking and
-`0.0318089 m` position error. The next paid run must collect backend target,
-live `joint_pos_target`, `computed_torque`, and `applied_torque` without also
-changing pose, gains, limits, or acceptance thresholds. The Viewer remains
-blocked. `DF-029` separately records that the first approved collection
-attempt never left Brev startup; it is operational evidence, not a new
-controller result, and `DF-028` remains open.
+The current scientific item is `DF-030`: the unchanged rerun proved the API
+target reaches both the backend and live `joint_pos_target`, while the
+pre-grasp machine gate still fails at `4.177019°` joint tracking and
+`0.0318089 m` position error. The next paid run must collect measured PhysX
+`get_dof_projected_joint_forces` without changing pose, gains, limits, solver
+settings, feed-forward, or acceptance thresholds. The Viewer remains blocked.
+`DF-031` separately records the locally repaired semantic-verifier interpreter
+defect; it must also pass the next remote headless gate.
 
 ## First stage: asset, motion, and camera
 
@@ -1515,6 +1515,37 @@ reach both `RUNNING` and shell `READY` after one detached start plus stale-state
 refresh, and only then run the unchanged headless command.
 A second refresh and delayed-start safety audit at 10:08:11 PDT again returned
 explicit `STOPPED`.
+
+### Target propagation passed; measured PhysX effort remains open
+
+The later approved, time-only retry used the same retained instance and the
+same `$1.58784/hour` quote. One detached start reached shell `READY`, and the
+host GPU probe returned `NVIDIA L4, 23034 MiB`; this resolves the earlier AWS
+zone-capacity event as transient without creating or changing infrastructure.
+
+The unchanged `main@d6f5597` headless run generated a fresh artifact. The
+final `[90,66,66,66]°` API target reached the backend exactly and live
+`joint_pos_target` within `0.000000668°`, but the observed articulation still
+ended at `[89.999642,68.493213,70.177019,67.221305]°`. The unchanged
+`4.177019°` joint and `0.0318089 m` task-space errors reject API/backend target
+loss as the remaining explanation.
+
+The equal `computed_torque` and `applied_torque` buffers peak at `76.4262`, but
+Isaac Lab's ImplicitActuator documentation identifies them as approximate PD
+torque because PhysX does not expose that torque directly. They are not proof
+of measured solver effort. `DF-030` therefore keeps all controls fixed and
+makes PhysX `get_dof_projected_joint_forces` the next discriminator.
+
+The same run exposed `DF-031`: `isaaclab.sh` masked the expected acceptance
+exception, then the verifier called missing container executable `python3`
+and emitted sentinel `127`. The local wrapper now uses the installed
+`./_isaac_sim/python.sh`; the runner records projected PhysX joint effort and
+fails the telemetry gate if it is unavailable. Both repairs remain remote
+pending. The promoted summary is
+`artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json`.
+Viewer, contact, gripper closing, grasp, lift, and place remain blocked. The
+artifact was retrieved before `brev ls --all --json` confirmed the retained
+instance explicit `STOPPED` at 14:44 PDT.
 
 ## Later milestones
 

@@ -81,14 +81,16 @@ lightweight VLA post-training, and optional real hardware.
   wired into the pre-grasp runner and pass the GPU-free `27/27` integration
   contract. The first integrated machine run then failed at `4.16578°` and
   exposed repeated API reissue; the no-reissue rerun proved that repair active
-  but insufficient, still failing at `4.177019°` and `0.0318089 m`. The next
-  instrumented run is limited to the missing target-buffer/torque discriminator
-  indexed as `DF-028` in the DOFBOT failure ledger. Viewer, contact, and grasp
-  remain blocked. The first approved attempt to collect that discriminator on
-  2026-08-01 never left Brev startup: even after `brev refresh`, the retained
-  instance remained `STOPPED` with shell `NOT READY`, so sync, Isaac, and the
-  scientific command did not run. That operational result is `DF-029`; it does
-  not supersede the open scientific question in `DF-028`.
+  but insufficient, still failing at `4.177019°` and `0.0318089 m`. The first
+  approved target/torque attempt never left Brev startup (`DF-029`), but a later
+  time-only retry reached the same retained L4 and ran the unchanged
+  discriminator. The exact API command reached both backend and live
+  `joint_pos_target`, rejecting target-write loss. Because Isaac Lab's
+  implicit-actuator torque buffers are only approximate PD values, `DF-030`
+  now requires measured PhysX projected joint force with every control factor
+  held fixed. `DF-031` separately tracks the missing-verifier-interpreter
+  defect and its local Isaac-Python repair. Viewer, contact, and grasp remain
+  blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -173,14 +175,15 @@ initial native-frontend failure and repaired success have separate SHA-bound
 records. The selected force `1048/53/100`, external-force iteration,
 native-Warp feed-forward, API probe, effort isolation, live-drive readback,
 telemetry, and failure-classification contracts are now shared with the
-pre-grasp runner. The no-reissue headless run still failed, and the merged
-local follow-up now records backend target, live `joint_pos_target`,
-`computed_torque`, and `applied_torque`. Before another paid run, consult
-`DF-028` and `DF-029`, keep the pose/gains/limits/gates fixed, obtain a fresh
-quote and explicit approval, require the retained instance to reach
-`RUNNING` plus shell `READY`, and run only the instrumented headless
-discriminator. Do not open the Viewer until that machine artifact passes.
-Contact and grasping remain out of scope.
+  pre-grasp runner. The unchanged target/torque rerun proved backend and live
+  target-buffer propagation while reproducing the `4.177019°` residual. The
+  local follow-up records PhysX `get_dof_projected_joint_forces` and replaces
+  the missing generic `python3` verifier with `./_isaac_sim/python.sh`. Before
+  another paid run, consult `DF-030` and `DF-031`, keep the pose, gains, limits,
+  solver settings, feed-forward, and gates fixed, obtain a fresh quote and
+  explicit approval, and run only the instrumented headless discriminator. Do
+  not open the Viewer until that machine artifact passes. Contact and grasping
+  remain out of scope.
 
 ## Sources of truth
 

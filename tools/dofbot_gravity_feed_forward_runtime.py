@@ -175,6 +175,9 @@ class BoundedGravityFeedForward:
             name: callable(getattr(self._view, name, None))
             for name in REQUIRED_GRAVITY_RUNTIME_APIS
         }
+        self.projected_joint_force_api_available = callable(
+            getattr(self._view, "get_dof_projected_joint_forces", None)
+        )
         if not all(self.api_availability.values()):
             missing = [
                 name
@@ -196,6 +199,8 @@ class BoundedGravityFeedForward:
         # pose. An incompatible runtime must fail closed before motion.
         self._gravity_matrix()
         self._incoming_joint_force_matrix()
+        if self.projected_joint_force_api_available:
+            self._projected_joint_force_matrix()
         self._write_actuation_forces([0.0] * self._dof_count)
 
     def _write_actuation_forces(self, efforts: list[float]) -> None:
@@ -278,6 +283,18 @@ class BoundedGravityFeedForward:
             shape=(1, self._body_count, 6),
         )
 
+    def _projected_joint_force_matrix(self) -> torch.Tensor:
+        if not self.projected_joint_force_api_available:
+            raise GravityFeedForwardError(
+                "get_dof_projected_joint_forces is unavailable"
+            )
+        value = self._view.get_dof_projected_joint_forces()
+        return self._tensor(
+            value,
+            label="PhysX projected joint forces",
+            shape=(1, self._dof_count),
+        )
+
     def apply_before_step(self) -> dict[str, Any]:
         gravity = self._gravity_matrix()[0].detach().cpu().tolist()
         prepared = prepare_bounded_gravity_feed_forward(
@@ -298,4 +315,17 @@ class BoundedGravityFeedForward:
                 for value in incoming[body_id].detach().cpu().tolist()
             ]
             for body_id in self._controlled_child_body_ids
+        ]
+
+    def read_controlled_projected_joint_forces(self) -> list[float] | None:
+        """Read PhysX-projected effort for each controlled revolute joint."""
+        if not self.projected_joint_force_api_available:
+            return None
+        projected = self._projected_joint_force_matrix()[0]
+        return [
+            float(value)
+            for value in projected[self._controlled_joint_ids]
+            .detach()
+            .cpu()
+            .tolist()
         ]

@@ -181,6 +181,9 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             '"joint_pos_target_angles_deg"',
             '"computed_torque"',
             '"applied_torque"',
+            '"physx_projected_joint_forces"',
+            '"physx_projected_joint_force_telemetry_available"',
+            '"implicit_actuator_torque_telemetry_semantics"',
             '"joint_target_buffer_telemetry_available"',
             '"backend_target_matches_final_api_command"',
             '"joint_position_target_buffer_matches_backend_target"',
@@ -201,6 +204,14 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         )
         self.assertIn("dtype=wp.float32", self.gravity_runtime)
         self.assertIn("dtype=wp.int32", self.gravity_runtime)
+        self.assertIn(
+            "get_dof_projected_joint_forces",
+            self.gravity_runtime,
+        )
+        self.assertIn(
+            "read_controlled_projected_joint_forces",
+            self.gravity_runtime,
+        )
 
     def test_machine_result_classifies_failed_gate_for_next_iteration(self) -> None:
         self.assertIn('"failed_checks": failed_checks', self.runner)
@@ -264,6 +275,14 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("rm -f $quoted_output", self.run_script)
         self.assertIn(
             "verify_dofbot_pregrasp_machine_contract.py",
+            self.run_script,
+        )
+        self.assertIn(
+            'isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"',
+            self.run_script,
+        )
+        self.assertNotIn(
+            "python3 $quoted_project_dir/tools/verify_dofbot",
             self.run_script,
         )
         self.assertIn(

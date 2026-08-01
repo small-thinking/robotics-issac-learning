@@ -11,6 +11,10 @@ STARTUP_EVIDENCE_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json"
 )
+TARGET_TORQUE_EVIDENCE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json"
+)
 ALLOWED_VERDICTS = {
     "RESOLVED",
     "FALSIFIED",
@@ -39,6 +43,7 @@ REQUIRED_EVIDENCE = {
     "artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json",
     "artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json",
     "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json",
+    "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json",
 }
 REQUIRED_POLICY_FILES = (
     "AGENTS.md",
@@ -68,7 +73,7 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         cls.rows = ledger_rows(cls.text)
 
     def test_rows_are_complete_sequential_and_use_known_verdicts(self) -> None:
-        self.assertGreaterEqual(len(self.rows), 29)
+        self.assertGreaterEqual(len(self.rows), 31)
         ids = []
         for row in self.rows:
             self.assertEqual(len(row), 7, row)
@@ -96,15 +101,21 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         }
         self.assertTrue(failure_artifacts.issubset(references))
 
-    def test_current_open_discriminator_is_explicit(self) -> None:
-        current = next(row for row in self.rows if row[0] == "DF-028")
-        self.assertEqual(current[4], "OPEN")
-        self.assertIn("backend target", current[6])
-        self.assertIn("joint_pos_target", current[6])
-        self.assertIn("computed_torque", current[6])
-        self.assertIn("applied_torque", current[6])
-        self.assertIn("Viewer remains blocked", current[6])
-        self.assertIn("must not change the pose, gains, effort limit", self.text)
+    def test_current_discriminator_is_physx_measured_effort(self) -> None:
+        current = next(row for row in self.rows if row[0] == "DF-030")
+        self.assertEqual(current[4], "PARTIAL")
+        self.assertIn("joint_pos_target", current[3])
+        self.assertIn("PD estimates", current[3])
+        self.assertIn("get_dof_projected_joint_forces", current[6])
+        self.assertIn("Viewer remains blocked", self.text)
+        self.assertIn("must measure `get_dof_projected_joint_forces`", self.text)
+
+    def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
+        wrapper = next(row for row in self.rows if row[0] == "DF-031")
+        self.assertEqual(wrapper[4], "OPERATIONAL")
+        self.assertIn("python3", wrapper[3])
+        self.assertIn("./_isaac_sim/python.sh", wrapper[6])
+        self.assertIn("future remote run", wrapper[6])
 
     def test_startup_failure_does_not_replace_scientific_discriminator(self) -> None:
         startup = next(row for row in self.rows if row[0] == "DF-029")
@@ -122,6 +133,30 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         self.assertFalse(evidence["scope"]["scientific_command_started"])
         self.assertFalse(evidence["scope"]["viewer_started"])
         self.assertEqual(evidence["attempt"]["final_status"], "STOPPED")
+
+    def test_target_torque_evidence_preserves_measurement_boundary(self) -> None:
+        evidence = json.loads(
+            TARGET_TORQUE_EVIDENCE_PATH.read_text(encoding="utf-8")
+        )
+        self.assertFalse(evidence["machine"]["machine_passed"])
+        self.assertTrue(
+            evidence["target_buffer_discriminator"][
+                "command_propagation_passed"
+            ]
+        )
+        self.assertFalse(
+            evidence["implicit_actuator_torque_discriminator"][
+                "proves_physical_torque_was_applied"
+            ]
+        )
+        self.assertIn(
+            "get_dof_projected_joint_forces",
+            evidence["conclusion"]["next_discriminator"],
+        )
+        self.assertEqual(
+            evidence["infrastructure"]["terminal_instance_state"],
+            "STOPPED",
+        )
 
     def test_repo_policy_links_the_canonical_ledger(self) -> None:
         for relative_path in REQUIRED_POLICY_FILES:

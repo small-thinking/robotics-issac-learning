@@ -318,6 +318,18 @@ sync, Isaac, the scientific command, Viewer, and artifact generation never
 started. This is operational evidence only: it leaves `DF-028` open and does
 not support a controller or actuator conclusion.
 
+`pregrasp_target_torque_discriminator_2026-08-01.json` is the concise promotion
+of the later unchanged `DF-028` run. It binds the ignored 2,269,037-byte raw
+artifact by SHA-256, proves that the exact API target reached both the backend
+and live `joint_pos_target`, and preserves the unchanged `4.177019°` joint and
+`0.0318089 m` task-space failure. It also records the evidence boundary that
+ImplicitActuator `computed_torque` and `applied_torque` are approximate PD
+values rather than measured PhysX solver effort. `DF-030` therefore advances
+to `get_dof_projected_joint_forces` without changing control factors. The same
+summary preserves `DF-031`, where the missing `python3` command replaced the
+scientific sentinel with 127; the local wrapper now selects the installed
+Isaac Python. Viewer and contact remain unauthorized.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

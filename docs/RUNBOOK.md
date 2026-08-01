@@ -314,6 +314,9 @@ The wrapper treats Brev transport, the `isaaclab.sh` launcher, and the machine
 artifact as separate gates. It removes the prior output before launch, then
 requires the newly generated artifact to match the remote Git commit and
 report `acceptance.machine.machine_passed=true` with no failed checks. The
+post-run verifier uses the container's installed `./_isaac_sim/python.sh`;
+do not substitute a generic `python3`, which is absent in the retained
+Launchable. The
 remote shell prints exactly one `[PREGRASP_EXIT_CODE] N`; local execution
 accepts only `N=0`. A failed artifact or a nonzero, missing, duplicate, or
 malformed marker is a hard failure even if both Brev and `isaaclab.sh` return
@@ -324,6 +327,11 @@ Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`.
 Confirm `validated_joint_candidate_command_reached`,
 `final_api_joint_tracking_within_tolerance`, the unchanged `0.025 m / 12°`
 Cartesian gates, collision/contact gates, exact API count, and neutral reset.
+While `DF-030` is open, also require
+`physx_projected_joint_force_telemetry_available` and compare
+`final_physx_projected_joint_forces` with the approximate implicit-actuator
+torque fields. Their equality is not required and the approximate fields are
+not physical torque measurements.
 Merely remaining inside the broad physical envelope is not enough, and
 observed state never substitutes for the exact API endpoint. Servo 5, wrist
 twist, gripper closing, target motion, camera controller input, policy,
