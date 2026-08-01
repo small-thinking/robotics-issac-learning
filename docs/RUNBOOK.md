@@ -310,11 +310,14 @@ tracking gate authorizes the unchanged task-scene headless command:
 BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
 ```
 
-The wrapper treats Brev transport status and the inner Isaac process status as
-separate gates. The remote shell prints exactly one
-`[PREGRASP_EXIT_CODE] N`; local execution accepts only `N=0`. A nonzero,
-missing, duplicate, or malformed marker is a hard failure even if the Brev CLI
-returns zero. Do not interpret a green outer transport exit alone as a machine
+The wrapper treats Brev transport, the `isaaclab.sh` launcher, and the machine
+artifact as separate gates. It removes the prior output before launch, then
+requires the newly generated artifact to match the remote Git commit and
+report `acceptance.machine.machine_passed=true` with no failed checks. The
+remote shell prints exactly one `[PREGRASP_EXIT_CODE] N`; local execution
+accepts only `N=0`. A failed artifact or a nonzero, missing, duplicate, or
+malformed marker is a hard failure even if both Brev and `isaaclab.sh` return
+zero. Do not interpret a green transport or launcher exit alone as a machine
 pass.
 
 Retrieve and inspect `artifacts/dofbot/pregrasp_machine_contract.json`.

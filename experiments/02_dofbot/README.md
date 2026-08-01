@@ -1441,6 +1441,40 @@ hardening. `brev ls --all --json` re-confirmed the retained L4 instance as
 explicit `STOPPED` at 20:43 PDT. The repaired headless rerun and Viewer remain
 gated exactly as above.
 
+### No-reissue machine rerun
+
+The merged `main@4b4fc8a` rerun proved that the local settle branch executed as
+designed. The candidate trajectory completed at step 8; steps 9-60 advanced
+physics for 52 observations without another Yahboom API call. Exact API
+accounting was 40/40 rather than the previous 248/248.
+
+That repair was not sufficient. The exact `[90,66,66,66]°` API target settled
+at `[89.999642,68.493213,70.177019,67.221305]°`, leaving `4.177019°` maximum
+tracking error and `0.0318089 m` position error. Both exceed the unchanged
+`1°` and `0.025 m` gates. Approach, closing, collision, zero-contact,
+static-target, safe-envelope, gravity, API, and neutral-reset checks all
+passed. Feed-forward peaked at `0.330318`, with no sample clipped at `5.2`.
+
+The full retrieved artifact is 2,231,658 bytes with SHA-256
+`4674c83d58f187363720741a71b933a205f99c87951191eeb4ca44ce02cd0c3f`;
+the concise record is
+`artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json`.
+Python raised `PregraspMachineAcceptanceError`, but `isaaclab.sh` returned zero,
+so the first sentinel-only hardening also proved incomplete.
+
+The GPU-free follow-up removes the old output before launch, verifies the new
+artifact is commit-matched and machine-passing, and only then permits a zero
+sentinel. It also adds per-observation backend target, Isaac
+`joint_pos_target`, computed-torque, and applied-torque evidence. Those fields
+are the missing discriminator between an API/backend write problem and a
+post-write actuator residual. No pose, gain, effort, or acceptance threshold
+changes. The real failed artifact is rejected by the semantic verifier;
+focused tests pass 14/14, all repository Python tests pass 210/210, and the
+27/27 command-space artifact regenerates deterministically. Changed-file Ruff,
+Python compilation, shell syntax, remote preview, JSON, Git LFS, and
+`git diff --check` pass. The instance was explicitly `STOPPED` at 21:23 PDT;
+Viewer remains blocked.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

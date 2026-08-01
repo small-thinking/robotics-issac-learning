@@ -177,6 +177,14 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             '"live_actuator_effort_limits_match_selected_contract"',
             '"live_controlled_joint_runtime_effort_limits"',
             '"gravity_feed_forward_samples": gravity_samples',
+            '"backend_interpolated_target_angles_deg"',
+            '"joint_pos_target_angles_deg"',
+            '"computed_torque"',
+            '"applied_torque"',
+            '"joint_target_buffer_telemetry_available"',
+            '"backend_target_matches_final_api_command"',
+            '"joint_position_target_buffer_matches_backend_target"',
+            "TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG",
         ):
             self.assertIn(expected, self.runner)
         self.assertLess(
@@ -253,6 +261,15 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
         self.assertIn("--cycles 1", self.run_script)
         self.assertIn("--headless", self.run_script)
         self.assertIn("[PREGRASP_EXIT_CODE]", self.run_script)
+        self.assertIn("rm -f $quoted_output", self.run_script)
+        self.assertIn(
+            "verify_dofbot_pregrasp_machine_contract.py",
+            self.run_script,
+        )
+        self.assertIn(
+            '--expected-git-commit \\"\\$git_commit\\"',
+            self.run_script,
+        )
         self.assertIn('transport_exit_code="${PIPESTATUS[0]}"', self.run_script)
         self.assertIn("require_zero_exit_sentinel.sh", self.run_script)
         self.assertIn("--cycles -1", self.view_script)

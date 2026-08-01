@@ -293,6 +293,15 @@ and records the evidence-backed follow-up: hold the completed candidate target
 without repeatedly restarting the Yahboom API interpolation. Viewer, contact,
 gripper, grasp, lift, place, hardware, policy, and checkpoint remain blocked.
 
+`pregrasp_no_reissue_machine_result_2026-07-31.json` promotes the repaired
+headless rerun. It binds the 2,231,658-byte raw artifact by SHA-256 and proves
+that steps 9-60 performed 52 settle observations with no additional Yahboom
+API write. The machine still failed at `4.17702°` joint tracking and
+`0.0318089 m` position error with zero contact, so repeated API writes were a
+real but insufficient cause. It also records that `isaaclab.sh` masked the
+Python acceptance exception with exit zero, motivating fresh-artifact semantic
+verification and target-buffer/torque telemetry before another paid run.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

@@ -34,6 +34,7 @@ remote_command="
 set -euo pipefail
 mkdir -p \"\$(dirname $quoted_output)\"
 git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
+rm -f $quoted_output
 set +e
 ./isaaclab.sh -p $quoted_project_dir/tools/run_dofbot_pregrasp.py \
   --asset-contract $quoted_asset_contract \
@@ -48,6 +49,12 @@ set +e
   --device cpu \
   --headless
 pregrasp_exit_code=\"\$?\"
+if [[ \"\$pregrasp_exit_code\" -eq 0 ]]; then
+  python3 $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
+    --contract $quoted_output \
+    --expected-git-commit \"\$git_commit\"
+  pregrasp_exit_code=\"\$?\"
+fi
 set -e
 printf '[PREGRASP_EXIT_CODE] %s\\n' \"\$pregrasp_exit_code\"
 exit 0

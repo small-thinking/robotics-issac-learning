@@ -24,7 +24,7 @@
     },
     "pregrasp_runner": {
       "path": "tools/run_dofbot_pregrasp.py",
-      "sha256": "f26ae6d70a8e9a9149a8b9036a414b4c85f199912830c24b614079a699e3c404"
+      "sha256": "eade04252cf24eae40a96914fddb6aa0ef9e1920af850c08c5087de3d504a175"
     },
     "gravity_feed_forward_runtime": {
       "path": "tools/dofbot_gravity_feed_forward_runtime.py",
