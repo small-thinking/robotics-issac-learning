@@ -1579,6 +1579,34 @@ contract regeneration, all 222 repository tests, targeted Ruff, Python
 compilation, shell syntax, remote preview, Git LFS, and `git diff --check`
 pass.
 
+### DF-032 remote result and single-boundary trajectory preparation
+
+The merged `main@d4da9c0` headless run completed the projected-force
+discriminator. Every one of 61 observations contained finite, aligned PhysX
+projected force and approximate implicit-actuator PD estimates. The projection
+peaked at only `[0.001136,0.505431,0.342836,0.165914]`, while the PD estimate
+peaked at `[0.045059,45.798676,76.426231,22.747814]`. That is valid active
+joint-force-balance telemetry, but not an isolated drive-torque measurement.
+The same loaded residual remained: `4.177019 degrees` joint error and
+`0.0318089 m` position error. Target propagation, contact, safety, gravity,
+API accounting, and reset all passed; Viewer remains blocked.
+
+The same run proved the installed-Python semantic wrapper: the failed artifact
+produced sentinel 1 and nonzero outer Make, resolving `DF-031` through
+`DF-033`. Promoted evidence is
+`artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json`.
+The retained instance is explicit `STOPPED`; no Viewer ran.
+
+The free post-run audit then found `DF-035`. A 4-degree cubic smoothstep over
+200 ms peaks at `30 degrees/s` and `600 degrees/s2`; the old 5-Hz boundary
+metadata therefore understated internal motion and falsely passed the 20/60
+gate. The runner now reuses the accepted calibration duration and sends the
+complete `[90,66,66,66]` pose once over 2000 ms. Its analytic peaks are
+`18 degrees/s` and `36 degrees/s2`, and observations no longer cause API
+reissue. The dry-run records one candidate command and 12 expected total API
+calls. This local correction still requires one headless machine validation
+before any Viewer, contact, or grasp attempt.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

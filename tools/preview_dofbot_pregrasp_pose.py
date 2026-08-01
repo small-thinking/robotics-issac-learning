@@ -15,6 +15,8 @@ try:
     )
     from .dofbot_pregrasp_pose import (
         VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
+        PoseCommand,
+        cubic_smoothstep_motion_contract,
         derive_grasp_frame,
         evaluate_pregrasp_observation,
         load_pregrasp_pose_config,
@@ -28,6 +30,8 @@ except ImportError:
     )
     from dofbot_pregrasp_pose import (
         VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
+        PoseCommand,
+        cubic_smoothstep_motion_contract,
         derive_grasp_frame,
         evaluate_pregrasp_observation,
         load_pregrasp_pose_config,
@@ -250,16 +254,36 @@ def build_preview(
             strict=True,
         )
     )
-    command_trajectory = []
-    trajectory_steps = (
-        pose.solver.maximum_steps
-        if (
-            pose.solver.control_mode
-            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
+    candidate_motion_contract = None
+    if pose.solver.control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        command = PoseCommand(
+            angles_deg=pose.solver.preferred_angles_deg,
+            velocities_deg_s=zero,
+            raw_delta_deg=tuple(
+                goal - start
+                for start, goal in zip(
+                    previous_command,
+                    pose.solver.preferred_angles_deg,
+                    strict=True,
+                )
+            ),
+            position_error_m=tuple(
+                target - actual
+                for actual, target in zip(
+                    offset_frame.origin_world_m,
+                    pose.target_pose.position_world_m,
+                    strict=True,
+                )
+            ),
+            approach_error_rad=(0.0, 0.0, 0.0),
         )
-        else 1
-    )
-    for _ in range(trajectory_steps):
+        command_trajectory = [command]
+        candidate_motion_contract = cubic_smoothstep_motion_contract(
+            start_angles_deg=previous_command,
+            goal_angles_deg=command.angles_deg,
+            duration_s=actuator_runtime.trajectory_duration_ms / 1000.0,
+        )
+    else:
         command = next_pregrasp_command(
             frame=offset_frame,
             pose_jacobian=pose_jacobian,
@@ -269,16 +293,7 @@ def build_preview(
             solver=pose.solver,
             target=pose.target_pose,
         )
-        command_trajectory.append(command)
-        previous_command = command.angles_deg
-        previous_velocity = command.velocities_deg_s
-        if validated_joint_candidate_command_reached(
-            command_angles_deg=previous_command,
-            command_velocities_deg_s=previous_velocity,
-            solver=pose.solver,
-        ):
-            break
-    command = command_trajectory[-1]
+        command_trajectory = [command]
     safe_evaluation = evaluate_pregrasp_observation(
         config=pose,
         frame=frame,
@@ -428,28 +443,22 @@ def build_preview(
             for value in trajectory_command.angles_deg
         ),
         "synthetic_pose_command_respects_velocity_limit": all(
-            abs(value) <= pose.solver.maximum_joint_velocity_deg_s
-            for trajectory_command in command_trajectory
-            for value in trajectory_command.velocities_deg_s
+            abs(value) <= pose.solver.maximum_joint_velocity_deg_s + 1e-9
+            for value in (
+                candidate_motion_contract["peak_velocity_deg_s"]
+                if candidate_motion_contract is not None
+                else command.velocities_deg_s
+            )
         ),
         "synthetic_pose_command_respects_acceleration_ramp": all(
-            abs(after - before) / pose.solver.control_dt_s
-            <= pose.solver.maximum_joint_acceleration_deg_s2 + 1e-9
-            for before_command, after_command in zip(
-                [zero, *[
-                    item.velocities_deg_s
-                    for item in command_trajectory[:-1]
-                ]],
-                [
-                    item.velocities_deg_s
-                    for item in command_trajectory
-                ],
-                strict=True,
-            )
-            for before, after in zip(
-                before_command,
-                after_command,
-                strict=True,
+            abs(value) <= pose.solver.maximum_joint_acceleration_deg_s2 + 1e-9
+            for value in (
+                candidate_motion_contract["peak_acceleration_deg_s2"]
+                if candidate_motion_contract is not None
+                else tuple(
+                    velocity / pose.solver.control_dt_s
+                    for velocity in command.velocities_deg_s
+                )
             )
         ),
         "validated_candidate_reaches_exact_stopped_api_target": (
@@ -488,6 +497,7 @@ def build_preview(
             and actuator_runtime.effort_limit_sim == 100.0
             and actuator_runtime.gravity_compensation_feed_forward
             and actuator_runtime.gravity_compensation_effort_limit == 5.2
+            and actuator_runtime.trajectory_duration_ms == 2000
         ),
         "actuator_runtime_probe_occurs_before_first_pose": (
             -1 < probe_index < first_pose_index
@@ -569,6 +579,7 @@ def build_preview(
                 item.to_dict() for item in command_trajectory
             ],
             "command": command.to_dict(),
+            "candidate_backend_motion_contract": candidate_motion_contract,
         },
         "collision_probe": {
             "mode": "body_center_signed_box_distance_proxy",

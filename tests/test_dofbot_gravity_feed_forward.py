@@ -303,6 +303,7 @@ class DofbotGravityFeedForwardTest(unittest.TestCase):
         self.assertTrue(runtime.enable_external_forces_every_iteration)
         self.assertTrue(runtime.gravity_compensation_feed_forward)
         self.assertEqual(runtime.gravity_compensation_effort_limit, 5.2)
+        self.assertEqual(runtime.trajectory_duration_ms, 2000)
         self.assertEqual(runtime.calibration_config_sha256, self.config_sha256)
         self.assertEqual(
             runtime.calibration_config_sha256,

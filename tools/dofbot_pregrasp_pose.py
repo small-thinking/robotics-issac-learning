@@ -1059,6 +1059,91 @@ def maximum_joint_tracking_error_deg(
     )
 
 
+def cubic_smoothstep_motion_contract(
+    *,
+    start_angles_deg: Sequence[float],
+    goal_angles_deg: Sequence[float],
+    duration_s: float,
+) -> dict[str, Any]:
+    """Return exact peak derivatives for the backend's cubic smoothstep.
+
+    The backend uses ``3u^2 - 2u^3``. Its peak speed is ``1.5 * delta / T``
+    and its peak acceleration magnitude is ``6 * delta / T^2``. Recording
+    these values prevents a low-rate command-boundary check from silently
+    understating the motion generated between observations.
+    """
+
+    if len(start_angles_deg) != 4 or len(goal_angles_deg) != 4:
+        raise PregraspPoseError(
+            "smoothstep start and goal vectors must contain four values"
+        )
+    duration = _number(duration_s, "duration_s")
+    if duration <= 0.0:
+        raise PregraspPoseError("duration_s must be positive")
+    start = tuple(
+        _number(value, f"start_angles_deg[{index}]")
+        for index, value in enumerate(start_angles_deg)
+    )
+    goal = tuple(
+        _number(value, f"goal_angles_deg[{index}]")
+        for index, value in enumerate(goal_angles_deg)
+    )
+    delta = tuple(
+        after - before for before, after in zip(start, goal, strict=True)
+    )
+    peak_velocity = tuple(1.5 * abs(value) / duration for value in delta)
+    peak_acceleration = tuple(
+        6.0 * abs(value) / (duration * duration) for value in delta
+    )
+    return {
+        "profile": "cubic_smoothstep_3u2_minus_2u3",
+        "start_angles_deg": list(start),
+        "goal_angles_deg": list(goal),
+        "duration_s": duration,
+        "delta_angles_deg": list(delta),
+        "peak_velocity_deg_s": list(peak_velocity),
+        "peak_acceleration_deg_s2": list(peak_acceleration),
+        "maximum_peak_velocity_deg_s": max(peak_velocity),
+        "maximum_peak_acceleration_deg_s2": max(peak_acceleration),
+    }
+
+
+def cubic_smoothstep_motion_state(
+    *,
+    start_angles_deg: Sequence[float],
+    goal_angles_deg: Sequence[float],
+    duration_s: float,
+    elapsed_s: float,
+) -> tuple[
+    tuple[float, float, float, float],
+    tuple[float, float, float, float],
+]:
+    """Return signed target velocity and acceleration at one profile time."""
+
+    contract = cubic_smoothstep_motion_contract(
+        start_angles_deg=start_angles_deg,
+        goal_angles_deg=goal_angles_deg,
+        duration_s=duration_s,
+    )
+    elapsed = _number(elapsed_s, "elapsed_s")
+    if elapsed < 0.0:
+        raise PregraspPoseError("elapsed_s must be nonnegative")
+    if elapsed >= contract["duration_s"]:
+        zero = (0.0, 0.0, 0.0, 0.0)
+        return zero, zero
+    progress = elapsed / contract["duration_s"]
+    velocity_scale = (6.0 * progress - 6.0 * progress * progress) / contract[
+        "duration_s"
+    ]
+    acceleration_scale = (6.0 - 12.0 * progress) / (
+        contract["duration_s"] * contract["duration_s"]
+    )
+    delta = contract["delta_angles_deg"]
+    velocity = tuple(float(value) * velocity_scale for value in delta)
+    acceleration = tuple(float(value) * acceleration_scale for value in delta)
+    return velocity, acceleration  # type: ignore[return-value]
+
+
 def next_pregrasp_command(
     *,
     frame: DerivedGraspFrame,

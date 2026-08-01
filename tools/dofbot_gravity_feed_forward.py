@@ -58,6 +58,7 @@ class AcceptedGravityFeedForwardRuntime:
     enable_external_forces_every_iteration: bool
     gravity_compensation_feed_forward: bool
     gravity_compensation_effort_limit: float
+    trajectory_duration_ms: int
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -85,6 +86,7 @@ class AcceptedGravityFeedForwardRuntime:
             "gravity_compensation_effort_limit": (
                 self.gravity_compensation_effort_limit
             ),
+            "trajectory_duration_ms": self.trajectory_duration_ms,
         }
 
 
@@ -300,6 +302,7 @@ def load_accepted_gravity_feed_forward_runtime(
             selected.gravity_compensation_feed_forward
         ),
         gravity_compensation_effort_limit=feed_forward_limit,
+        trajectory_duration_ms=config.trajectory.duration_ms,
     )
 
 

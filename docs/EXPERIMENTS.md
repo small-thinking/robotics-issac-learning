@@ -2176,3 +2176,52 @@
   Git LFS checks, and `git diff --check` pass.
 - Acceptance: **observation-complete projected-force contract passed locally /
   installed Isaac telemetry and remote sentinel pending / Viewer blocked**.
+
+## 2026-08-01 — DF-032 paid discriminator completed; trajectory gate corrected locally
+
+- Historical gate: reread `DF-001` through `DF-032`; changed no controller or
+  runtime factor for the paid run. The retained `g6.4xlarge` L4 matched the
+  live `$1.58784/hour` quote and reached `RUNNING / READY / HEALTHY`.
+- Commands:
+
+  ```bash
+  PROJECT_GIT_BRANCH=main \
+    BREV_INSTANCE_NAME=isaac-launchable-f150a5 make sync
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Machine result: failed only `grasp_origin_reached_pregrasp_position` and
+  `final_api_joint_tracking_within_tolerance`. The unchanged final errors were
+  `0.0318089 m > 0.025 m` and `4.177019 degrees > 1 degree`; approach was
+  `7.89829 degrees`, closing `0.331432 degrees`, contact `0 N`, API accounting
+  `40/40`, and neutral reset `0.002216 degrees`.
+- Target path: backend target matched `[90,66,66,66]` exactly and live
+  `joint_pos_target` differed by only `0.000000668 degrees`, again excluding
+  API target loss.
+- `DF-034`: all 61 observations contained finite, four-DOF projected force
+  and computed/applied PD estimates. Maximum absolute projected force was
+  `[0.001136,0.505431,0.342836,0.165914]`; maximum approximate PD estimate was
+  `[0.045059,45.798676,76.426231,22.747814]`. This proves the telemetry path
+  works but does not isolate implicit drive torque or resolve the residual.
+- `DF-033`: `./_isaac_sim/python.sh` rejected the failed semantic contract,
+  emitted `[PREGRASP_EXIT_CODE] 1`, and propagated failure through outer Make.
+  This closes the remote half of the `DF-031` wrapper defect.
+- Post-run local audit found `DF-035`: the old 4-degree commands each used a
+  200-ms cubic smoothstep. Its real analytic peaks are `30 degrees/s` and
+  `600 degrees/s2`, while the boundary-only gate misleadingly reported the
+  `20 degrees/s` and `60 degrees/s2` limits as passing. The independently
+  accepted calibration used one 24-degree/2000-ms boundary, whose peaks are
+  `18 degrees/s` and `36 degrees/s2` and which tracked within
+  `0.002391 degrees` in isolation.
+- Local correction: the validated-candidate task path now issues exactly one
+  `[90,66,66,66] / 2000 ms` Yahboom API pose, observes without reissue, records
+  analytic internal velocity/acceleration, and reduces expected total API
+  calls from 40 to 12. This is the next single-factor task-scene discriminator;
+  it is not yet a remote tracking claim.
+- Evidence: raw 2,283,842-byte artifact, SHA-256
+  `d884465662b2f664619b72b547f101f1409d65a1a4dcd7f785c0203ec47a231c`;
+  promoted summary
+  `artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json`.
+- Resource lifecycle: evidence retrieval preceded stop. Explicit `STOPPED` was
+  verified at 16:29:26 PDT; no instance or disk was created, deleted, resized,
+  or reset. Viewer never ran and remains blocked.

@@ -330,6 +330,16 @@ summary preserves `DF-031`, where the missing `python3` command replaced the
 scientific sentinel with 127; the local wrapper now selects the installed
 Isaac Python. Viewer and contact remain unauthorized.
 
+`pregrasp_projected_force_discriminator_2026-08-01.json` promotes the next
+unchanged paid run and binds its ignored 2,283,842-byte raw artifact by
+SHA-256. All 61 observations contain finite, aligned projected-force and PD
+estimate telemetry; the measured projection stays below `0.506` in magnitude
+while the approximate PD estimate reaches `76.426`. The artifact explicitly
+does not treat that difference as isolated implicit-drive torque. The same
+`4.177019 degrees` and `0.0318089 m` task failure remained. It also records
+the installed-Python verifier's reliable sentinel 1, resolving `DF-031`, and
+the final explicit Brev `STOPPED` state. Viewer remains unauthorized.
+
 The task-space artifact explicitly keeps `gpu_started=false`,
 `isaac_started=false`, `paid_gpu_run_authorized=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_pregrasp_projected_force_discriminator",
+  "generated_at_utc": "2026-08-01T23:17:45.288631+00:00",
+  "git_commit": "d4da9c0ef836cabe6b22e45268c76e2de3e232e3",
+  "raw_artifact": {
+    "remote_path": "/workspace/robotics-issac-learning/artifacts/dofbot/pregrasp_machine_contract.json",
+    "byte_count": 2283842,
+    "sha256": "d884465662b2f664619b72b547f101f1409d65a1a4dcd7f785c0203ec47a231c"
+  },
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "fresh_price_usd_per_hour": 1.58784,
+    "start_requested_at_utc": "2026-08-01T23:15:08Z",
+    "stop_requested_at_utc": "2026-08-01T23:18:48Z",
+    "stopped_verified_at_utc": "2026-08-01T23:29:26Z",
+    "final_status": "STOPPED",
+    "viewer_started": false,
+    "instance_or_disk_created_deleted_or_resized": false
+  },
+  "machine": {
+    "machine_passed": false,
+    "decision": "joint_tracking_failed",
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "final_api_joint_tracking_within_tolerance"
+    ],
+    "passed_boundaries": {
+      "approach_axis": true,
+      "closing_axis": true,
+      "joint_safety": true,
+      "collision_proxies": true,
+      "contact_reporter": true,
+      "static_target": true,
+      "gravity_feed_forward": true,
+      "actuator_runtime": true,
+      "api_accounting": true,
+      "backend_and_live_target_alignment": true,
+      "projected_force_telemetry": true,
+      "neutral_reset": true
+    },
+    "initial_position_error_m": 0.2557291596536446,
+    "final_position_error_m": 0.031808923665065804,
+    "maximum_allowed_position_error_m": 0.025,
+    "final_approach_error_deg": 7.898288902289214,
+    "final_closing_error_deg": 0.33143184224194633,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 40,
+    "expected_official_api_call_count": 40,
+    "final_api_command_angles_deg": [90.0, 66.0, 66.0, 66.0],
+    "final_observed_angles_deg": [
+      89.99964197689478,
+      68.49321303958516,
+      70.17701859453338,
+      67.22130545762914
+    ],
+    "maximum_final_joint_tracking_error_deg": 4.177018594533379,
+    "maximum_allowed_final_joint_tracking_error_deg": 1.0,
+    "final_backend_interpolated_target_angles_deg": [90.0, 66.0, 66.0, 66.0],
+    "final_joint_position_target_angles_deg": [
+      90.0,
+      65.99999933213915,
+      65.99999933213915,
+      65.99999933213915
+    ],
+    "maximum_backend_target_api_error_deg": 0.0,
+    "maximum_target_buffer_backend_error_deg": 6.678608457377777e-7,
+    "maximum_neutral_reset_error_deg": 0.0022159180139595946
+  },
+  "projected_joint_force_telemetry": {
+    "controlled_joint_names": ["joint1", "joint2", "joint3", "joint4"],
+    "observation_count": 61,
+    "physx_projected_joint_force_sample_count": 61,
+    "implicit_actuator_pd_estimate_sample_count": 61,
+    "every_observation_finite_dof_aligned_and_sample_aligned": true,
+    "telemetry_issues": [],
+    "final_physx_projected_joint_forces": [
+      -0.0010372049873694777,
+      -0.5034481287002563,
+      -0.3415752947330475,
+      -0.1653534471988678
+    ],
+    "maximum_absolute_physx_projected_joint_forces": [
+      0.0011363073717802763,
+      0.5054312348365784,
+      0.34283581376075745,
+      0.16591398417949677
+    ],
+    "final_implicit_actuator_computed_and_applied_pd_estimate": [
+      0.007803480140864849,
+      -45.60239028930664,
+      -76.40023803710938,
+      -22.348865509033203
+    ],
+    "maximum_absolute_implicit_actuator_computed_and_applied_pd_estimate": [
+      0.04505877569317818,
+      45.798675537109375,
+      76.42623138427734,
+      22.747814178466797
+    ],
+    "maximum_absolute_projected_minus_pd_estimate": [
+      0.04501149927818915,
+      45.2932443022728,
+      76.08466118574142,
+      22.5819001942873
+    ],
+    "interpretation": "The PhysX projection proves a small active joint-force balance at the sampled states, while the Isaac Lab implicit-actuator buffers are much larger approximate PD estimates. The projection is not an isolated implicit-drive torque sensor, so this does not prove or disprove the actual drive torque applied by PhysX."
+  },
+  "gravity_feed_forward": {
+    "sample_count": 900,
+    "maximum_absolute_raw_controlled_gravity_effort": 0.33031752705574036,
+    "maximum_absolute_applied_feed_forward_effort": 0.33031752705574036,
+    "clipped_sample_count": 0,
+    "configured_effort_limit": 5.2
+  },
+  "remote_wrapper": {
+    "semantic_verifier_interpreter": "./_isaac_sim/python.sh",
+    "failed_machine_artifact_rejected": true,
+    "sentinel": "[PREGRASP_EXIT_CODE] 1",
+    "outer_make_failed": true,
+    "df_031_resolved": true
+  },
+  "scope": {
+    "policy_free": true,
+    "real_hardware_commanded": false,
+    "camera_used_as_controller_input": false,
+    "wrist_twist_commanded": false,
+    "gripper_commanded": false,
+    "target_cube_moved": false,
+    "contact_authorized": false,
+    "policy_or_checkpoint_loaded": false
+  },
+  "conclusion": {
+    "projected_force_contract_passed": true,
+    "projected_force_isolated_implicit_drive_torque": false,
+    "pregrasp_machine_passed": false,
+    "viewer_authorized": false,
+    "next_discriminator": "Run one 2000 ms Yahboom pose boundary to the same candidate in the unchanged task scene, matching the previously passing isolated calibration trajectory and replacing the unsafe 200 ms segmented smoothsteps."
+  }
+}
