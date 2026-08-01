@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-01T04:09:21.383826+00:00",
+  "experiment": "dofbot_pregrasp_no_reissue_machine_result",
+  "scope": "single approved headless pre-grasp machine rerun",
+  "provenance": {
+    "git_commit": "4b4fc8ab80db6a9f0260627cc7b93190b8e73c05",
+    "command": "BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp",
+    "raw_artifact_path": "artifacts/dofbot/pregrasp_machine_contract.json",
+    "raw_artifact_bytes": 2231658,
+    "raw_artifact_sha256": "4674c83d58f187363720741a71b933a205f99c87951191eeb4ca44ce02cd0c3f"
+  },
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "live_compute_quote_usd_per_hour": 1.58784,
+    "persistent_disk_quote_usd_per_hour_approx": 0.04,
+    "terminal_instance_state": "STOPPED",
+    "terminal_state_verified_at": "2026-07-31T21:23:31-07:00",
+    "instance_or_disk_created_resized_reset_or_deleted": false
+  },
+  "machine": {
+    "machine_passed": false,
+    "decision": "joint_tracking_failed",
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "final_api_joint_tracking_within_tolerance"
+    ],
+    "initial_position_error_m": 0.2557291596536446,
+    "final_position_error_m": 0.031808923665065804,
+    "position_improvement_m": 0.22392023598857883,
+    "final_approach_error_deg": 7.898288902289214,
+    "final_closing_error_deg": 0.33143184224194633,
+    "maximum_contact_force_n": 0.0,
+    "final_api_target_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_observed_angles_deg": [
+      89.99964197689478,
+      68.49321303958516,
+      70.17701859453338,
+      67.22130545762914
+    ],
+    "maximum_final_joint_tracking_error_deg": 4.177018594533379,
+    "maximum_allowed_final_joint_tracking_error_deg": 1.0,
+    "maximum_neutral_reset_error_deg": 0.0022159180139595946,
+    "official_api_call_count": 40,
+    "expected_official_api_call_count": 40,
+    "gravity_feed_forward_sample_count": 900,
+    "maximum_absolute_applied_feed_forward_effort": 0.33031752705574036,
+    "configured_feed_forward_effort_limit": 5.2,
+    "clipped_sample_count": 0
+  },
+  "no_reissue_audit": {
+    "controller_command_count": 8,
+    "candidate_command_first_reached_at_step": 7,
+    "candidate_command_trajectory_completed_at_step": 8,
+    "settle_without_api_reissue_first_step": 9,
+    "settle_without_api_reissue_last_step": 60,
+    "settle_without_api_reissue_observation_count": 52,
+    "repeated_candidate_api_calls_during_settle": 0,
+    "repair_executed_as_designed": true,
+    "repair_was_sufficient_for_machine_pass": false
+  },
+  "exit_status_audit": {
+    "python_exception": "PregraspMachineAcceptanceError",
+    "isaaclab_launcher_exit_code_observed_by_wrapper": 0,
+    "emitted_sentinel": "[PREGRASP_EXIT_CODE] 0",
+    "outer_make_exit_code": 0,
+    "conclusion": "isaaclab.sh masks the Python machine-failure exit code; the wrapper must validate the fresh artifact rather than trust the launcher status"
+  },
+  "conclusion": {
+    "established": [
+      "The candidate-settle branch eliminated API reissue after step 8.",
+      "All actuator, gravity, collision, contact, API-count, safe-envelope, static-target, and neutral-reset checks passed.",
+      "Removing repeated API writes did not change the approximately four-degree loaded joint residual or the 0.03181 m task-space residual.",
+      "The current pre-grasp artifact does not record backend target or live joint-position-target buffers, so command-write failure and post-write actuation residual are not yet distinguishable."
+    ],
+    "not_established": [
+      "a passing pre-grasp machine gate",
+      "Viewer acceptance",
+      "contact, grasp, lift, or place success",
+      "real-hardware behavior"
+    ],
+    "next_local_repairs": [
+      "verify the freshly generated machine artifact after isaaclab.sh returns and fail the sentinel unless machine_passed is true",
+      "record and gate the backend interpolated target, Isaac joint_pos_target buffer, computed torque, and applied torque at each pre-grasp observation"
+    ]
+  }
+}

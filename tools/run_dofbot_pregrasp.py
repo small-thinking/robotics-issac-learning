@@ -180,6 +180,8 @@ from dofbot_pregrasp_scene_cfg import (
     DofbotPregraspSceneCfg,
 )
 
+TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG = 0.05
+
 
 def _load_json_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -244,8 +246,13 @@ class _IsaacJointPositionBackend:
         self._pending_duration_s: float | None = None
         self._start: tuple[float, ...] | None = None
         self._goal: tuple[float, ...] | None = None
+        self._target: tuple[float, ...] | None = None
         self._duration_s = 0.0
         self._elapsed_s = 0.0
+
+    @property
+    def interpolated_target_rad(self) -> tuple[float, ...] | None:
+        return self._target
 
     def command_joint_positions(self, command: JointPositionCommand) -> None:
         self._pending_goal = tuple(command.positions_rad)
@@ -270,13 +277,13 @@ class _IsaacJointPositionBackend:
         self._elapsed_s = min(self._elapsed_s + physics_dt, self._duration_s)
         progress = self._elapsed_s / self._duration_s
         smooth = progress * progress * (3.0 - 2.0 * progress)
-        target = [
+        self._target = tuple(
             start + (goal - start) * smooth
             for start, goal in zip(self._start, self._goal, strict=True)
-        ]
+        )
         self._robot.set_joint_position_target(
             torch.tensor(
-                [target],
+                [self._target],
                 device=self._device,
                 dtype=torch.float32,
             ),
@@ -367,6 +374,29 @@ def _observed_angles_deg(arm: DofbotArm) -> tuple[float, float, float, float]:
     return tuple(
         90.0 + math.degrees(positions[name]) for name in CONTROLLED_JOINT_NAMES
     )  # type: ignore[return-value]
+
+
+def _angles_deg_from_rad(values: tuple[float, ...] | list[float]) -> list[float]:
+    return [90.0 + math.degrees(float(value)) for value in values]
+
+
+def _optional_joint_buffer(
+    scene: InteractiveScene,
+    controlled_joint_ids: list[int],
+    name: str,
+) -> list[float] | None:
+    tensor = getattr(scene["dofbot"].data, name, None)
+    if tensor is None:
+        return None
+    try:
+        return [
+            float(value)
+            for value in (
+                tensor[0, controlled_joint_ids].detach().cpu().tolist()
+            )
+        ]
+    except (AttributeError, IndexError, TypeError):
+        return None
 
 
 def _body_positions(
@@ -483,6 +513,8 @@ def _observation(
     *,
     scene: InteractiveScene,
     arm: DofbotArm,
+    backend: _IsaacJointPositionBackend,
+    controlled_joint_ids: list[int],
     pose: PregraspPoseConfig,
     scene_config: DofbotReachingConfig,
     body_ids: dict[str, int],
@@ -508,6 +540,12 @@ def _observation(
         )
     contact_force = contact_reporter.maximum_force_n()
     angles = _observed_angles_deg(arm)
+    backend_target = backend.interpolated_target_rad
+    joint_pos_target = _optional_joint_buffer(
+        scene,
+        controlled_joint_ids,
+        "joint_pos_target",
+    )
     evaluation = evaluate_pregrasp_observation(
         config=pose,
         frame=frame,
@@ -526,6 +564,26 @@ def _observation(
         "step_index": step_index,
         "grasp_frame": frame.to_dict(),
         "angles_deg": list(angles),
+        "backend_interpolated_target_angles_deg": (
+            _angles_deg_from_rad(backend_target)
+            if backend_target is not None
+            else None
+        ),
+        "joint_pos_target_angles_deg": (
+            _angles_deg_from_rad(joint_pos_target)
+            if joint_pos_target is not None
+            else None
+        ),
+        "computed_torque": _optional_joint_buffer(
+            scene,
+            controlled_joint_ids,
+            "computed_torque",
+        ),
+        "applied_torque": _optional_joint_buffer(
+            scene,
+            controlled_joint_ids,
+            "applied_torque",
+        ),
         "command_velocities_deg_s": list(velocities_deg_s),
         "command_accelerations_deg_s2": list(accelerations_deg_s2),
         "maximum_critical_contact_force_n": contact_force,
@@ -588,6 +646,8 @@ def _run_pose_controller(
         _observation(
             scene=scene,
             arm=arm,
+            backend=backend,
+            controlled_joint_ids=controlled_joint_ids,
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
@@ -638,6 +698,8 @@ def _run_pose_controller(
             observation = _observation(
                 scene=scene,
                 arm=arm,
+                backend=backend,
+                controlled_joint_ids=controlled_joint_ids,
                 pose=pose,
                 scene_config=scene_config,
                 body_ids=body_ids,
@@ -728,6 +790,8 @@ def _run_pose_controller(
         observation = _observation(
             scene=scene,
             arm=arm,
+            backend=backend,
+            controlled_joint_ids=controlled_joint_ids,
             pose=pose,
             scene_config=scene_config,
             body_ids=body_ids,
@@ -822,6 +886,9 @@ def _failure_decision(failed_checks: list[str]) -> str:
         "feed_forward_effort_bounded",
         "only_controlled_joints_receive_feed_forward",
         "baseline_case_applies_zero_feed_forward",
+        "joint_target_buffer_telemetry_available",
+        "backend_target_matches_final_api_command",
+        "joint_position_target_buffer_matches_backend_target",
     }
     if any(name in actuator_checks for name in failed_checks):
         return "actuator_runtime_or_telemetry_failed"
@@ -1137,6 +1204,48 @@ def main() -> None:
         final_observed_angles = tuple(
             float(value) for value in observations[-1]["angles_deg"]
         )
+        final_backend_target = observations[-1][
+            "backend_interpolated_target_angles_deg"
+        ]
+        final_joint_position_target = observations[-1][
+            "joint_pos_target_angles_deg"
+        ]
+        backend_target_available = (
+            isinstance(final_backend_target, list)
+            and len(final_backend_target) == len(final_controller_command)
+        )
+        joint_position_target_available = (
+            isinstance(final_joint_position_target, list)
+            and len(final_joint_position_target)
+            == len(final_controller_command)
+        )
+        target_buffer_telemetry_available = (
+            backend_target_available and joint_position_target_available
+        )
+        backend_target_api_error = (
+            max(
+                abs(float(actual) - float(expected))
+                for actual, expected in zip(
+                    final_backend_target,
+                    final_controller_command,
+                    strict=True,
+                )
+            )
+            if backend_target_available
+            else None
+        )
+        target_buffer_backend_error = (
+            max(
+                abs(float(actual) - float(expected))
+                for actual, expected in zip(
+                    final_joint_position_target,
+                    final_backend_target,
+                    strict=True,
+                )
+            )
+            if target_buffer_telemetry_available
+            else None
+        )
         maximum_final_joint_tracking_error = maximum_joint_tracking_error_deg(
             observed_angles_deg=final_observed_angles,
             command_angles_deg=final_controller_command,
@@ -1189,6 +1298,19 @@ def main() -> None:
             "validated_joint_candidate_command_reached": (
                 candidate_command_reached
             ),
+            "joint_target_buffer_telemetry_available": (
+                target_buffer_telemetry_available
+            ),
+            "backend_target_matches_final_api_command": (
+                backend_target_api_error is not None
+                and backend_target_api_error
+                <= TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG
+            ),
+            "joint_position_target_buffer_matches_backend_target": (
+                target_buffer_backend_error is not None
+                and target_buffer_backend_error
+                <= TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG
+            ),
             "final_api_joint_tracking_within_tolerance": (
                 maximum_final_joint_tracking_error
                 <= pose.acceptance.maximum_final_joint_tracking_error_deg
@@ -1222,6 +1344,21 @@ def main() -> None:
             "official_api_call_count": official_api_calls,
             "expected_official_api_call_count": expected_api_calls,
             "final_observed_angles_deg": list(final_observed_angles),
+            "final_backend_interpolated_target_angles_deg": (
+                final_backend_target
+            ),
+            "final_joint_position_target_angles_deg": (
+                final_joint_position_target
+            ),
+            "maximum_backend_target_api_error_deg": (
+                backend_target_api_error
+            ),
+            "maximum_target_buffer_backend_error_deg": (
+                target_buffer_backend_error
+            ),
+            "maximum_allowed_target_buffer_alignment_error_deg": (
+                TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG
+            ),
             "maximum_final_joint_tracking_error_deg": (
                 maximum_final_joint_tracking_error
             ),

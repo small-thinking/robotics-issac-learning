@@ -23,19 +23,21 @@
   isolated machine matrix now reduces the worst settled error from `1.73936°`
   to `0.002391°` with zero contact and zero effort clipping; the accepted
   actuator contract now passes GPU-free pre-grasp runtime integration; the
-  first integrated machine run passed its actuator gates, exposed repeated
-  smoothstep reissue lag, and the no-reissue settle repair plus fail-closed
-  remote exit-status transport now pass locally; the repaired headless rerun
-  remains pending and Viewer remains blocked
+  first integrated machine run passed its actuator gates and exposed repeated
+  smoothstep reissue lag; the repaired headless rerun proves no-reissue is
+  active but insufficient, with `4.17702°` tracking error and `0.0318089 m`
+  position error; the local follow-up now validates the fresh artifact after
+  the exit-masking launcher and adds target-buffer/torque telemetry; Viewer
+  remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-07-31 20:43 PDT after local exit-status hardening
+  2026-07-31 21:23 PDT after the no-reissue headless rerun
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
-  `$1.59/hour` compute; rechecked 2026-07-31 before this matrix
+  `$1.58784/hour` compute; rechecked 2026-07-31 before this rerun
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1221,17 +1223,49 @@
   classified / candidate settle repair passed locally / repaired headless
   gate pending / Viewer blocked**.
 
+## DOFBOT no-reissue headless rerun and local audit
+
+- Remote commit: merged `main@4b4fc8a`; branch for the free follow-up:
+  `codex/dofbot-pregrasp-machine-rerun-audit`
+- The candidate controller issued 40/40 expected API calls. It completed the
+  `[90,66,66,66]` trajectory at step 8, then steps 9-60 performed 52 physics
+  settle observations without another API write.
+- No-reissue was insufficient: final observed angles were
+  `[89.999642,68.493213,70.177019,67.221305]°`; maximum tracking error was
+  `4.177019° > 1°` and final position error was `0.0318089 m > 0.025 m`.
+- All actuator, gravity, safe-envelope, collision, contact, static-target,
+  API-accounting, and neutral-reset checks passed. Contact remained `0 N`;
+  feed-forward peaked at `0.330318` with zero clipping at `5.2`.
+- Raw evidence: 2,231,658 bytes, SHA-256
+  `4674c83d58f187363720741a71b933a205f99c87951191eeb4ca44ce02cd0c3f`;
+  promoted evidence:
+  `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json`.
+- Exit audit: Python raised `PregraspMachineAcceptanceError`, but
+  `isaaclab.sh`, the sentinel, and outer Make all returned zero. The local
+  follow-up removes the prior output and verifies fresh artifact commit,
+  `machine_passed=true`, and empty failed checks before emitting a zero
+  sentinel.
+- Missing discriminator: the failed artifact did not record the backend
+  interpolated target or Isaac `joint_pos_target`. The local follow-up records
+  and gates those two buffers plus computed/applied torque, separating command
+  propagation failure from a post-write actuator residual on the next run.
+- Local validation: the real failed artifact makes the new semantic verifier
+  return nonzero; focused verifier/runner tests pass 14/14, all repository
+  Python tests pass 210/210, and changed-file Ruff, Python compilation, shell
+  syntax, remote preview, deterministic 27/27 contract regeneration, JSON,
+  Git LFS, and `git diff --check` pass.
+- Resource lifecycle: artifact retrieval completed before stop;
+  `brev ls --all --json` confirmed explicit `STOPPED` at 21:23 PDT. No
+  instance or disk was created, resized, reset, or deleted.
+- Current acceptance: **no-reissue behavior proven / machine failed and
+  classified / local discriminator prepared / Viewer blocked**.
+
 ## Exact next action
 
-Keep the Brev instance stopped. The live actuator/settle repair is merged;
-review and merge the remote exit-status hardening. Only after that merge, a
-fresh quote, and explicit approval may the same headless
-`make dofbot-pregrasp` gate rerun.
-The expected behavioral difference is one candidate API endpoint followed by
-a no-reissue settle interval, not a new pose or relaxed threshold. The wrapper
-must observe exactly one `[PREGRASP_EXIT_CODE] 0`; any nonzero, missing,
-duplicate, or malformed marker fails locally even if Brev masks the inner
-process status. `make dofbot-pregrasp-view` remains blocked until the machine
-artifact passes its unchanged position, orientation, tracking, collision,
-contact, API-accounting, and reset gates. Contact tasks, closing, grasping,
-lifting, and placing remain unauthorized.
+Keep the Brev instance stopped. Finish local regression tests and review the
+fresh-artifact plus target-buffer telemetry PR. Only after merge, a fresh
+quote, and explicit approval may one instrumented headless rerun occur. Do not
+change the pose, gains, or thresholds before that discriminator is collected.
+`make dofbot-pregrasp-view` remains blocked until the unchanged machine gates
+all pass. Contact tasks, closing, grasping, lifting, and placing remain
+unauthorized.

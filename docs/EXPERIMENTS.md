@@ -1968,3 +1968,53 @@
   instance or disk was started, created, resized, stopped, or deleted.
 - Acceptance: **remote exit-status transport hardened locally / repaired
   headless pre-grasp rerun pending / Viewer blocked**.
+
+## 2026-07-31 — No-reissue pre-grasp rerun failed and exposed the missing discriminator
+
+- Remote commit: merged `main@4b4fc8a`; approved retained instance
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the
+  fresh `$1.58784/hour` quote plus approximately `$0.04/hour` existing disk.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- No-reissue result: the controller completed its candidate trajectory at
+  step 8. Steps 9-60 recorded 52 physics-settle observations without another
+  Yahboom API call; total API accounting fell from the prior 248/248 to the
+  intended 40/40.
+- Machine result: failed only
+  `grasp_origin_reached_pregrasp_position` and
+  `final_api_joint_tracking_within_tolerance`. Final position was
+  `0.0318089 m > 0.025 m`; `[90,66,66,66]°` produced
+  `[89.999642,68.493213,70.177019,67.221305]°`, maximum tracking error
+  `4.177019° > 1°`.
+- Passed evidence: approach `7.89829°`, closing `0.331432°`, contact `0 N`,
+  neutral reset `0.002216°`, every actuator/gravity/safety/collision/static
+  target gate, 900 finite feed-forward samples, maximum effort `0.330318`, and
+  zero clipping at `5.2`.
+- Conclusion: repeated API writes were a real bug but not the cause of the
+  stable loaded residual. The raw artifact lacks backend-target and live
+  `joint_pos_target` buffers, so it cannot yet distinguish command propagation
+  failure from post-write actuator behavior.
+- Exit audit: Python raised `PregraspMachineAcceptanceError`, while
+  `isaaclab.sh` returned zero and caused `[PREGRASP_EXIT_CODE] 0`. Branch
+  `codex/dofbot-pregrasp-machine-rerun-audit` therefore verifies a fresh
+  commit-bound passing artifact after launch and records/gates backend target,
+  live target buffer, computed torque, and applied torque.
+- Local validation: the actual failed artifact is rejected by the new semantic
+  verifier; focused tests pass 14/14, all repository Python tests pass
+  210/210, and changed-file Ruff, Python compilation, shell syntax,
+  remote-command preview, deterministic 27/27 artifact regeneration, JSON,
+  Git LFS, and `git diff --check` pass.
+- Evidence: raw artifact 2,231,658 bytes, SHA-256
+  `4674c83d58f187363720741a71b933a205f99c87951191eeb4ca44ce02cd0c3f`;
+  concise promotion
+  `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json`.
+- Resource lifecycle: evidence was retrieved before stop;
+  `brev ls --all --json` confirmed explicit `STOPPED` at 21:23 PDT. The
+  instance and disk were retained; none was created, resized, reset, or
+  deleted.
+- Acceptance: **no-reissue proven / task machine gate failed and classified /
+  target-buffer audit prepared locally / Viewer blocked**.
