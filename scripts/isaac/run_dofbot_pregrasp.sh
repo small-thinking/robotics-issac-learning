@@ -52,10 +52,16 @@ set +e
   --headless
 pregrasp_exit_code=\"\$?\"
 if [[ \"\$pregrasp_exit_code\" -eq 0 ]]; then
-  $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
-    --contract $quoted_output \
-    --expected-git-commit \"\$git_commit\"
-  pregrasp_exit_code=\"\$?\"
+  if [[ ! -x $quoted_isaac_python ]]; then
+    printf '[PREGRASP CONTRACT] FAIL: Isaac Python is not executable: %s\\n' \
+      $quoted_isaac_python >&2
+    pregrasp_exit_code=126
+  else
+    $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
+      --contract $quoted_output \
+      --expected-git-commit \"\$git_commit\"
+    pregrasp_exit_code=\"\$?\"
+  fi
 fi
 set -e
 printf '[PREGRASP_EXIT_CODE] %s\\n' \"\$pregrasp_exit_code\"

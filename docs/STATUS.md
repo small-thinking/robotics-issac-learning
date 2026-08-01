@@ -1362,14 +1362,40 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and merge the `DF-030`/`DF-031` evidence and
-local instrumentation first. A future paid run requires a fresh quote and
-explicit approval, must cite `DF-030`, and may run only the unchanged headless
-pre-grasp discriminator. Its new evidence is the measured PhysX
-`get_dof_projected_joint_forces` value beside the approximate implicit-actuator
-torque buffers. Pose, gains, effort limit, solver settings, feed-forward,
-scene, and acceptance thresholds remain fixed. The same run must also prove
+Keep the Brev instance stopped and merge the `DF-032` local measurement
+contract first. A future paid run requires a fresh quote and explicit
+approval, must cite `DF-032`, and may run only the unchanged headless
+pre-grasp discriminator. It must retrieve finite PhysX
+`get_dof_projected_joint_forces` on every observation beside gravity
+feed-forward and the approximate implicit-actuator PD buffers, including the
+per-joint final/extrema/difference summary. Treat the projection as measured
+active joint-force balance, not isolated drive torque. Pose, gains, effort
+limit, solver settings, feed-forward, scene, and acceptance thresholds remain
+fixed. The same run must also prove
 that the installed-Python semantic verifier produces a reliable nonzero
 sentinel for a failed artifact. `make dofbot-pregrasp-view` remains blocked
 until every machine gate passes. Contact, closing, grasping, lifting, and
 placing remain unauthorized.
+
+## DF-030/DF-032 projected-force local contract hardening
+
+- Branch: `codex/dofbot-physx-effort-audit`, based on merged PR #44 at
+  `main@9a64968`.
+- Historical boundary: all 31 prior ledger entries were reread. No controller,
+  drive, trajectory, scene, safety gate, or acceptance threshold changed.
+- Semantic correction: official PhysX defines projected DOF force as the
+  active projection of incoming joint force along the motion direction. It is
+  a measured joint-force balance, not an isolated implicit-drive torque
+  sensor; `DF-032` records this partial boundary.
+- Instrumentation: the runner now requires finite, DOF-aligned projected force
+  and computed/applied PD estimates at every observation and summarizes each
+  controlled joint's final, signed extrema, maximum magnitude, and
+  projected-minus-estimate differences.
+- Wrapper: missing/non-executable `./_isaac_sim/python.sh` now fails closed
+  with sentinel `126` before semantic verification.
+- Validation: deterministic 27/27 contract regeneration, 222/222 repository
+  tests, targeted Ruff, Python compilation, shell syntax, remote preview, Git
+  LFS, and `git diff --check` pass.
+- Scope: GPU-free implementation, tests, and remote-command preview only. The
+  retained instance remains `STOPPED`; installed Isaac telemetry and semantic
+  sentinel behavior are still remote pending, and Viewer remains blocked.

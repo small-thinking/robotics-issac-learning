@@ -1547,6 +1547,38 @@ Viewer, contact, gripper closing, grasp, lift, and place remain blocked. The
 artifact was retrieved before `brev ls --all --json` confirmed the retained
 instance explicit `STOPPED` at 14:44 PDT.
 
+### DF-030 projected-force local contract hardening
+
+The GPU-free follow-up reread all 31 historical ledger entries before changing
+the measurement path. It preserves the exact scene, `[90,66,66,66]°` pose,
+force `1048/53/100` drive, bounded gravity feed-forward, solver settings, and
+acceptance gates. No previously falsified controller or tuning case is
+repeated.
+
+Official PhysX tensor documentation refines the measurement boundary:
+`get_dof_projected_joint_forces` is the active component obtained by
+projecting each link's incoming joint force onto its DOF motion direction. It
+is measured joint-force balance, but it is not an isolated sensor for the
+implicit drive torque. `DF-032` records this partial semantic result so the
+next artifact cannot overclaim what the new number proves.
+
+The runner now requires finite, width-correct projected force and
+ImplicitActuator computed/applied PD estimates on every controller
+observation. Its machine summary records per-joint final values, signed minima
+and maxima, maximum absolute values, and maximum projected-minus-computed and
+projected-minus-applied differences. The raw observations and gravity
+feed-forward samples remain present, so the next diagnosis can compare the
+complete active joint-force balance rather than one final sample.
+
+The remote wrapper also checks that `./_isaac_sim/python.sh` exists and is
+executable before semantic verification; a missing interpreter emits sentinel
+`126` instead of an ambiguous shell failure. This is local preparation only.
+The retained L4 remains stopped, installed-runtime compatibility remains
+unverified, and Viewer/contact/grasp remain blocked. Deterministic 27/27
+contract regeneration, all 222 repository tests, targeted Ruff, Python
+compilation, shell syntax, remote preview, Git LFS, and `git diff --check`
+pass.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

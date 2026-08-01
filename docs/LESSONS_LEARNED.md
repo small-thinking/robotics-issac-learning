@@ -252,9 +252,12 @@ nor absence of a lower-level drive/constraint problem.
 
 Use backend and live `joint_pos_target` fields to verify command propagation.
 When that path passes but the articulation still stalls, use PhysX projected
-joint-force or joint-wrench measurement as the next discriminator. Preserve
-the distinction in artifact wording; do not promote an estimate into a
-measured physical fact.
+joint force beside the incoming wrench and gravity/PD telemetry as the next
+discriminator. The projected value is the active component of incoming joint
+force along the DOF direction; it is measured joint-force balance, not an
+isolated drive-torque sensor. Require finite, DOF-aligned values on every
+observation and preserve the distinction in artifact wording. Do not promote
+an estimate or a projected total into a different measured physical fact.
 
 ## A semantic verifier must use the runtime's installed interpreter
 
