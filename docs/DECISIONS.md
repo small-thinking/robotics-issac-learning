@@ -371,3 +371,24 @@ existing one-degree gate. The current pre-grasp runner does not satisfy that
 contract and remains blocked until GPU-free integration is reviewed and
 merged. This decision does not authorize Viewer, contact, gripper closing,
 grasp, lift, place, or hardware execution.
+
+## 2026-07-31 — Require a DOFBOT failure ledger before another paid iteration
+
+Chronological narratives and promoted artifacts preserve evidence, but they do
+not make superseded diagnoses or rejected fixes easy to scan before the next
+change. Use `experiments/02_dofbot/FAILURE_LEDGER.md` as the canonical index
+connecting each failure to its evidence, verdict, do-not-repeat rule, and next
+discriminator.
+
+Preserve old rows rather than correcting history in place. A later result that
+narrows or overturns an explanation must add a new row and reference the older
+ID. The repeated-API diagnosis is the reference: reissue was a real defect,
+but the no-reissue rerun proved it was not sufficient to explain the loaded
+residual.
+
+Every future DOFBOT failure, falsification, partial correction, runtime or
+telemetry incompatibility, artifact/transport defect, and cost-window failure
+must update the ledger in the same pull request. Another paid run is blocked
+unless it names an unresolved ID, introduces a specific new discriminator,
+states the evidence fields to retrieve, and explains why it does not repeat a
+falsified case.

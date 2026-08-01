@@ -2018,3 +2018,47 @@
   deleted.
 - Acceptance: **no-reissue proven / task machine gate failed and classified /
   target-buffer audit prepared locally / Viewer blocked**.
+
+## 2026-07-31 — DOFBOT failure ledger consolidated and enforced locally
+
+- Branch: `codex/dofbot-failure-ledger`, based on merged PR #41 at
+  `origin/main@75201a0`.
+- Scope: local evidence indexing, documentation policy, and regression tests
+  only. No Brev start, Isaac execution, Viewer, contact, gripper, target
+  motion, real hardware, policy, or checkpoint ran.
+- Canonical record:
+  `experiments/02_dofbot/FAILURE_LEDGER.md` links 28 historical runtime,
+  machine, visual, hypothesis, telemetry, artifact, transport, and paid-window
+  failures to their durable evidence and do-not-repeat rules.
+- Verdict inventory: 12 `RESOLVED`, 8 `FALSIFIED`, 5 `PARTIAL`, 2
+  `OPERATIONAL`, and 1 `OPEN` entry. Historical rows are not rewritten when
+  later evidence narrows them; a new row identifies the superseded claim.
+- Current open item: `DF-028`. The no-reissue run still failed at
+  `4.177019°` joint tracking and `0.0318089 m` task-space error. Its next
+  discriminator is backend target, live `joint_pos_target`,
+  `computed_torque`, and `applied_torque`, with pose, gains, limits, and gates
+  held fixed.
+- Enforcement: repository operating rules, the stage README, experiment
+  hierarchy, lessons, decisions, and artifact index all link the ledger and
+  require same-PR updates before another paid run. The new unit test checks
+  sequential IDs, verdict schema, artifact existence, coverage of every
+  tracked `*failure*.json`, current open-gate wording, and policy links.
+- Validation commands:
+
+  ```bash
+  UV_CACHE_DIR=/tmp/robotics-isaac-uv-cache \
+    uv run --python 3.12 python -m unittest \
+    tests.test_dofbot_failure_ledger
+  UV_CACHE_DIR=/tmp/robotics-isaac-uv-cache make test
+  ```
+
+- Validation result: focused tests passed `5/5`; Git LFS attributes, remote
+  exit sentinel fixtures, remote command previews, and all `215/215` Python
+  repository tests passed.
+- Resource audit: read-only `brev ls --all --json` returned the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 as
+  explicit `STOPPED` at 21:50 PDT. No resource was started, created, resized,
+  reset, stopped, or deleted.
+- Acceptance: **ledger backfill passed / anti-loop policy and regression guard
+  passed / no scientific gate changed / `DF-028` remains open / Viewer
+  blocked**.

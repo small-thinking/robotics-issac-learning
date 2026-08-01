@@ -1,5 +1,11 @@
 # DOFBOT artifacts
 
+The canonical cross-run failure and falsification index is
+[`experiments/02_dofbot/FAILURE_LEDGER.md`](../../experiments/02_dofbot/FAILURE_LEDGER.md).
+Generated artifacts remain immutable evidence; the ledger links them to later
+repairs, superseding results, do-not-repeat rules, and the current missing
+discriminator.
+
 Goal 1 writes `asset_contract.json` after the official USD passes the remote
 Isaac Lab load and structure checks. Viewer logs remain local evidence and are
 not committed because they can be large and machine-specific.

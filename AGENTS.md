@@ -98,3 +98,12 @@ Isaac Launchable rather than old tutorial syntax.
 - Record architectural trade-offs in `docs/DECISIONS.md`.
 - Record exact remote versions and commands in `docs/ENVIRONMENT.md` and
   `docs/RUNBOOK.md`.
+- Read `experiments/02_dofbot/FAILURE_LEDGER.md` before changing a DOFBOT
+  controller, simulator setting, measurement, scene, or remote wrapper.
+- Update that ledger in the same pull request for every DOFBOT gate failure,
+  falsified or partial hypothesis, superseded diagnosis, runtime/telemetry
+  incompatibility, artifact/transport defect, or paid-window safety failure.
+- Before another paid DOFBOT run, name the unresolved ledger ID and the new
+  discriminator. Do not repeat a falsified case without an explicit regression
+  reason, and do not change unrelated factors before collecting the missing
+  evidence.
