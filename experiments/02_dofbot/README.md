@@ -21,6 +21,22 @@ current control or the servo's internal feedback loop. Application code can
 use the same official-shaped single-servo method in simulation and on the
 physical-arm backend; neither path exposes its underlying runtime directly.
 
+## Failure-ledger gate
+
+The canonical cross-run index is
+[`FAILURE_LEDGER.md`](FAILURE_LEDGER.md). Read it before changing a controller,
+scene, simulator setting, measurement, or remote wrapper. Every failed gate,
+falsified or partial correction, superseded diagnosis, runtime/telemetry
+incompatibility, artifact/transport defect, and paid-window failure must update
+that ledger in the same pull request.
+
+The current open item is `DF-028`: no-reissue executed correctly, but the
+pre-grasp machine gate still failed at `4.177019°` joint tracking and
+`0.0318089 m` position error. The next paid run must collect backend target,
+live `joint_pos_target`, `computed_torque`, and `applied_torque` without also
+changing pose, gains, limits, or acceptance thresholds. The Viewer remains
+blocked.
+
 ## First stage: asset, motion, and camera
 
 ### Goal 1 — Load and inspect the official USD

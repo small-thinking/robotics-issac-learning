@@ -221,3 +221,23 @@ Before concluding that an artifact is missing, verify it inside the container.
 Use `brev exec --host "docker cp ..."` to a unique VM `/tmp` path, then run
 `brev copy` from that host path. Classify direct-path failure as infrastructure
 plumbing and do not rerun Isaac merely to regenerate already existing data.
+
+## DOFBOT debugging must update the failure ledger
+
+Chronological experiment notes preserve detail, but they do not by themselves
+prevent an old hypothesis from being retried or a provisional root cause from
+being repeated after later evidence supersedes it. The canonical index is
+`experiments/02_dofbot/FAILURE_LEDGER.md`.
+
+Before changing a DOFBOT controller, scene, runtime setting, measurement, or
+wrapper, read the ledger and cite the unresolved entry being addressed. A new
+paid run must introduce a named discriminator and must not bundle unrelated
+parameter changes. After any failed, partial, falsifying, superseding, runtime,
+artifact, transport, cost-window, or safety result, update the ledger in the
+same pull request before another paid run.
+
+Preserve historical verdicts. If a real bug is repaired but a later rerun
+shows it was not the full root cause, add a superseding entry rather than
+rewriting history. The `DF-026` to `DF-028` sequence is the reference example:
+repeated API writes were a real defect, but the no-reissue machine rerun proved
+they were insufficient to explain the loaded residual.

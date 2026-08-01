@@ -27,11 +27,13 @@
   smoothstep reissue lag; the repaired headless rerun proves no-reissue is
   active but insufficient, with `4.17702°` tracking error and `0.0318089 m`
   position error; the local follow-up now validates the fresh artifact after
-  the exit-masking launcher and adds target-buffer/torque telemetry; Viewer
-  remains blocked
+  the exit-masking launcher and adds target-buffer/torque telemetry; 28
+  historical failure, falsification, partial-fix, and operational cases are
+  consolidated in `experiments/02_dofbot/FAILURE_LEDGER.md`, with `DF-028` as
+  the only current unresolved discriminator; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-07-31 21:23 PDT after the no-reissue headless rerun
+  2026-07-31 21:50 PDT during the local failure-ledger consolidation
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -1260,12 +1262,45 @@
 - Current acceptance: **no-reissue behavior proven / machine failed and
   classified / local discriminator prepared / Viewer blocked**.
 
+## DOFBOT failure ledger and anti-loop gate
+
+- Branch: `codex/dofbot-failure-ledger`, based on merged PR #41 at
+  `origin/main@75201a0`.
+- Scope: local evidence consolidation, operating rules, and regression tests
+  only. No Brev start, Isaac runtime, Viewer, contact, gripper, target motion,
+  hardware, policy, or checkpoint command ran.
+- Canonical index: `experiments/02_dofbot/FAILURE_LEDGER.md` backfills 28
+  chronological cases: 12 resolved defects, 8 falsified hypotheses/fixes, 5
+  partial findings, 2 operational failures, and 1 open discriminator.
+- Historical preservation: later evidence adds a new ID instead of rewriting
+  an old conclusion. `DF-026` records API reissue as a real defect;
+  `DF-028` records the later machine proof that no-reissue was insufficient.
+- Future gate: `AGENTS.md`, the stage README, experiment hierarchy, lessons,
+  decisions, and artifact index all require a ledger update in the same pull
+  request. Another paid run must cite one unresolved ID, name a new
+  discriminator, state exact evidence fields, and explain why it does not
+  repeat a falsified case.
+- Automated guard: `tests/test_dofbot_failure_ledger.py` requires sequential
+  IDs, fixed verdict vocabulary, existing referenced artifacts, coverage of
+  every tracked `*failure*.json`, the current `DF-028` target/torque
+  discriminator, and repository-policy links.
+- Validation: focused ledger tests pass `5/5`;
+  `UV_CACHE_DIR=/tmp/robotics-isaac-uv-cache make test` passes Git LFS checks,
+  remote sentinel/preview checks, and all `215/215` Python tests.
+- Resource state: `brev ls --all --json` returned the retained
+  `isaac-launchable-f150a5` (`92xbacz46`) L4 as explicit `STOPPED` at 21:50
+  PDT. No resource was started, created, resized, reset, stopped, or deleted.
+- Acceptance: **historical ledger backfill passed / anti-loop policy and test
+  passed / current scientific issue remains `DF-028` open / Viewer blocked**.
+
 ## Exact next action
 
-Keep the Brev instance stopped. Finish local regression tests and review the
-fresh-artifact plus target-buffer telemetry PR. Only after merge, a fresh
-quote, and explicit approval may one instrumented headless rerun occur. Do not
-change the pose, gains, or thresholds before that discriminator is collected.
-`make dofbot-pregrasp-view` remains blocked until the unchanged machine gates
-all pass. Contact tasks, closing, grasping, lifting, and placing remain
-unauthorized.
+Keep the Brev instance stopped. Review and merge the canonical failure-ledger
+change before another debugging iteration. The merged target-buffer telemetry
+repair is indexed as open item `DF-028`; only after the ledger change is merged,
+a fresh quote is checked, and explicit approval is given may one instrumented
+headless rerun occur. It must collect backend target, live `joint_pos_target`,
+`computed_torque`, and `applied_torque` without changing the pose, gains,
+effort limit, or thresholds. `make dofbot-pregrasp-view` remains blocked until
+the unchanged machine gates all pass. Contact tasks, closing, grasping,
+lifting, and placing remain unauthorized.

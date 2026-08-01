@@ -79,7 +79,12 @@ lightweight VLA post-training, and optional real hardware.
   native Warp arrays. The accepted force `1048/53/100`, external-force
   iteration, and the exact native-Warp feed-forward implementation are now
   wired into the pre-grasp runner and pass the GPU-free `27/27` integration
-  contract. Pre-grasp machine, Viewer, contact, and grasp remain unverified.
+  contract. The first integrated machine run then failed at `4.16578°` and
+  exposed repeated API reissue; the no-reissue rerun proved that repair active
+  but insufficient, still failing at `4.177019°` and `0.0318089 m`. The next
+  instrumented run is limited to the missing target-buffer/torque discriminator
+  indexed as `DF-028` in the DOFBOT failure ledger. Viewer, contact, and grasp
+  remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -164,10 +169,13 @@ initial native-frontend failure and repaired success have separate SHA-bound
 records. The selected force `1048/53/100`, external-force iteration,
 native-Warp feed-forward, API probe, effort isolation, live-drive readback,
 telemetry, and failure-classification contracts are now shared with the
-pre-grasp runner. The local contract passes `27/27`; the next gate is a
-separate headless Isaac pre-grasp run after review, merge, a fresh quote, and
-explicit approval. Do not open the Viewer until that machine artifact passes.
-Contact and grasping remain out of scope.
+pre-grasp runner. The no-reissue headless run still failed, and the merged
+local follow-up now records backend target, live `joint_pos_target`,
+`computed_torque`, and `applied_torque`. Before another paid run, consult
+`DF-028`, keep the pose/gains/limits/gates fixed, obtain a fresh quote and
+explicit approval, and run only the instrumented headless discriminator. Do
+not open the Viewer until that machine artifact passes. Contact and grasping
+remain out of scope.
 
 ## Sources of truth
 
@@ -176,6 +184,8 @@ Contact and grasping remain out of scope.
 - `experiments/README.md`: numbered learning sequence and key commands.
 - `docs/EXPERIMENTS.md`: append-only successful and failed run record.
 - `docs/LESSONS_LEARNED.md`: pitfalls that must not be repeated.
+- `experiments/02_dofbot/FAILURE_LEDGER.md`: canonical cross-run failure,
+  falsification, supersession, and do-not-repeat index.
 - `artifacts/evaluations/`: small reviewed machine-readable results.
 - `artifacts/phase2/`: manifests, episode data, derived tables, figures, and
   the controlled-study report.
