@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "record_type": "brev_startup_operational_evidence",
+  "date": "2026-08-01",
+  "timezone": "America/Los_Angeles",
+  "unresolved_scientific_ledger_id": "DF-028",
+  "instance": {
+    "name": "isaac-launchable-f150a5",
+    "id": "92xbacz46",
+    "provider": "aws",
+    "instance_type": "g6.4xlarge",
+    "gpu": "L4"
+  },
+  "quote": {
+    "compute_usd_per_hour": 1.58784,
+    "existing_persistent_disk_usd_per_hour_approx": 0.04
+  },
+  "attempt": {
+    "approval_received": true,
+    "initial_status_checked_at_local": "2026-08-01T09:54:46-07:00",
+    "first_start_requested_at_local": "2026-08-01T09:55:03-07:00",
+    "detached_start_retry_used": true,
+    "ssh_probe_result": "timeout_before_shell_ready",
+    "brev_refresh_completed": true,
+    "final_status_checked_at_local": "2026-08-01T10:08:11-07:00",
+    "delayed_start_safety_audit_completed": true,
+    "final_status": "STOPPED",
+    "final_shell_status": "NOT READY",
+    "final_health_status": "UNHEALTHY"
+  },
+  "scope": {
+    "repo_sync_started": false,
+    "isaac_started": false,
+    "scientific_command_started": false,
+    "viewer_started": false,
+    "artifact_expected": "artifacts/dofbot/pregrasp_machine_contract.json",
+    "artifact_generated": false,
+    "new_instance_created": false,
+    "instance_or_disk_resized": false,
+    "instance_or_disk_deleted": false
+  },
+  "conclusion": {
+    "classification": "operational_startup_failure",
+    "scientific_claim": "none",
+    "df_028_status": "open",
+    "viewer_authorized": false,
+    "gpu_compute_observed_running": false,
+    "do_not_repeat": "Do not rerun Isaac or change controller factors on this evidence. A future approved attempt must first prove RUNNING and shell READY after a single detached start and refresh stale CLI state before sync."
+  }
+}

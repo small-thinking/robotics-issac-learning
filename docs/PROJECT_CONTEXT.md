@@ -84,7 +84,11 @@ lightweight VLA post-training, and optional real hardware.
   but insufficient, still failing at `4.177019°` and `0.0318089 m`. The next
   instrumented run is limited to the missing target-buffer/torque discriminator
   indexed as `DF-028` in the DOFBOT failure ledger. Viewer, contact, and grasp
-  remain blocked.
+  remain blocked. The first approved attempt to collect that discriminator on
+  2026-08-01 never left Brev startup: even after `brev refresh`, the retained
+  instance remained `STOPPED` with shell `NOT READY`, so sync, Isaac, and the
+  scientific command did not run. That operational result is `DF-029`; it does
+  not supersede the open scientific question in `DF-028`.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -172,10 +176,11 @@ telemetry, and failure-classification contracts are now shared with the
 pre-grasp runner. The no-reissue headless run still failed, and the merged
 local follow-up now records backend target, live `joint_pos_target`,
 `computed_torque`, and `applied_torque`. Before another paid run, consult
-`DF-028`, keep the pose/gains/limits/gates fixed, obtain a fresh quote and
-explicit approval, and run only the instrumented headless discriminator. Do
-not open the Viewer until that machine artifact passes. Contact and grasping
-remain out of scope.
+`DF-028` and `DF-029`, keep the pose/gains/limits/gates fixed, obtain a fresh
+quote and explicit approval, require the retained instance to reach
+`RUNNING` plus shell `READY`, and run only the instrumented headless
+discriminator. Do not open the Viewer until that machine artifact passes.
+Contact and grasping remain out of scope.
 
 ## Sources of truth
 

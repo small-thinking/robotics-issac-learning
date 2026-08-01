@@ -47,10 +47,12 @@ ledger ID and state:
 4. why the run does not repeat a `FALSIFIED` case;
 5. the stop deadline and the machine gate that blocks Viewer launch.
 
-The current unresolved item is **DF-028**. The next run may add target-buffer
-and torque telemetry to distinguish command propagation from post-write
-actuator behavior. It must not change the pose, gains, effort limit, or
-acceptance thresholds at the same time.
+The current unresolved scientific item is **DF-028**. The next run may add
+target-buffer and torque telemetry to distinguish command propagation from
+post-write actuator behavior. It must not change the pose, gains, effort limit,
+or acceptance thresholds at the same time. `DF-029` records that the
+first approved attempt to collect that discriminator never left the Brev
+startup layer; it is not controller evidence and does not supersede `DF-028`.
 
 ## Consolidated ledger
 
@@ -84,6 +86,7 @@ acceptance thresholds at the same time.
 | DF-026 | 2026-07-31 | API reissue | Reissuing the stopped candidate every 0.2 s restarted smoothstep and created real lag; the repair reduced API calls from 248 to 40. | PARTIAL | `artifacts/dofbot/pregrasp_live_actuator_gate_result_2026-07-31.json`, `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json` | Keep no-reissue behavior, but DF-028 supersedes it as a sufficient explanation of the loaded residual. |
 | DF-027 | 2026-07-31 | Exit propagation | Python raised an acceptance error while `isaaclab.sh`, the sentinel, and outer Make still returned zero; sentinel-only hardening was insufficient. | RESOLVED | `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json` | Remove stale output first and semantically verify a fresh commit-bound passing artifact; process status alone cannot authorize success. |
 | DF-028 | 2026-07-31 | Current pre-grasp residual | With no reissue, `[90,66,66,66]` still settled at 4.177019-degree joint error and 0.0318089 m position error; the artifact lacked backend/live target and torque discriminators. | OPEN | `artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json` | Next run records backend target, live `joint_pos_target`, `computed_torque`, and `applied_torque` without changing pose/gains/limits/gates; Viewer remains blocked. |
+| DF-029 | 2026-08-01 | Brev startup | The approved target/torque run never reached compute: normal and detached start requests plus `brev refresh` left the retained instance `STOPPED`, shell `NOT READY`, and SSH timed out before sync or Isaac. | OPERATIONAL | `artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json` | Do not interpret this as controller evidence or rerun Isaac/change parameters. After fresh quote and approval, require one detached start to reach `RUNNING` and shell `READY`, refresh stale CLI state, then sync and run only the unchanged DF-028 discriminator. |
 
 ## Current evidence boundary
 

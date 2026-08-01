@@ -93,6 +93,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/gravity_feed_forward_runtime_failure_2026-07-31.json
 !artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json
 !artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json
+!artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json
 
 # macOS and editors
 .DS_Store
