@@ -407,9 +407,12 @@ This boundary follows the official
 [ImplicitActuator API documentation](https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.actuators.html#isaaclab.actuators.ImplicitActuator).
 Select PhysX `get_dof_projected_joint_forces` as the next measurement and keep
 pose, gains, limits, solver settings, feed-forward, and acceptance gates fixed.
-Only that measured effort can distinguish a solver/drive application problem
-from a physical equilibrium or modeling problem before another controller
-change.
+The projected measurement can distinguish the active joint-force balance from
+the approximate PD buffers before another controller change. It cannot alone
+isolate implicit-drive torque, because PhysX defines it as the projection of
+incoming joint force onto the DOF motion direction. The artifact must therefore
+record it for every observation beside gravity feed-forward, computed/applied
+PD estimates, and per-joint extrema and differences.
 
 The remote semantic verifier must use the installed
 `./_isaac_sim/python.sh`; generic `python3` is not present in the retained

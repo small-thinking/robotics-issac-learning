@@ -183,6 +183,10 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             '"applied_torque"',
             '"physx_projected_joint_forces"',
             '"physx_projected_joint_force_telemetry_available"',
+            '"implicit_actuator_pd_estimate_telemetry_available"',
+            '"projected_force_and_pd_estimates_are_sample_aligned"',
+            '"projected_joint_force_telemetry"',
+            '"final_physx_projected_joint_forces"',
             '"implicit_actuator_torque_telemetry_semantics"',
             '"joint_target_buffer_telemetry_available"',
             '"backend_target_matches_final_api_command"',
@@ -281,6 +285,8 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             'isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"',
             self.run_script,
         )
+        self.assertIn("if [[ ! -x $quoted_isaac_python ]]", self.run_script)
+        self.assertIn("pregrasp_exit_code=126", self.run_script)
         self.assertNotIn(
             "python3 $quoted_project_dir/tools/verify_dofbot",
             self.run_script,

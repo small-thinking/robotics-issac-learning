@@ -33,6 +33,9 @@ from dofbot_pregrasp_pose import (
     next_pregrasp_command,
     validated_joint_candidate_command_reached,
 )
+from dofbot_projected_joint_force import (
+    summarize_projected_joint_force_telemetry,
+)
 from dofbot_gravity_feed_forward import (
     GravityFeedForwardError,
     evaluate_gravity_feed_forward_telemetry,
@@ -897,6 +900,8 @@ def _failure_decision(failed_checks: list[str]) -> str:
         "backend_target_matches_final_api_command",
         "joint_position_target_buffer_matches_backend_target",
         "physx_projected_joint_force_telemetry_available",
+        "implicit_actuator_pd_estimate_telemetry_available",
+        "projected_force_and_pd_estimates_are_sample_aligned",
     }
     if any(name in actuator_checks for name in failed_checks):
         return "actuator_runtime_or_telemetry_failed"
@@ -1230,16 +1235,10 @@ def main() -> None:
         target_buffer_telemetry_available = (
             backend_target_available and joint_position_target_available
         )
-        final_physx_projected_joint_forces = observations[-1][
-            "physx_projected_joint_forces"
-        ]
-        physx_projected_joint_force_telemetry_available = (
-            isinstance(final_physx_projected_joint_forces, list)
-            and len(final_physx_projected_joint_forces)
-            == len(final_controller_command)
-            and all(
-                math.isfinite(float(value))
-                for value in final_physx_projected_joint_forces
+        projected_joint_force_telemetry = (
+            summarize_projected_joint_force_telemetry(
+                observations=observations,
+                controlled_joint_names=pose.solver.controlled_joint_names,
             )
         )
         backend_target_api_error = (
@@ -1332,7 +1331,19 @@ def main() -> None:
                 <= TARGET_BUFFER_ALIGNMENT_TOLERANCE_DEG
             ),
             "physx_projected_joint_force_telemetry_available": (
-                physx_projected_joint_force_telemetry_available
+                projected_joint_force_telemetry["checks"][
+                    "physx_projected_joint_force_telemetry_available_for_every_observation"
+                ]
+            ),
+            "implicit_actuator_pd_estimate_telemetry_available": (
+                projected_joint_force_telemetry["checks"][
+                    "implicit_actuator_pd_estimate_telemetry_available_for_every_observation"
+                ]
+            ),
+            "projected_force_and_pd_estimates_are_sample_aligned": (
+                projected_joint_force_telemetry["checks"][
+                    "projected_force_and_pd_estimates_are_sample_aligned"
+                ]
             ),
             "final_api_joint_tracking_within_tolerance": (
                 maximum_final_joint_tracking_error
@@ -1373,13 +1384,18 @@ def main() -> None:
             "final_joint_position_target_angles_deg": (
                 final_joint_position_target
             ),
+            "projected_joint_force_telemetry": (
+                projected_joint_force_telemetry
+            ),
             "final_physx_projected_joint_forces": (
-                final_physx_projected_joint_forces
+                projected_joint_force_telemetry[
+                    "final_physx_projected_joint_forces"
+                ]
             ),
             "implicit_actuator_torque_telemetry_semantics": (
-                "computed_torque and applied_torque are Isaac Lab PD "
-                "estimates; PhysX-projected joint force is the measured "
-                "effort discriminator"
+                "See projected_joint_force_telemetry.semantics; the PhysX "
+                "projection is measured active joint force, not isolated "
+                "drive torque"
             ),
             "maximum_backend_target_api_error_deg": (
                 backend_target_api_error

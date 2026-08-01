@@ -2145,3 +2145,34 @@
   14:44 PDT. No instance/disk was created, resized, reset, or deleted, and no
   Viewer, contact, grasp, policy, checkpoint, camera controller, or hardware
   command ran.
+
+## 2026-08-01 — DF-030 projected-force local contract hardening
+
+- Historical gate: reread the canonical 31-entry failure ledger before making
+  a measurement-only change. The next experiment does not repeat API reissue,
+  target-write, effort-limit, solver-iteration, damping, drive-gain, or static
+  joint-frame cases already falsified or only partly supported.
+- Official semantic boundary: PhysX
+  `get_dof_projected_joint_forces` projects incoming joint force onto the DOF
+  motion direction. It measures the active joint-force component, not isolated
+  implicit-drive torque. This refinement is indexed as `DF-032`.
+- Local implementation: every controller observation must carry four finite,
+  DOF-aligned projected-force values plus four finite computed/applied
+  ImplicitActuator PD estimates. The machine summary retains final, signed
+  minimum/maximum, maximum-absolute, and measured-minus-estimate values for
+  every controlled joint, with explicit non-overclaim semantics.
+- Wrapper prerequisite: semantic verification uses the installed
+  `./_isaac_sim/python.sh`; a missing or non-executable interpreter now emits
+  fail-closed sentinel `126`. The existing nonzero semantic-contract path
+  remains intact.
+- Unchanged factors for the future run: scene, `[90,66,66,66]°` API pose,
+  force `1048/53/100`, effort limit, bounded gravity feed-forward, solver
+  settings, trajectory, safety checks, and acceptance thresholds.
+- Scope: local source/tests and dry-run preview only. No Brev start, Isaac,
+  Viewer, contact, gripper, target motion, hardware, policy, or checkpoint.
+- Validation: deterministic 27/27 command-space contract regeneration,
+  222/222 repository tests, focused telemetry/ledger/runner/verifier tests,
+  targeted Ruff, Python compilation, shell syntax, remote-command preview,
+  Git LFS checks, and `git diff --check` pass.
+- Acceptance: **observation-complete projected-force contract passed locally /
+  installed Isaac telemetry and remote sentinel pending / Viewer blocked**.

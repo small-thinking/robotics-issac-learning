@@ -73,7 +73,7 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         cls.rows = ledger_rows(cls.text)
 
     def test_rows_are_complete_sequential_and_use_known_verdicts(self) -> None:
-        self.assertGreaterEqual(len(self.rows), 31)
+        self.assertGreaterEqual(len(self.rows), 32)
         ids = []
         for row in self.rows:
             self.assertEqual(len(row), 7, row)
@@ -101,14 +101,18 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         }
         self.assertTrue(failure_artifacts.issubset(references))
 
-    def test_current_discriminator_is_physx_measured_effort(self) -> None:
-        current = next(row for row in self.rows if row[0] == "DF-030")
+    def test_current_discriminator_preserves_projected_force_boundary(self) -> None:
+        target = next(row for row in self.rows if row[0] == "DF-030")
+        current = next(row for row in self.rows if row[0] == "DF-032")
+        self.assertEqual(target[4], "PARTIAL")
+        self.assertIn("joint_pos_target", target[3])
+        self.assertIn("PD estimates", target[3])
         self.assertEqual(current[4], "PARTIAL")
-        self.assertIn("joint_pos_target", current[3])
-        self.assertIn("PD estimates", current[3])
-        self.assertIn("get_dof_projected_joint_forces", current[6])
+        self.assertIn("active component", current[3])
+        self.assertIn("not an isolated", current[3])
+        self.assertIn("every observation", current[6])
         self.assertIn("Viewer remains blocked", self.text)
-        self.assertIn("must measure `get_dof_projected_joint_forces`", self.text)
+        self.assertIn("must collect that value for every observation", self.text)
 
     def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
         wrapper = next(row for row in self.rows if row[0] == "DF-031")

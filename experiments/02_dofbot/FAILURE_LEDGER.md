@@ -51,8 +51,11 @@ The target-buffer part of **DF-028** is now resolved by **DF-030**: the exact
 API target reached both the backend and live `joint_pos_target` buffer, while
 the loaded residual remained unchanged. Isaac Lab documents the recorded
 implicit-actuator torque fields as approximate PD estimates, not measured
-PhysX effort, so **DF-030** remains the current scientific item. The next run
-must measure `get_dof_projected_joint_forces` without changing the pose, gains,
+PhysX effort. **DF-032** refines the current scientific item after checking the
+official tensor API semantics: `get_dof_projected_joint_forces` measures the
+active projection of incoming joint force, not isolated implicit-drive torque.
+The next run must collect that value for every observation beside the gravity
+feed-forward and approximate PD buffers without changing the pose, gains,
 effort limit, solver settings, feed-forward, or acceptance thresholds.
 **DF-031** is the separate wrapper prerequisite: its Isaac-Python correction
 has passed local tests but must prove that a failed semantic contract produces
@@ -93,6 +96,7 @@ a nonzero remote sentinel. Viewer remains blocked.
 | DF-029 | 2026-08-01 | Brev startup | The approved target/torque run never reached compute: normal and detached start requests plus `brev refresh` left the retained instance `STOPPED`, shell `NOT READY`, and SSH timed out before sync or Isaac. | OPERATIONAL | `artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json` | Do not interpret this as controller evidence or rerun Isaac/change parameters. After fresh quote and approval, require one detached start to reach `RUNNING` and shell `READY`, refresh stale CLI state, then sync and run only the unchanged DF-028 discriminator. |
 | DF-030 | 2026-08-01 | Actuation boundary | The unchanged DF-028 run propagated `[90,66,66,66]` exactly to the backend and within 0.000000668 degrees to live `joint_pos_target`, yet retained 4.177019 degrees joint error and 0.0318089 m position error. The equal `computed_torque` and `applied_torque` buffers are only ImplicitActuator PD estimates, not measured PhysX effort. | PARTIAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Do not revisit API write loss or claim that the approximate torque buffers prove physical application. Keep every control factor fixed and record PhysX `get_dof_projected_joint_forces` as the next discriminator before changing the drive or controller. |
 | DF-031 | 2026-08-01 | Remote semantic verifier | `isaaclab.sh` again masked the Python acceptance exception, then the semantic verifier called absent container command `python3`, overwriting the scientific result with sentinel 127 even though a fresh failed artifact existed. | OPERATIONAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Use the installed `./_isaac_sim/python.sh` for the verifier and retain artifact-first interpretation. Local preview/tests pass; a future remote run must still prove the failing semantic contract emits a reliable nonzero sentinel. |
+| DF-032 | 2026-08-01 | Projected-force semantics | Official PhysX tensor semantics define `get_dof_projected_joint_forces` as the active component obtained by projecting each link incoming joint force onto its DOF motion direction. This is measured joint-force balance, but it is not an isolated implicit-drive torque sensor. The previous final-sample-only gate also did not summarize whether projected force and PD estimates were finite and aligned for every observation. | PARTIAL | `docs/EXPERIMENTS.md` section "DF-030 projected-force local contract hardening" | Keep the unchanged DF-030 run, but do not interpret projected force alone as proof of drive application. Require every observation to contain finite DOF-aligned projected force plus computed/applied PD estimates; retrieve per-joint final, extrema, and difference summaries beside gravity feed-forward before choosing the next controller change. |
 
 ## Current evidence boundary
 
