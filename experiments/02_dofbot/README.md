@@ -1424,6 +1424,23 @@ or real hardware was authorized. Stop was requested after evidence retrieval;
 after a temporarily stale ordinary listing, `brev ls --all --json` confirmed
 explicit `STOPPED` at 11:56:36 PDT. The instance and disk were retained.
 
+### Remote process-status hardening before the repaired rerun
+
+The first failed headless probe also exposed an orchestration defect: Isaac
+could exit nonzero and print a traceback while the enclosing `brev exec`
+reported zero. The machine artifact prevented a false scientific conclusion,
+but a shell caller could still see a misleading green Make result.
+
+The pre-grasp wrapper now emits exactly one `[PREGRASP_EXIT_CODE] N` from the
+remote shell, separately verifies the Brev transport exit, and accepts only a
+single well-formed marker with `N=0`. A nonzero, missing, duplicate, or
+malformed marker fails closed. The dry-run path remains display-only. Six
+fixture cases, remote command preview, shell syntax, Git LFS checks, and all
+205 Python tests pass locally. No GPU or Isaac runtime was used for this
+hardening. `brev ls --all --json` re-confirmed the retained L4 instance as
+explicit `STOPPED` at 20:43 PDT. The repaired headless rerun and Viewer remain
+gated exactly as above.
+
 ## Later milestones
 
 1. Physically calibrate and verify the candidate simulated-joint to

@@ -252,6 +252,7 @@ assert_contains "$dofbot_pregrasp_output" '--cycles 1'
 assert_contains "$dofbot_pregrasp_output" '--viewer-connection-hold-seconds 0'
 assert_contains "$dofbot_pregrasp_output" '--device cpu'
 assert_contains "$dofbot_pregrasp_output" '--headless'
+assert_contains "$dofbot_pregrasp_output" '[PREGRASP_EXIT_CODE]'
 assert_contains "$dofbot_pregrasp_output" '[dry-run] Command displayed but not executed.'
 
 dofbot_pregrasp_view_output="$(

@@ -1943,3 +1943,28 @@
 - Acceptance: **live actuator gate passed / first integrated task run failed
   and classified / settle repair passed locally / repaired headless rerun
   pending / Viewer blocked**.
+
+## 2026-07-31 — Pre-grasp remote exit status now fails closed locally
+
+- Branch: `codex/dofbot-pregrasp-exit-status`
+- Scope: GPU-free wrapper and regression-test hardening only. No Brev start,
+  Isaac runtime, Viewer, contact, gripper, target motion, grasp, hardware,
+  policy, or checkpoint.
+- Failure mode: the previous failed headless run printed an Isaac traceback
+  while `brev exec` returned zero, allowing the outer Make command to appear
+  successful. The machine artifact still caught the failure, but shell
+  automation could not rely on the process status.
+- Repair: the remote command captures the Isaac exit code and prints exactly
+  one `[PREGRASP_EXIT_CODE] N`; local execution independently checks the Brev
+  transport code and accepts only one well-formed marker with `N=0`.
+- Fail-closed cases: nonzero, missing, duplicate, and malformed sentinels all
+  return nonzero locally. Dry-run still prints the complete remote command
+  without trying to parse an execution result.
+- Validation: shell syntax, six sentinel fixtures, remote-command preview,
+  Git LFS checks, and all `205/205` Python repository tests pass through
+  `UV_CACHE_DIR=.uv-cache make test`.
+- Resource state: `brev ls --all --json` confirmed the retained
+  `isaac-launchable-f150a5` L4 instance explicit `STOPPED` at 20:43 PDT. No
+  instance or disk was started, created, resized, stopped, or deleted.
+- Acceptance: **remote exit-status transport hardened locally / repaired
+  headless pre-grasp rerun pending / Viewer blocked**.
