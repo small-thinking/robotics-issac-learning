@@ -2304,6 +2304,10 @@
   helper had changed the integrated runner SHA and invalidated its existing
   preflight. `DF-044` restores that runner byte-for-byte and confines optional
   scene injection to the isolated calibration runner.
+- Publication correction: an inline Markdown PR body allowed shell backticks
+  to execute local CI and attempt the matrix command. The SSH connection failed
+  before remote execution, and a fresh Brev query confirmed the retained L4
+  remained `STOPPED`. `DF-045` requires `--body-file` for future PR Markdown.
 - Next paid command, only after review/merge, a fresh matching quote, and
   explicit approval:
 

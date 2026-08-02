@@ -151,6 +151,11 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         self.assertEqual(tested_object[4], "RESOLVED")
         self.assertIn("source SHA", tested_object[3])
         self.assertIn("byte-identical", tested_object[6])
+        publication = next(row for row in self.rows if row[0] == "DF-045")
+        self.assertEqual(publication[4], "RESOLVED")
+        self.assertIn("Backticks", publication[3])
+        self.assertIn("--body-file", publication[6])
+        self.assertIn("STOPPED", publication[3])
 
     def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
         wrapper = next(row for row in self.rows if row[0] == "DF-031")

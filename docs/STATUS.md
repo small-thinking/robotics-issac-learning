@@ -33,17 +33,18 @@
   sufficient repair; the offline causal audit then found that the accepted
   isolated candidate entered through a 12-degree `90 -> 78 -> 66` path, not
   the direct 24-degree `90 -> 66` DF-039 path, and that the old pass did not
-  bind the post-refactor shared runtime source bundle; 44 historical failure,
+  bind the post-refactor shared runtime source bundle; 45 historical failure,
   falsification, partial-fix, and
   operational cases are consolidated in
   `experiments/02_dofbot/FAILURE_LEDGER.md`; no new paid discriminator is
   selected; the next paid gate is the fail-fast A/B/C context-transfer matrix,
   and both integrated pre-grasp wrappers now reject execution until that
-  source-bound evidence is promoted; 44 ledger cases now include two local
-  CI failures caught and resolved during this audit; Viewer remains blocked
+  source-bound evidence is promoted; 45 ledger cases now include the local
+  CI and publication failures caught and resolved during this audit; Viewer
+  remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-08-01 20:51 PDT after the offline context audit
+- Instance state: `STOPPED`, re-verified with `brev ls --all --json` after the
+  PR-publication quoting error attempted SSH but before any remote command
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
