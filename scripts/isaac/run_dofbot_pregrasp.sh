@@ -7,6 +7,7 @@ scene_config="${DOFBOT_PREGRASP_SCENE_CONFIG:-${REACHING:-configs/dofbot/reachin
 pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_angled_pregrasp.json}}"
 actuator_config="${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-${GRAVITY_FEED_FORWARD_DIAGNOSTIC:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}}"
 actuator_result="${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}"
+preflight_contract="${DOFBOT_PREGRASP_PREFLIGHT_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_command_space_contract.json}"
 output="${DOFBOT_PREGRASP_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_machine_contract.json}"
 isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"
 
@@ -29,6 +30,7 @@ printf -v quoted_scene_config '%q' "$scene_config"
 printf -v quoted_pose_config '%q' "$pose_config"
 printf -v quoted_actuator_config '%q' "$actuator_config"
 printf -v quoted_actuator_result '%q' "$actuator_result"
+printf -v quoted_preflight_contract '%q' "$preflight_contract"
 printf -v quoted_output '%q' "$output"
 printf -v quoted_isaac_python '%q' "$isaac_python"
 
@@ -38,6 +40,18 @@ mkdir -p \"\$(dirname $quoted_output)\"
 git_commit=\"\$(git -C $quoted_project_dir rev-parse HEAD)\"
 rm -f $quoted_output
 set +e
+pregrasp_exit_code=0
+if [[ ! -x $quoted_isaac_python ]]; then
+  printf '[PREGRASP GPU PREFLIGHT] FAIL: Isaac Python is not executable: %s\n' \
+    $quoted_isaac_python >&2
+  pregrasp_exit_code=126
+else
+  $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_gpu_preflight.py \
+    --contract $quoted_preflight_contract \
+    --project-dir $quoted_project_dir
+  pregrasp_exit_code=\"\$?\"
+fi
+if [[ \"\$pregrasp_exit_code\" -eq 0 ]]; then
 ./isaaclab.sh -p $quoted_project_dir/tools/run_dofbot_pregrasp.py \
   --asset-contract $quoted_asset_contract \
   --scene-config $quoted_scene_config \
@@ -51,17 +65,14 @@ set +e
   --device cpu \
   --headless
 pregrasp_exit_code=\"\$?\"
+fi
 if [[ \"\$pregrasp_exit_code\" -eq 0 ]]; then
-  if [[ ! -x $quoted_isaac_python ]]; then
-    printf '[PREGRASP CONTRACT] FAIL: Isaac Python is not executable: %s\\n' \
-      $quoted_isaac_python >&2
-    pregrasp_exit_code=126
-  else
-    $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
-      --contract $quoted_output \
-      --expected-git-commit \"\$git_commit\"
-    pregrasp_exit_code=\"\$?\"
-  fi
+  $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_machine_contract.py \
+    --contract $quoted_output \
+    --expected-git-commit \"\$git_commit\" \
+    --preflight-contract $quoted_preflight_contract \
+    --project-dir $quoted_project_dir
+  pregrasp_exit_code=\"\$?\"
 fi
 set -e
 printf '[PREGRASP_EXIT_CODE] %s\\n' \"\$pregrasp_exit_code\"

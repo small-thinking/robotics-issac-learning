@@ -288,6 +288,16 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             self.run_script,
         )
         self.assertIn(
+            "verify_dofbot_pregrasp_gpu_preflight.py",
+            self.run_script,
+        )
+        self.assertIn("pregrasp_command_space_contract.json", self.run_script)
+        self.assertIn("--preflight-contract", self.run_script)
+        self.assertLess(
+            self.run_script.index("verify_dofbot_pregrasp_gpu_preflight.py"),
+            self.run_script.index("./isaaclab.sh -p"),
+        )
+        self.assertIn(
             'isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"',
             self.run_script,
         )
@@ -301,6 +311,7 @@ class DofbotPregraspRunnerTest(unittest.TestCase):
             '--expected-git-commit \\"\\$git_commit\\"',
             self.run_script,
         )
+        self.assertIn("--project-dir $quoted_project_dir", self.run_script)
         self.assertIn('transport_exit_code="${PIPESTATUS[0]}"', self.run_script)
         self.assertIn("require_zero_exit_sentinel.sh", self.run_script)
         self.assertIn("--cycles -1", self.view_script)

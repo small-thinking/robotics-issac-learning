@@ -33,3 +33,6 @@ jobs:
 
       - name: Run CPU-only quality gate
         run: make ci-cpu
+
+      - name: Verify generators did not mutate tracked evidence
+        run: git diff --exit-code

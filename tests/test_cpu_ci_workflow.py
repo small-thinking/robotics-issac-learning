@@ -20,6 +20,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
         self.assertIn("runs-on: ubuntu-24.04", workflow)
         self.assertIn("timeout-minutes: 20", workflow)
         self.assertIn("run: make ci-cpu", workflow)
+        self.assertIn("run: git diff --exit-code", workflow)
         self.assertNotIn("self-hosted", workflow)
 
         action_references = re.findall(r"uses:\s+[^@\s]+@([^\s]+)", workflow)
@@ -35,6 +36,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
             "dofbot-reach-dry-run",
             "dofbot-pregrasp-dry-run",
             "dofbot-pregrasp-pose-dry-run",
+            "dofbot-gpu-preflight",
             "dofbot-pregrasp-reachability",
             "dofbot-pregrasp-taskspace",
             "dofbot-actuator-calibration-dry-run",
@@ -54,6 +56,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
         self.assertIn("ruff 0.15.0", script)
         self.assertIn("uvx --from ruff==0.15.0", script)
         self.assertIn("python -m compileall", script)
+        self.assertIn("bash -n", script)
         self.assertIn("python -m json.tool", script)
         self.assertIn("pregrasp_command_space_contract.json", script)
         self.assertIn('export UV_TOOL_DIR="${UV_TOOL_DIR:-$ci_tmp_dir/uv-tools}"', script)
