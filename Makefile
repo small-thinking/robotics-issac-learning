@@ -7,6 +7,7 @@ SHELL := /bin/bash
 	dofbot-camera dofbot-camera-view \
 	dofbot-reach-dry-run dofbot-pregrasp-dry-run dofbot-reach dofbot-reach-view \
 	dofbot-pregrasp-pose-dry-run dofbot-pregrasp-reachability \
+	dofbot-gpu-preflight \
 	dofbot-pregrasp-taskspace dofbot-actuator-calibration-dry-run \
 	dofbot-actuator-calibration dofbot-solver-drive-dry-run \
 	dofbot-solver-drive dofbot-drive-model-dry-run dofbot-drive-model \
@@ -119,6 +120,12 @@ dofbot-pregrasp-pose-dry-run:
 	 --actuator-config "$${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}" \
 	 --actuator-result "$${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}" \
 	 --output "$${DOFBOT_PREGRASP_POSE_OUTPUT:-/tmp/dofbot-pregrasp-pose-contract.json}"
+
+dofbot-gpu-preflight:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/verify_dofbot_pregrasp_gpu_preflight.py \
+	 --contract "$${DOFBOT_PREGRASP_PREFLIGHT_CONTRACT:-artifacts/dofbot/pregrasp_command_space_contract.json}" \
+	 --project-dir .
 
 dofbot-pregrasp-reachability:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

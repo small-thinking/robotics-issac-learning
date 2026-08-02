@@ -41,6 +41,11 @@ make test
 printf '[cpu-ci] Python compilation\n'
 uv run --python 3.12 python -m compileall -q tools tests
 
+printf '[cpu-ci] Shell syntax\n'
+while IFS= read -r script; do
+  bash -n "$script"
+done < <(find scripts tests -type f -name '*.sh' -print | sort)
+
 printf '[cpu-ci] Phase 2 deterministic contracts\n'
 make study-validate
 make study-matrix >"$ci_tmp_dir/phase2-matrix.txt"
@@ -54,6 +59,7 @@ make dofbot-motion-config-dry-run
 make dofbot-reach-dry-run
 make dofbot-pregrasp-dry-run
 make dofbot-pregrasp-pose-dry-run
+make dofbot-gpu-preflight
 make dofbot-pregrasp-reachability
 make dofbot-pregrasp-taskspace
 make dofbot-actuator-calibration-dry-run

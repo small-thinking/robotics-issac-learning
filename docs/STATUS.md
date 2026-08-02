@@ -1436,12 +1436,33 @@ Contact, closing, grasping, lifting, and placing remain unauthorized.
 - Coverage: pinned Ruff, the complete local test suite, Python compilation,
   Phase 2 config validation, all deterministic DOFBOT previews and offline
   analyses available from the checkout, JSON parsing, and byte-for-byte
-  regeneration of the accepted pre-grasp command-space contract. The one
-  analysis backed by deliberately ignored raw Isaac samples is fully replayed
-  when those samples exist; a clean runner instead audits the promoted result's
+  regeneration of the accepted pre-grasp command-space contract. Analyses
+  backed by deliberately ignored raw Isaac samples are fully replayed when
+  those samples exist; a clean runner instead audits each promoted result's
   config, upstream-result, SHA-256, and byte-count bindings.
 - Isolation: generated outputs and caches stay in a temporary directory, so CI
   neither rewrites tracked evidence nor needs Brev credentials.
 - Boundary: this gate does not claim Isaac USD loading, PhysX articulation,
   live residual/force behavior, GPU rendering, or Viewer acceptance. Those
   remain remote machine and human-visual gates.
+
+## DF-038 GPU-admission and machine-contract hardening
+
+- The previous final verifier accepted a minimal JSON containing only a
+  matching commit, `machine_passed=true`, and an empty failed-check list. It
+  did not require the 37 runtime safety/telemetry checks or prove that the
+  machine used the CPU-reviewed DF-035 input bundle.
+- A new pure-Python GPU preflight verifies seven source-file hashes, all 27
+  local checks, the exact single 2000-ms command boundary and derivative
+  envelope, actuator settings, collision mutations, and prohibited scope.
+- `make dofbot-pregrasp` now executes that verifier with Isaac's installed
+  Python before launching Isaac. A mismatch emits the existing nonzero
+  sentinel without running the simulator.
+- The post-run verifier now requires the exact 37-check set, strict booleans,
+  complete and aligned observations/telemetry, 12 API calls, numeric gate
+  coherence, source hashes, the exact motion contract, policy-free scope, and
+  visual acceptance still pending.
+- GitHub CPU coverage also includes mutation tests for every preflight/runtime
+  check, a dense cubic-trajectory derivative grid, all shell syntax, and a
+  post-generation clean tracked-worktree check. This raises software-admission
+  confidence but does not alter or claim the unresolved DF-035 PhysX result.

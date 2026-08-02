@@ -89,6 +89,7 @@ make eval       # fixed-seed random/trained evaluation; exact checkpoint require
 make learning-curve # fixed-seed sweep over numbered checkpoints and SVG plot
 make dofbot-inspect # policy-free DOFBOT USD load and asset contract
 make dofbot-view # stationary DOFBOT in the secure Viewer
+make dofbot-gpu-preflight # verify the exact DF-035 input bundle without Isaac
 make study-validate # validate the Phase 2 variants and 27-cell run matrix
 make study-matrix # print every planned/reused Phase 2 training cell
 make show-variant # preview one variant's train/eval Hydra overrides
@@ -124,6 +125,14 @@ regressions without spending GPU time. It cannot load Isaac Sim or the official
 USD, initialize PhysX articulation, measure live joint tracking or force
 telemetry, or provide Viewer acceptance. Those remain separate paid-machine
 gates.
+
+Before the next headless machine command, `make dofbot-gpu-preflight` verifies
+all seven exact input files by SHA-256, all 27 local admission checks, the
+single 2000-ms `[90,66,66,66]` boundary, its `18 deg/s` and `36 deg/s2`
+derivative limits, collision mutations, actuator settings, and forbidden
+scope. The remote wrapper repeats this check with Isaac's installed Python
+before launching Isaac, then validates a successful machine artifact against
+all 37 runtime checks and the same input bundle.
 
 ## Project records
 

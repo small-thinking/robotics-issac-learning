@@ -651,6 +651,54 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             600.0,
         )
 
+    def test_cubic_smoothstep_derivatives_hold_across_offline_grid(self) -> None:
+        for delta in (-56.0, -24.0, -4.0, 0.0, 4.0, 24.0, 56.0):
+            for duration in (0.2, 0.5, 2.0, 4.0):
+                with self.subTest(delta=delta, duration=duration):
+                    start = (90.0, 90.0, 90.0, 90.0)
+                    goal = (90.0, 90.0 + delta, 90.0 - delta, 90.0)
+                    contract = cubic_smoothstep_motion_contract(
+                        start_angles_deg=start,
+                        goal_angles_deg=goal,
+                        duration_s=duration,
+                    )
+                    sampled_velocities = []
+                    sampled_accelerations = []
+                    for sample_index in range(1001):
+                        elapsed = duration * sample_index / 1000.0
+                        velocity, acceleration = cubic_smoothstep_motion_state(
+                            start_angles_deg=start,
+                            goal_angles_deg=goal,
+                            duration_s=duration,
+                            elapsed_s=elapsed,
+                        )
+                        sampled_velocities.append(velocity)
+                        sampled_accelerations.append(acceleration)
+
+                    for joint_index in range(4):
+                        peak_velocity = contract["peak_velocity_deg_s"][joint_index]
+                        peak_acceleration = contract[
+                            "peak_acceleration_deg_s2"
+                        ][joint_index]
+                        self.assertLessEqual(
+                            max(abs(row[joint_index]) for row in sampled_velocities),
+                            peak_velocity + 1e-9,
+                        )
+                        self.assertLessEqual(
+                            max(abs(row[joint_index]) for row in sampled_accelerations),
+                            peak_acceleration + 1e-9,
+                        )
+                        self.assertAlmostEqual(
+                            abs(sampled_velocities[500][joint_index]),
+                            peak_velocity,
+                        )
+                        self.assertAlmostEqual(
+                            abs(sampled_accelerations[0][joint_index]),
+                            peak_acceleration,
+                        )
+                        self.assertEqual(sampled_velocities[-1][joint_index], 0.0)
+                        self.assertEqual(sampled_accelerations[-1][joint_index], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
