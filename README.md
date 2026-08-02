@@ -97,6 +97,7 @@ make status     # show Brev instance state
 make stop       # stop, but never delete, the configured instance
 make show-train # print the exact remote training command without running it
 make show-eval  # print the exact evaluation commands without running them
+make ci-cpu     # run the same deterministic CPU-only gate used by GitHub Actions
 ```
 
 Set `BREV_INSTANCE_NAME` to the exact active instance name. Training and
@@ -105,6 +106,21 @@ skrl PPO configuration. `ISAAC_MAX_ITERATIONS` is empty by default so the
 installed task config controls the training horizon; set it only for an
 intentional bounded experiment. Set `ISAAC_CHECKPOINT` to an exact checkpoint
 path before `make eval`.
+
+## CPU quality gate
+
+Every pull request and push to `main` runs `make ci-cpu` on a standard Linux
+CPU runner. The gate runs Ruff, the full local test suite, Python bytecode
+compilation, Phase 2 config validation, and every deterministic DOFBOT preview
+or offline-analysis target. Generated JSON is written to an isolated temporary
+directory and parsed again; the accepted pre-grasp command-space contract is
+also regenerated and compared byte-for-byte with the tracked artifact.
+
+This gate catches repository, config, unit/sign, contract, and remote-wrapper
+regressions without spending GPU time. It cannot load Isaac Sim or the official
+USD, initialize PhysX articulation, measure live joint tracking or force
+telemetry, or provide Viewer acceptance. Those remain separate paid-machine
+gates.
 
 ## Project records
 

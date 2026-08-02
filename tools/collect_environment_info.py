@@ -44,7 +44,9 @@ def collect() -> dict[str, Any]:
 
     return {
         "platform": platform.platform(),
-        "os_release": command_output(["bash", "-lc", ". /etc/os-release && printf '%s' \"$PRETTY_NAME\""]),
+        "os_release": command_output(
+            ["bash", "-lc", ". /etc/os-release && printf '%s' \"$PRETTY_NAME\""]
+        ),
         "python": sys.version.split()[0],
         "executable": sys.executable,
         "gpu": command_output(

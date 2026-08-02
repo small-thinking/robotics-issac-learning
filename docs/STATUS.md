@@ -1427,3 +1427,18 @@ Contact, closing, grasping, lifting, and placing remain unauthorized.
 - Resource lifecycle: stop was requested after retrieval; explicit `STOPPED`
   was verified at 16:29:26 PDT. No instance/disk was created, deleted, resized,
   or reset. Viewer remains blocked pending a later machine pass.
+
+## CPU-only GitHub quality gate
+
+- Entry point: `make ci-cpu`, shared by local development and GitHub Actions.
+- Trigger: every pull request, every push to `main`, and manual dispatch on a
+  standard Ubuntu CPU runner with read-only repository permissions.
+- Coverage: pinned Ruff, the complete local test suite, Python compilation,
+  Phase 2 config validation, all deterministic DOFBOT previews and offline
+  analyses, JSON parsing, and byte-for-byte regeneration of the accepted
+  pre-grasp command-space contract.
+- Isolation: generated outputs and caches stay in a temporary directory, so CI
+  neither rewrites tracked evidence nor needs Brev credentials.
+- Boundary: this gate does not claim Isaac USD loading, PhysX articulation,
+  live residual/force behavior, GPU rendering, or Viewer acceptance. Those
+  remain remote machine and human-visual gates.

@@ -23,7 +23,7 @@ SHELL := /bin/bash
 	show-dofbot-gravity-feed-forward \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
-	show-variant show-manifest show-study-run test
+	show-variant show-manifest show-study-run test ci-cpu
 
 doctor:
 	@./scripts/local/doctor.sh
@@ -312,3 +312,6 @@ test:
 	@./tests/test_remote_command_preview.sh
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
 	 uv run --python 3.12 python -m unittest discover -s tests -p "test_*.py"
+
+ci-cpu:
+	@./scripts/local/run_cpu_ci.sh
