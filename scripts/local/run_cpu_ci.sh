@@ -23,6 +23,7 @@ export DOFBOT_ACTUATOR_CALIBRATION_PLAN="$ci_tmp_dir/dofbot-actuator-calibration
 export DOFBOT_SOLVER_DRIVE_PLAN="$ci_tmp_dir/dofbot-solver-drive-plan.json"
 export DOFBOT_DRIVE_MODEL_PLAN="$ci_tmp_dir/dofbot-drive-model-plan.json"
 export DOFBOT_VELOCITY_REANALYSIS="$ci_tmp_dir/dofbot-velocity-reanalysis.json"
+export DOFBOT_VELOCITY_EVIDENCE_AUDIT="$ci_tmp_dir/dofbot-velocity-evidence-audit.json"
 export DOFBOT_RESIDUAL_FORCE_AUDIT="$ci_tmp_dir/dofbot-residual-force-audit.json"
 export DOFBOT_GRAVITY_FEED_FORWARD_PLAN="$ci_tmp_dir/dofbot-gravity-feed-forward-plan.json"
 
@@ -57,7 +58,24 @@ make dofbot-pregrasp-taskspace
 make dofbot-actuator-calibration-dry-run
 make dofbot-solver-drive-dry-run
 make dofbot-drive-model-dry-run
-make dofbot-actuator-velocity-reanalysis
+velocity_input_dir="${ACTUATOR_CALIBRATION_CASES:-artifacts/dofbot/actuator_calibration_cases}"
+velocity_sources=(
+  "$velocity_input_dir/gravity_off_effort_100.json"
+  "$velocity_input_dir/gravity_on_effort_100.json"
+  "$velocity_input_dir/gravity_on_effort_250.json"
+)
+velocity_sources_available=true
+for source in "${velocity_sources[@]}"; do
+  if [[ ! -f "$source" ]]; then
+    velocity_sources_available=false
+  fi
+done
+if [[ "$velocity_sources_available" == true ]]; then
+  make dofbot-actuator-velocity-reanalysis
+else
+  printf '[cpu-ci] Raw velocity payloads are intentionally untracked; full replay skipped\n'
+fi
+make dofbot-actuator-velocity-evidence-audit
 make dofbot-residual-force-audit
 make dofbot-gravity-feed-forward-dry-run
 

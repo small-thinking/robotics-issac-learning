@@ -41,6 +41,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
             "dofbot-solver-drive-dry-run",
             "dofbot-drive-model-dry-run",
             "dofbot-actuator-velocity-reanalysis",
+            "dofbot-actuator-velocity-evidence-audit",
             "dofbot-residual-force-audit",
             "dofbot-gravity-feed-forward-dry-run",
         )
@@ -55,6 +56,8 @@ class CpuCiWorkflowTests(unittest.TestCase):
         self.assertIn("python -m json.tool", script)
         self.assertIn("pregrasp_command_space_contract.json", script)
         self.assertIn('export UV_TOOL_DIR="${UV_TOOL_DIR:-$ci_tmp_dir/uv-tools}"', script)
+        self.assertIn("ACTUATOR_CALIBRATION_CASES", script)
+        self.assertIn("Raw velocity payloads are intentionally untracked", script)
 
     def test_cpu_entry_point_cannot_start_paid_or_isaac_runtime_work(self) -> None:
         script = SCRIPT.read_text()

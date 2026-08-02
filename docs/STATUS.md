@@ -1435,8 +1435,11 @@ Contact, closing, grasping, lifting, and placing remain unauthorized.
   standard Ubuntu CPU runner with read-only repository permissions.
 - Coverage: pinned Ruff, the complete local test suite, Python compilation,
   Phase 2 config validation, all deterministic DOFBOT previews and offline
-  analyses, JSON parsing, and byte-for-byte regeneration of the accepted
-  pre-grasp command-space contract.
+  analyses available from the checkout, JSON parsing, and byte-for-byte
+  regeneration of the accepted pre-grasp command-space contract. The one
+  analysis backed by deliberately ignored raw Isaac samples is fully replayed
+  when those samples exist; a clean runner instead audits the promoted result's
+  config, upstream-result, SHA-256, and byte-count bindings.
 - Isolation: generated outputs and caches stay in a temporary directory, so CI
   neither rewrites tracked evidence nor needs Brev credentials.
 - Boundary: this gate does not claim Isaac USD loading, PhysX articulation,

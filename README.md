@@ -112,9 +112,12 @@ path before `make eval`.
 Every pull request and push to `main` runs `make ci-cpu` on a standard Linux
 CPU runner. The gate runs Ruff, the full local test suite, Python bytecode
 compilation, Phase 2 config validation, and every deterministic DOFBOT preview
-or offline-analysis target. Generated JSON is written to an isolated temporary
-directory and parsed again; the accepted pre-grasp command-space contract is
-also regenerated and compared byte-for-byte with the tracked artifact.
+or offline-analysis target available from a clean checkout. Generated JSON is
+written to an isolated temporary directory and parsed again; the accepted
+pre-grasp command-space contract is also regenerated and compared byte-for-byte
+with the tracked artifact. Large ignored Isaac samples are replayed when
+present; on GitHub, their promoted analysis is instead checked against the
+tracked SHA-256 and byte-count bindings.
 
 This gate catches repository, config, unit/sign, contract, and remote-wrapper
 regressions without spending GPU time. It cannot load Isaac Sim or the official

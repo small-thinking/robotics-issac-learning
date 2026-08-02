@@ -11,6 +11,7 @@ SHELL := /bin/bash
 	dofbot-actuator-calibration dofbot-solver-drive-dry-run \
 	dofbot-solver-drive dofbot-drive-model-dry-run dofbot-drive-model \
 	dofbot-actuator-velocity-reanalysis dofbot-residual-force-audit \
+	dofbot-actuator-velocity-evidence-audit \
 	dofbot-gravity-feed-forward-dry-run dofbot-gravity-feed-forward \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
@@ -169,6 +170,14 @@ dofbot-actuator-velocity-reanalysis:
 	 --remote-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
 	 --input-dir "$${ACTUATOR_CALIBRATION_CASES:-artifacts/dofbot/actuator_calibration_cases}" \
 	 --output "$${DOFBOT_VELOCITY_REANALYSIS:-artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json}"
+
+dofbot-actuator-velocity-evidence-audit:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/audit_dofbot_velocity_reanalysis_evidence.py \
+	 --config "$${SOLVER_DRIVE_DIAGNOSTIC:-configs/dofbot/calibration/goal5_solver_drive_diagnostic.json}" \
+	 --remote-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
+	 --reanalysis "$${DOFBOT_VELOCITY_EVIDENCE_INPUT:-artifacts/dofbot/actuator_velocity_reanalysis_2026-07-30.json}" \
+	 --output "$${DOFBOT_VELOCITY_EVIDENCE_AUDIT:-/tmp/dofbot-velocity-evidence-audit.json}"
 
 dofbot-residual-force-audit:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
