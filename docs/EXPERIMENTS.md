@@ -2225,3 +2225,51 @@
 - Resource lifecycle: evidence retrieval preceded stop. Explicit `STOPPED` was
   verified at 16:29:26 PDT; no instance or disk was created, deleted, resized,
   or reset. Viewer never ran and remains blocked.
+
+## 2026-08-01 — DF-035 single-boundary hypothesis falsified remotely
+
+- Pre-run gate: PR #47 was merged at `main@2e7f7aa`; the local and remote GPU
+  admission verifier passed the exact seven-source, 27-check DF-035 bundle.
+  The retained `isaac-launchable-f150a5` (`92xbacz46`) matched AWS
+  `g6.4xlarge`, NVIDIA L4, `23034 MiB`, and the fresh `$1.58784/hour` quote.
+- Commands:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    PROJECT_GIT_BRANCH=main make sync
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp
+  ```
+
+- Single factor: one `[90,66,66,66] / 2000 ms` API boundary replaced the old
+  segmented 200-ms candidate commands. Scene, actuator force `1048/53/100`,
+  effort limit, solver, bounded native-Warp gravity feed-forward, collision,
+  safety, and acceptance thresholds remained fixed.
+- Result: **failed 2/37 checks**. Final observed joints were
+  `[90.008511,68.467499,70.196145,67.246695] degrees`; maximum tracking error
+  was `4.196145 degrees > 1 degree`, and position error was
+  `0.0318115 m > 0.025 m`. The previous values were `4.177019 degrees` and
+  `0.0318089 m`, so there was no scientifically material improvement.
+- Passed evidence: 12/12 API calls; exact backend target; live target-buffer
+  error `0.000000668 degrees`; motion peaks
+  `18.000943 degrees/s / 36.001886 degrees/s2` inside `20/60`; approach
+  `7.91749 degrees`; closing `0.33937 degrees`; 61 aligned projected-force/PD
+  observations; 900 finite gravity samples; zero clipping; zero contact;
+  static target; and `0.002216-degree` neutral reset.
+- Decision: `DF-039` **FALSIFIED** the claim that segmented/fast trajectory
+  execution was the sufficient cause of the loaded task residual. Do not
+  repeat trajectory-duration tuning. First compare the passing isolated
+  calibration with the failing integrated task context offline and select one
+  new discriminator.
+- Verifier follow-up: real observation zero differed from ideal neutral by at
+  most `0.0023 degrees`, making the recorded analytic peaks slightly different
+  from the theoretical dictionary. `DF-040` repairs the latent false-reject
+  path by binding the start to observation zero, recomputing the motion math,
+  and enforcing the unchanged one-degree neutral and `20/60` derivative gates.
+  No controller or scene factor changed.
+- Evidence: ignored raw artifact 2,283,434 bytes, SHA-256
+  `62edc78fa2491ac07670222cac093f92e0e0c90e5974743bd627c68d2fdddbd3`;
+  tracked promotion
+  `artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json`.
+- Lifecycle: Viewer never started. Evidence retrieval preceded stop;
+  `brev ls --all --json` confirmed explicit `STOPPED`. The instance and disk
+  were retained, and no resource was created, deleted, resized, or reset.

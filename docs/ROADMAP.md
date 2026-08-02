@@ -167,8 +167,11 @@ The detailed first-stage contract lives in
    pre-grasp now passes: the machine evidence and config are SHA-bound, the
    live drive and three APIs are probed before motion, the native-Warp setter
    is shared with calibration, and failures are classified in the artifact.
-   After review, merge, a fresh quote, and approval, the next gate is the
-   separate headless pre-grasp machine run. Viewer, wrist
+   The separate single-boundary headless run is now complete and reproduced
+   the approximately 4.2-degree integrated tracking residual, falsifying
+   trajectory segmentation as a sufficient repair. The next gate is a
+   GPU-free comparison of the passing isolated calibration and failing task
+   contexts, followed by one explicitly selected discriminator. Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

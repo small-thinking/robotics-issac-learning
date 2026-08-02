@@ -13,7 +13,7 @@ learning narrative.
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
 | [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
-| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; projected-force telemetry and the remote verifier passed while the 4.177° residual remained. [DF-035 locally replaces the unsafe 200-ms segmented trajectory with one accepted 2000-ms API boundary; machine validation and Viewer remain blocked](02_dofbot/FAILURE_LEDGER.md) |
+| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; the single 2000-ms DF-035 boundary reproduced a 4.196° residual, falsifying trajectory-only repair. [Offline isolated-vs-integrated context comparison is next; no new paid run or Viewer is authorized](02_dofbot/FAILURE_LEDGER.md) |
 
 Every experiment section should leave:
 

@@ -1626,3 +1626,51 @@ project is a design reference, not the runtime dependency. It used RL-Games
 PPO with state observations and joint-position targets; its sim-to-real bridge
 mapped those targets to servo angles. This stage makes no claim that its policy
 or old OmniIsaacGymEnvs code is compatible with the current Isaac Lab stack.
+
+## DF-035 single-boundary machine discriminator
+
+The merged `main@2e7f7aa` run used the retained
+`isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the
+fresh `$1.58784/hour` quote. The new remote GPU admission gate passed before
+Isaac. The only changed scientific factor was the candidate trajectory: one
+`[90,66,66,66] / 2000 ms` Yahboom pose boundary replaced the old segmented
+200-ms commands. Scene, actuator, feed-forward, solver, safety, and acceptance
+contracts stayed fixed.
+
+The machine result failed only
+`grasp_origin_reached_pregrasp_position` and
+`final_api_joint_tracking_within_tolerance`. The exact API/backend target and
+live target buffer passed, but observed joints settled at
+`[90.008511,68.467499,70.196145,67.246695] degrees`, leaving
+`4.196145 degrees > 1 degree` tracking error and
+`0.0318115 m > 0.025 m` position error. This is essentially unchanged from
+the prior `4.177019 degrees / 0.0318089 m` result, so `DF-039` falsifies the
+trajectory-only hypothesis as a sufficient repair.
+
+All other 35 checks passed: 12/12 API calls, analytic
+`18.000943 degrees/s / 36.001886 degrees/s2` peaks inside the unchanged
+`20/60` envelope, approach and closing gates, target-buffer alignment,
+61/61 projected-force and PD-estimate observations, 900 bounded gravity
+samples with no clipping, collision clearance, zero contact, static target,
+and `0.002216-degree` neutral reset. The semantic verifier emitted sentinel 1
+and outer Make failed as intended. Viewer did not start.
+
+The raw 2,283,434-byte artifact is retained locally at
+`artifacts/dofbot/pregrasp_df035_single_boundary_raw_2026-08-01.json`,
+SHA-256
+`62edc78fa2491ac07670222cac093f92e0e0c90e5974743bd627c68d2fdddbd3`;
+the tracked promotion is
+`artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json`.
+The run also exposed `DF-040`: exact comparison with an ideal 90-degree start
+would reject the real, self-consistent motion because observation zero was
+within `0.0023 degrees`, not byte-identical. The local verifier now binds the
+start to observation zero, enforces the one-degree neutral gate, recomputes
+all derivatives, and retains the `20/60` safety envelope.
+
+The artifact was retrieved before stop, and `brev ls --all --json` confirmed
+the retained instance explicit `STOPPED`; no instance or disk was created,
+deleted, resized, or reset. There is no next paid run yet. The next free step
+is a controlled offline comparison of the successful isolated calibration
+and failed integrated task contexts, followed by one newly named ledger
+discriminator. Viewer, contact, gripper, grasp, lift, place, hardware, policy,
+and checkpoint remain blocked.

@@ -59,7 +59,9 @@ def passing_contract(preflight: dict[str, object]) -> dict[str, object]:
             "actuator_runtime": actuator,
         },
         "measurement": {
-            "observations": [{"step_index": 1}],
+            "observations": [
+                {"step_index": 0, "angles_deg": motion["start_angles_deg"]}
+            ],
             "gravity_feed_forward_samples": [{"step_index": 1}],
             "gravity_feed_forward": {
                 "sample_count": 1,
@@ -159,6 +161,64 @@ class DofbotPregraspContractVerifierTest(unittest.TestCase):
 
     def test_accepts_complete_matching_machine_pass(self) -> None:
         self.verify(passing_contract(self.preflight))
+
+    def test_accepts_measured_neutral_noise_with_self_consistent_safe_motion(self) -> None:
+        contract = passing_contract(self.preflight)
+        start = [90.00221148197618, 89.99992066195443, 89.99968515554332, 90.00125732958287]
+        goal = [90.0, 66.0, 66.0, 66.0]
+        duration = 2.0
+        delta = [target - value for value, target in zip(start, goal, strict=True)]
+        velocity = [1.5 * abs(value) / duration for value in delta]
+        acceleration = [6.0 * abs(value) / (duration * duration) for value in delta]
+        motion = {
+            "profile": "cubic_smoothstep_3u2_minus_2u3",
+            "start_angles_deg": start,
+            "goal_angles_deg": goal,
+            "duration_s": duration,
+            "delta_angles_deg": delta,
+            "peak_velocity_deg_s": velocity,
+            "peak_acceleration_deg_s2": acceleration,
+            "maximum_peak_velocity_deg_s": max(velocity),
+            "maximum_peak_acceleration_deg_s2": max(acceleration),
+        }
+        contract["measurement"]["observations"][0]["angles_deg"] = start  # type: ignore[index]
+        contract["acceptance"]["machine"][  # type: ignore[index]
+            "candidate_backend_motion_contract"
+        ] = motion
+        self.verify(contract)
+
+    def test_rejects_motion_start_drift_and_inconsistent_derivatives(self) -> None:
+        def set_outside_neutral(value: dict[str, object]) -> None:
+            start = value["acceptance"]["machine"][  # type: ignore[index]
+                "candidate_backend_motion_contract"
+            ]["start_angles_deg"]
+            start[0] = 88.0
+            value["measurement"]["observations"][0]["angles_deg"] = start  # type: ignore[index]
+
+        mutations = (
+            (
+                "observation_mismatch",
+                lambda value: value["measurement"]["observations"][0].__setitem__(  # type: ignore[index]
+                    "angles_deg", [90.1, 90.0, 90.0, 90.0]
+                ),
+            ),
+            (
+                "outside_neutral_gate",
+                set_outside_neutral,
+            ),
+            (
+                "forged_peak",
+                lambda value: value["acceptance"]["machine"][  # type: ignore[index]
+                    "candidate_backend_motion_contract"
+                ]["peak_velocity_deg_s"].__setitem__(1, 19.0),
+            ),
+        )
+        for name, mutate in mutations:
+            with self.subTest(mutation=name):
+                contract = copy.deepcopy(passing_contract(self.preflight))
+                mutate(contract)
+                with self.assertRaises(PregraspContractVerificationError):
+                    self.verify(contract)
 
     def test_expected_check_set_matches_all_runner_producers(self) -> None:
         pose = _explicit_check_keys(

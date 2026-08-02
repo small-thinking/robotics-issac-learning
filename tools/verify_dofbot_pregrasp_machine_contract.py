@@ -76,6 +76,9 @@ EXPECTED_MACHINE_SCOPE = {
     "contact_authorized": False,
     "policy_or_checkpoint_loaded": False,
 }
+MAXIMUM_INITIAL_NEUTRAL_ERROR_DEG = 1.0
+MAXIMUM_TRAJECTORY_VELOCITY_DEG_S = 20.0
+MAXIMUM_TRAJECTORY_ACCELERATION_DEG_S2 = 60.0
 
 
 def load_contract(path: Path) -> dict[str, Any]:
@@ -122,6 +125,129 @@ def _require_at_most(value: Any, maximum: float, label: str) -> None:
         raise PregraspContractVerificationError(
             f"{label}={number} exceeds {maximum}"
         )
+
+
+def _require_vector_close(
+    actual: Any,
+    expected: list[float],
+    *,
+    tolerance: float,
+    label: str,
+) -> list[float]:
+    values = _finite_vector(actual, len(expected), label)
+    if any(
+        not math.isclose(value, target, rel_tol=0.0, abs_tol=tolerance)
+        for value, target in zip(values, expected, strict=True)
+    ):
+        raise PregraspContractVerificationError(
+            f"{label} differs from the expected values"
+        )
+    return values
+
+
+def _verify_machine_motion_contract(
+    motion_value: Any,
+    *,
+    expected_motion: dict[str, Any],
+    initial_observation: dict[str, Any],
+) -> list[float]:
+    motion = _object(motion_value, "candidate_backend_motion_contract")
+    if motion.get("profile") != expected_motion.get("profile"):
+        raise PregraspContractVerificationError(
+            "machine backend motion profile differs from DF-035 preflight"
+        )
+    duration = _finite_number(motion.get("duration_s"), "motion duration")
+    expected_duration = _finite_number(
+        expected_motion.get("duration_s"), "preflight motion duration"
+    )
+    if duration != expected_duration:
+        raise PregraspContractVerificationError(
+            "machine backend motion duration differs from DF-035 preflight"
+        )
+
+    expected_start = _finite_vector(
+        expected_motion.get("start_angles_deg"), 4, "preflight motion start"
+    )
+    expected_goal = _finite_vector(
+        expected_motion.get("goal_angles_deg"), 4, "preflight motion goal"
+    )
+    start = _finite_vector(motion.get("start_angles_deg"), 4, "motion start")
+    goal = _require_vector_close(
+        motion.get("goal_angles_deg"),
+        expected_goal,
+        tolerance=1.0e-12,
+        label="motion goal",
+    )
+    _require_vector_close(
+        initial_observation.get("angles_deg"),
+        start,
+        tolerance=1.0e-12,
+        label="initial observation/motion start",
+    )
+    if any(
+        abs(value - neutral) > MAXIMUM_INITIAL_NEUTRAL_ERROR_DEG + 1.0e-12
+        for value, neutral in zip(start, expected_start, strict=True)
+    ):
+        raise PregraspContractVerificationError(
+            "machine motion did not start within one degree of neutral"
+        )
+
+    expected_delta = [target - value for value, target in zip(start, goal, strict=True)]
+    expected_velocity = [1.5 * abs(delta) / duration for delta in expected_delta]
+    expected_acceleration = [
+        6.0 * abs(delta) / (duration * duration) for delta in expected_delta
+    ]
+    _require_vector_close(
+        motion.get("delta_angles_deg"),
+        expected_delta,
+        tolerance=1.0e-9,
+        label="motion delta",
+    )
+    _require_vector_close(
+        motion.get("peak_velocity_deg_s"),
+        expected_velocity,
+        tolerance=1.0e-9,
+        label="motion peak velocity",
+    )
+    _require_vector_close(
+        motion.get("peak_acceleration_deg_s2"),
+        expected_acceleration,
+        tolerance=1.0e-9,
+        label="motion peak acceleration",
+    )
+    maximum_velocity = _finite_number(
+        motion.get("maximum_peak_velocity_deg_s"), "maximum motion velocity"
+    )
+    maximum_acceleration = _finite_number(
+        motion.get("maximum_peak_acceleration_deg_s2"),
+        "maximum motion acceleration",
+    )
+    if not math.isclose(
+        maximum_velocity, max(expected_velocity), rel_tol=0.0, abs_tol=1.0e-9
+    ):
+        raise PregraspContractVerificationError(
+            "maximum motion velocity is inconsistent with per-joint peaks"
+        )
+    if not math.isclose(
+        maximum_acceleration,
+        max(expected_acceleration),
+        rel_tol=0.0,
+        abs_tol=1.0e-9,
+    ):
+        raise PregraspContractVerificationError(
+            "maximum motion acceleration is inconsistent with per-joint peaks"
+        )
+    _require_at_most(
+        maximum_velocity,
+        MAXIMUM_TRAJECTORY_VELOCITY_DEG_S,
+        "maximum motion velocity",
+    )
+    _require_at_most(
+        maximum_acceleration,
+        MAXIMUM_TRAJECTORY_ACCELERATION_DEG_S2,
+        "maximum motion acceleration",
+    )
+    return expected_goal
 
 
 def verify_machine_contract(
@@ -197,14 +323,23 @@ def verify_machine_contract(
             f"failed_checks={failed_checks!r}"
         )
 
-    expected_motion = preflight_contract["solver_probe"][
-        "candidate_backend_motion_contract"
-    ]
-    if machine.get("candidate_backend_motion_contract") != expected_motion:
-        raise PregraspContractVerificationError(
-            "machine backend motion contract differs from DF-035 preflight"
-        )
-    expected_goal = expected_motion["goal_angles_deg"]
+    measurement = _object(contract.get("measurement"), "measurement")
+    observations = measurement.get("observations")
+    gravity_samples = measurement.get("gravity_feed_forward_samples")
+    if not isinstance(observations, list) or not observations:
+        raise PregraspContractVerificationError("machine observations are empty")
+    if not isinstance(gravity_samples, list) or not gravity_samples:
+        raise PregraspContractVerificationError("gravity feed-forward samples are empty")
+    initial_observation = _object(observations[0], "measurement.observations[0]")
+    expected_motion = _object(
+        preflight_contract["solver_probe"]["candidate_backend_motion_contract"],
+        "preflight candidate_backend_motion_contract",
+    )
+    expected_goal = _verify_machine_motion_contract(
+        machine.get("candidate_backend_motion_contract"),
+        expected_motion=expected_motion,
+        initial_observation=initial_observation,
+    )
     control = _object(contract.get("control"), "control")
     required_control = {
         "application_api": "Arm_serial_servo_write(id, angle, time)",
@@ -285,13 +420,6 @@ def verify_machine_contract(
         "final joint position target",
     )
 
-    measurement = _object(contract.get("measurement"), "measurement")
-    observations = measurement.get("observations")
-    gravity_samples = measurement.get("gravity_feed_forward_samples")
-    if not isinstance(observations, list) or not observations:
-        raise PregraspContractVerificationError("machine observations are empty")
-    if not isinstance(gravity_samples, list) or not gravity_samples:
-        raise PregraspContractVerificationError("gravity feed-forward samples are empty")
     gravity = _object(
         measurement.get("gravity_feed_forward"), "measurement.gravity_feed_forward"
     )

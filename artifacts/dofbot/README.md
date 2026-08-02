@@ -345,3 +345,15 @@ The task-space artifact explicitly keeps `gpu_started=false`,
 `viewer_authorized=false`, and `contact_or_grasp_authorized=false`. It is
 local candidate evidence only; future reviewed remote artifacts must establish
 Isaac machine and human Viewer acceptance.
+
+`pregrasp_single_boundary_discriminator_2026-08-01.json` promotes the completed
+`DF-035` machine discriminator and binds the retained ignored 2,283,434-byte
+raw artifact by SHA-256. The exact single 2000-ms `[90,66,66,66]` boundary ran
+with 12/12 API calls and self-consistent `18.000943 degrees/s` and
+`36.001886 degrees/s2` peaks, but the loaded articulation still missed by
+`4.196145 degrees` and `0.0318115 m`. Thirty-five of 37 checks passed;
+tracking and final position alone failed, while contact remained zero. This
+falsifies trajectory segmentation/duration as a sufficient fix (`DF-039`). It
+also records the local `DF-040` verifier repair for the real `0.0023-degree`
+neutral-start noise. Viewer and all contact/grasp scope remain blocked, and
+the retained L4 was explicitly stopped after artifact retrieval.

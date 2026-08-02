@@ -26,23 +26,24 @@
   first integrated machine run passed its actuator gates and exposed repeated
   smoothstep reissue lag; the repaired headless rerun proves no-reissue is
   active but insufficient, with `4.17702°` tracking error and `0.0318089 m`
-  position error; the local follow-up now validates the fresh artifact after
-  the exit-masking launcher and adds target-buffer/torque telemetry; the first
-  approved attempt to collect that discriminator never left the Brev startup
-  layer, so no new controller evidence was produced; 29
-  historical failure, falsification, partial-fix, and operational cases are
-  consolidated in `experiments/02_dofbot/FAILURE_LEDGER.md`, with `DF-028` as
-  the only current unresolved discriminator; Viewer remains blocked
+  position error; later target-buffer and projected-force discriminators
+  proved command propagation and complete telemetry without resolving the
+  residual; the DF-035 single 2000-ms boundary then reproduced
+  `4.196145 degrees / 0.0318115 m`, falsifying trajectory segmentation as a
+  sufficient repair; 40 historical failure, falsification, partial-fix, and
+  operational cases are consolidated in
+  `experiments/02_dofbot/FAILURE_LEDGER.md`; no new paid discriminator is
+  selected until the passing isolated calibration and failed integrated task
+  contexts are compared offline; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified after `brev refresh` with
-  `brev ls --all --json` at 2026-08-01 10:08:11 PDT after the delayed-start
-  safety audit
+- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
+  2026-08-01 19:25 PDT after the DF-035 evidence retrieval
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
-  `$1.58784/hour` compute; rechecked 2026-08-01 before this startup attempt
+  `$1.58784/hour` compute; rechecked 2026-08-01 before the DF-035 run
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1362,14 +1363,12 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and merge the `DF-035` local trajectory
-correction first. A future paid run requires a fresh quote and explicit
-approval, must cite `DF-035`, and may run only one headless discriminator. It
-changes the former segmented 200-ms candidate commands to one 2000-ms Yahboom
-API pose boundary while preserving the scene, target, force `1048/53/100`,
-effort limit, solver settings, bounded gravity feed-forward, safety checks,
-and acceptance thresholds. Retrieve the same task, tracking, target-buffer,
-projected-force, PD-estimate, gravity, contact, API-count, and reset fields.
+Keep the Brev instance stopped. `DF-039` now proves that the merged DF-035
+single-boundary trajectory does not resolve the loaded residual. The next work
+is GPU-free: compare the successful isolated calibration and failed integrated
+task contexts, identify the smallest remaining factor or missing observable,
+and add one new unresolved ledger discriminator. Only after that local gate,
+a fresh quote, and explicit approval may another headless run occur.
 `make dofbot-pregrasp-view` remains blocked until every machine gate passes.
 Contact, closing, grasping, lifting, and placing remain unauthorized.
 
@@ -1466,3 +1465,35 @@ Contact, closing, grasping, lifting, and placing remain unauthorized.
   check, a dense cubic-trajectory derivative grid, all shell syntax, and a
   post-generation clean tracked-worktree check. This raises software-admission
   confidence but does not alter or claim the unresolved DF-035 PhysX result.
+
+## DF-035 single-boundary machine result and DF-040 verifier repair
+
+- Merged `main@2e7f7aa` passed the local and remote 27-check GPU admission gate
+  on the retained `isaac-launchable-f150a5` L4 at `$1.58784/hour`.
+- The single `[90,66,66,66] / 2000 ms` Yahboom candidate boundary executed
+  exactly once; total API accounting was 12/12 and recorded motion peaks were
+  `18.000943 degrees/s / 36.001886 degrees/s2`, inside the unchanged `20/60`
+  envelope.
+- Machine outcome: **failed only 2/37 checks**. Final joints were
+  `[90.008511,68.467499,70.196145,67.246695] degrees`, leaving
+  `4.196145 degrees` tracking and `0.0318115 m` position error. The prior
+  values were `4.177019 degrees / 0.0318089 m`, so `DF-039` falsifies the
+  trajectory-only hypothesis as a sufficient repair.
+- All target-buffer, actuator, gravity, force telemetry, API, collision,
+  zero-contact, static-target, approach/closing, and reset gates passed. The
+  verifier produced sentinel 1 and blocked Viewer as intended.
+- Raw evidence: retained ignored 2,283,434-byte machine artifact, SHA-256
+  `62edc78fa2491ac07670222cac093f92e0e0c90e5974743bd627c68d2fdddbd3`;
+  tracked promotion:
+  `artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json`.
+- `DF-040` fixes a latent semantic-verifier false reject exposed by the real
+  `0.0023-degree` neutral-start noise. The verifier now binds start angles to
+  observation zero, recomputes deltas/derivatives, enforces the one-degree
+  neutral gate and unchanged `20/60` envelope, and still requires the exact
+  goal, duration, API count, and all 37 machine checks.
+- Viewer did not start. Artifact retrieval preceded stop; final Brev state is
+  explicit `STOPPED`, with the instance and disk retained.
+- Exact next action: no paid run is authorized. Compare the successful isolated
+  calibration and failed integrated task contexts offline, record the
+  differing factors, and select one new falsifiable discriminator before a new
+  quote or Viewer attempt.

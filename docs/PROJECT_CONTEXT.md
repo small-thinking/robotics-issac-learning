@@ -90,11 +90,14 @@ lightweight VLA post-training, and optional real hardware.
   required measured PhysX projected joint force with every control factor held
   fixed. `DF-034` completed that run: all 61 observations were valid, but the
   projection is only active joint-force balance and the `4.177019 degrees`
-  residual remained. `DF-033` remotely resolved the verifier defect. `DF-035`
-  now tracks the local proof that the old 200-ms segmented smoothsteps exceeded
-  the declared internal motion envelope; one accepted 2000-ms pose boundary is
-  prepared for the next headless discriminator. Viewer, contact, and grasp
-  remain blocked.
+  residual remained. `DF-033` remotely resolved the verifier defect. The
+  completed `DF-035` discriminator then ran one accepted 2000-ms pose boundary
+  but reproduced `4.196145 degrees / 0.0318115 m`; `DF-039` therefore
+  falsifies segmented/fast candidate motion as a sufficient explanation.
+  `DF-040` repairs the post-run verifier's exact-neutral false-reject edge
+  without changing the controller. No further paid discriminator is selected
+  until the accepted isolated calibration and failed integrated task contexts
+  are compared offline. Viewer, contact, and grasp remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -141,8 +144,9 @@ The CartPole stage is complete. The canonical next-stage plan is
    GPU-free pre-grasp runtime integration now passes and binds both source
    SHA-256 values, probes the installed runtime before motion, reads back the
    live USD drives, records every physics-step feed-forward sample, and emits
-   a failure classification. The separate headless pre-grasp machine gate is
-   next; Viewer remains blocked until that machine artifact passes.
+   a failure classification. The separate single-boundary headless gate ran
+   and failed only final position and joint tracking; offline context
+   comparison is next. Viewer remains blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -179,14 +183,14 @@ initial native-frontend failure and repaired success have separate SHA-bound
 records. The selected force `1048/53/100`, external-force iteration,
 native-Warp feed-forward, API probe, effort isolation, live-drive readback,
 telemetry, and failure-classification contracts are now shared with the
-  pre-grasp runner. The target/torque and projected-force reruns proved backend
-  and live target propagation, complete force telemetry, and reliable remote
-  semantic failure while reproducing the `4.177019°` residual. Before another
-  paid run, consult `DF-035`, keep the pose, scene, gains, limits, solver,
-  feed-forward, and gates fixed, obtain a fresh quote and explicit approval,
-  and change only the candidate trajectory to one 2000-ms API boundary. Do not
-  open the Viewer until that machine artifact passes. Contact and grasping
-  remain out of scope.
+pre-grasp runner. The target/torque and projected-force reruns proved backend
+and live target propagation, complete force telemetry, and reliable remote
+semantic failure while reproducing the `4.177019°` residual. The later
+single-boundary run preserved that residual at `4.196145°`, closing DF-035
+through the falsified DF-039 hypothesis. Before another paid run, compare the
+isolated and integrated contexts offline, name one new ledger discriminator,
+then obtain a fresh quote and explicit approval. Do not open the Viewer until
+a complete machine artifact passes. Contact and grasping remain out of scope.
 
 ## Sources of truth
 

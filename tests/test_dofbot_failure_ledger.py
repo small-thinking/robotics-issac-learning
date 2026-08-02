@@ -19,6 +19,10 @@ PROJECTED_FORCE_EVIDENCE_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json"
 )
+SINGLE_BOUNDARY_EVIDENCE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json"
+)
 ALLOWED_VERDICTS = {
     "RESOLVED",
     "FALSIFIED",
@@ -49,6 +53,7 @@ REQUIRED_EVIDENCE = {
     "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json",
     "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json",
     "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json",
+    "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json",
 }
 REQUIRED_POLICY_FILES = (
     "AGENTS.md",
@@ -106,26 +111,30 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         }
         self.assertTrue(failure_artifacts.issubset(references))
 
-    def test_current_discriminator_preserves_projected_force_boundary(self) -> None:
+    def test_completed_discriminator_preserves_projected_force_boundary(self) -> None:
         target = next(row for row in self.rows if row[0] == "DF-030")
         semantics = next(row for row in self.rows if row[0] == "DF-032")
-        result = next(row for row in self.rows if row[0] == "DF-034")
-        current = next(row for row in self.rows if row[0] == "DF-035")
+        projected_result = next(row for row in self.rows if row[0] == "DF-034")
+        trajectory = next(row for row in self.rows if row[0] == "DF-035")
+        trajectory_result = next(row for row in self.rows if row[0] == "DF-039")
         self.assertEqual(target[4], "PARTIAL")
         self.assertIn("joint_pos_target", target[3])
         self.assertIn("PD estimates", target[3])
         self.assertEqual(semantics[4], "PARTIAL")
         self.assertIn("active component", semantics[3])
         self.assertIn("not an isolated", semantics[3])
-        self.assertEqual(result[4], "PARTIAL")
-        self.assertIn("All 61 observations", result[3])
-        self.assertIn("does not isolate", result[6])
-        self.assertEqual(current[4], "PARTIAL")
-        self.assertIn("30 degrees/s", current[3])
-        self.assertIn("600 degrees/s2", current[3])
-        self.assertIn("2000-ms", current[6])
+        self.assertEqual(projected_result[4], "PARTIAL")
+        self.assertIn("All 61 observations", projected_result[3])
+        self.assertIn("does not isolate", projected_result[6])
+        self.assertEqual(trajectory[4], "PARTIAL")
+        self.assertIn("30 degrees/s", trajectory[3])
+        self.assertIn("600 degrees/s2", trajectory[3])
+        self.assertIn("2000-ms", trajectory[6])
+        self.assertEqual(trajectory_result[4], "FALSIFIED")
+        self.assertIn("4.196145 degrees", trajectory_result[3])
+        self.assertIn("Do not repeat trajectory-duration", trajectory_result[6])
         self.assertIn("Viewer remains blocked", self.text)
-        self.assertIn("The current unresolved item is **DF-035**", self.text)
+        self.assertIn("no authorized next paid discriminator", self.text)
 
     def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
         wrapper = next(row for row in self.rows if row[0] == "DF-031")
@@ -195,6 +204,26 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         )
         self.assertTrue(evidence["remote_wrapper"]["df_031_resolved"])
         self.assertEqual(evidence["infrastructure"]["final_status"], "STOPPED")
+
+    def test_single_boundary_result_falsifies_trajectory_only_hypothesis(self) -> None:
+        evidence = json.loads(
+            SINGLE_BOUNDARY_EVIDENCE_PATH.read_text(encoding="utf-8")
+        )
+        self.assertFalse(evidence["machine"]["machine_passed"])
+        self.assertEqual(evidence["machine"]["official_api_call_count"], 12)
+        self.assertLess(
+            evidence["machine"]["motion_contract"][
+                "maximum_peak_velocity_deg_s"
+            ],
+            evidence["machine"]["motion_contract"][
+                "maximum_allowed_velocity_deg_s"
+            ],
+        )
+        self.assertFalse(
+            evidence["conclusion"]["segmented_trajectory_was_sufficient_cause"]
+        )
+        self.assertFalse(evidence["conclusion"]["viewer_authorized"])
+        self.assertEqual(evidence["verifier_follow_up"]["ledger_id"], "DF-040")
 
     def test_repo_policy_links_the_canonical_ledger(self) -> None:
         for relative_path in REQUIRED_POLICY_FILES:
