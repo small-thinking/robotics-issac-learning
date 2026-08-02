@@ -1362,20 +1362,16 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped and merge the `DF-032` local measurement
-contract first. A future paid run requires a fresh quote and explicit
-approval, must cite `DF-032`, and may run only the unchanged headless
-pre-grasp discriminator. It must retrieve finite PhysX
-`get_dof_projected_joint_forces` on every observation beside gravity
-feed-forward and the approximate implicit-actuator PD buffers, including the
-per-joint final/extrema/difference summary. Treat the projection as measured
-active joint-force balance, not isolated drive torque. Pose, gains, effort
-limit, solver settings, feed-forward, scene, and acceptance thresholds remain
-fixed. The same run must also prove
-that the installed-Python semantic verifier produces a reliable nonzero
-sentinel for a failed artifact. `make dofbot-pregrasp-view` remains blocked
-until every machine gate passes. Contact, closing, grasping, lifting, and
-placing remain unauthorized.
+Keep the Brev instance stopped and merge the `DF-035` local trajectory
+correction first. A future paid run requires a fresh quote and explicit
+approval, must cite `DF-035`, and may run only one headless discriminator. It
+changes the former segmented 200-ms candidate commands to one 2000-ms Yahboom
+API pose boundary while preserving the scene, target, force `1048/53/100`,
+effort limit, solver settings, bounded gravity feed-forward, safety checks,
+and acceptance thresholds. Retrieve the same task, tracking, target-buffer,
+projected-force, PD-estimate, gravity, contact, API-count, and reset fields.
+`make dofbot-pregrasp-view` remains blocked until every machine gate passes.
+Contact, closing, grasping, lifting, and placing remain unauthorized.
 
 ## DF-030/DF-032 projected-force local contract hardening
 
@@ -1399,3 +1395,53 @@ placing remain unauthorized.
 - Scope: GPU-free implementation, tests, and remote-command preview only. The
   retained instance remains `STOPPED`; installed Isaac telemetry and semantic
   sentinel behavior are still remote pending, and Viewer remains blocked.
+
+## DF-032 machine result and DF-035 trajectory correction
+
+- Paid run: merged `main@d4da9c0` ran once on the retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, after
+  the live quote matched `$1.58784/hour`. The exact command was
+  `BREV_INSTANCE_NAME=isaac-launchable-f150a5 make dofbot-pregrasp`; no Viewer
+  ran.
+- Machine result: only position and final tracking failed. Final position was
+  `0.0318089 m > 0.025 m`; `[90,66,66,66]` settled at
+  `[89.999642,68.493213,70.177019,67.221305]`, leaving
+  `4.177019 degrees > 1 degree`. Approach, closing, all safety/collision,
+  zero-contact, static-target, actuator, gravity, target-buffer, API, projected
+  force, and reset gates passed.
+- Projected force: 61/61 observations were finite and aligned. Per-joint
+  maxima were `[0.001136,0.505431,0.342836,0.165914]`, versus approximate PD
+  estimate maxima `[0.045059,45.798676,76.426231,22.747814]`. This fulfills
+  the telemetry contract but cannot isolate implicit drive torque (`DF-034`).
+- Wrapper: installed Isaac Python rejected the failed artifact with sentinel
+  1 and outer Make failed, resolving `DF-031` through `DF-033`.
+- New local defect: each old 4-degree/200-ms cubic smoothstep actually peaks at
+  `30 degrees/s` and `600 degrees/s2`, not the boundary-reported `20/60`.
+  The runner now uses the accepted calibration's single 2000-ms pose boundary,
+  analytically bounded at `18 degrees/s` and `36 degrees/s2`, records those
+  internal derivatives, and expects 12 rather than 40 API calls (`DF-035`).
+- Evidence:
+  `artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json`;
+  raw artifact 2,283,842 bytes, SHA-256
+  `d884465662b2f664619b72b547f101f1409d65a1a4dcd7f785c0203ec47a231c`.
+- Resource lifecycle: stop was requested after retrieval; explicit `STOPPED`
+  was verified at 16:29:26 PDT. No instance/disk was created, deleted, resized,
+  or reset. Viewer remains blocked pending a later machine pass.
+
+## CPU-only GitHub quality gate
+
+- Entry point: `make ci-cpu`, shared by local development and GitHub Actions.
+- Trigger: every pull request, every push to `main`, and manual dispatch on a
+  standard Ubuntu CPU runner with read-only repository permissions.
+- Coverage: pinned Ruff, the complete local test suite, Python compilation,
+  Phase 2 config validation, all deterministic DOFBOT previews and offline
+  analyses available from the checkout, JSON parsing, and byte-for-byte
+  regeneration of the accepted pre-grasp command-space contract. The one
+  analysis backed by deliberately ignored raw Isaac samples is fully replayed
+  when those samples exist; a clean runner instead audits the promoted result's
+  config, upstream-result, SHA-256, and byte-count bindings.
+- Isolation: generated outputs and caches stay in a temporary directory, so CI
+  neither rewrites tracked evidence nor needs Brev credentials.
+- Boundary: this gate does not claim Isaac USD loading, PhysX articulation,
+  live residual/force behavior, GPU rendering, or Viewer acceptance. Those
+  remain remote machine and human-visual gates.

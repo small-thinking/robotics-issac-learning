@@ -47,19 +47,19 @@ ledger ID and state:
 4. why the run does not repeat a `FALSIFIED` case;
 5. the stop deadline and the machine gate that blocks Viewer launch.
 
-The target-buffer part of **DF-028** is now resolved by **DF-030**: the exact
-API target reached both the backend and live `joint_pos_target` buffer, while
-the loaded residual remained unchanged. Isaac Lab documents the recorded
-implicit-actuator torque fields as approximate PD estimates, not measured
-PhysX effort. **DF-032** refines the current scientific item after checking the
-official tensor API semantics: `get_dof_projected_joint_forces` measures the
-active projection of incoming joint force, not isolated implicit-drive torque.
-The next run must collect that value for every observation beside the gravity
-feed-forward and approximate PD buffers without changing the pose, gains,
-effort limit, solver settings, feed-forward, or acceptance thresholds.
-**DF-031** is the separate wrapper prerequisite: its Isaac-Python correction
-has passed local tests but must prove that a failed semantic contract produces
-a nonzero remote sentinel. Viewer remains blocked.
+The target-buffer part of **DF-028** is resolved by **DF-030**. The paid
+**DF-034** discriminator then collected complete projected-force telemetry but
+proved that this measurement is only the small active joint-force balance, not
+an isolated implicit-drive torque sensor; the loaded residual was unchanged.
+The same run resolves the **DF-031** wrapper prerequisite through **DF-033**:
+the installed Isaac Python rejected the failed artifact and propagated
+sentinel 1. The current unresolved item is **DF-035**. Local analytic review
+found that the former 4-degree/200-ms segmented cubic smoothsteps peaked at
+30 degrees/s and 600 degrees/s2 even though boundary-only metadata reported
+the 20 degrees/s and 60 degrees/s2 envelope as passing. The next run must
+change only that trajectory to one accepted 2000-ms Yahboom pose boundary,
+whose analytic peaks are 18 degrees/s and 36 degrees/s2. Viewer remains
+blocked.
 
 ## Consolidated ledger
 
@@ -97,6 +97,11 @@ a nonzero remote sentinel. Viewer remains blocked.
 | DF-030 | 2026-08-01 | Actuation boundary | The unchanged DF-028 run propagated `[90,66,66,66]` exactly to the backend and within 0.000000668 degrees to live `joint_pos_target`, yet retained 4.177019 degrees joint error and 0.0318089 m position error. The equal `computed_torque` and `applied_torque` buffers are only ImplicitActuator PD estimates, not measured PhysX effort. | PARTIAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Do not revisit API write loss or claim that the approximate torque buffers prove physical application. Keep every control factor fixed and record PhysX `get_dof_projected_joint_forces` as the next discriminator before changing the drive or controller. |
 | DF-031 | 2026-08-01 | Remote semantic verifier | `isaaclab.sh` again masked the Python acceptance exception, then the semantic verifier called absent container command `python3`, overwriting the scientific result with sentinel 127 even though a fresh failed artifact existed. | OPERATIONAL | `artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json` | Use the installed `./_isaac_sim/python.sh` for the verifier and retain artifact-first interpretation. Local preview/tests pass; a future remote run must still prove the failing semantic contract emits a reliable nonzero sentinel. |
 | DF-032 | 2026-08-01 | Projected-force semantics | Official PhysX tensor semantics define `get_dof_projected_joint_forces` as the active component obtained by projecting each link incoming joint force onto its DOF motion direction. This is measured joint-force balance, but it is not an isolated implicit-drive torque sensor. The previous final-sample-only gate also did not summarize whether projected force and PD estimates were finite and aligned for every observation. | PARTIAL | `docs/EXPERIMENTS.md` section "DF-030 projected-force local contract hardening" | Keep the unchanged DF-030 run, but do not interpret projected force alone as proof of drive application. Require every observation to contain finite DOF-aligned projected force plus computed/applied PD estimates; retrieve per-joint final, extrema, and difference summaries beside gravity feed-forward before choosing the next controller change. |
+| DF-033 | 2026-08-01 | Remote semantic verifier | The installed `./_isaac_sim/python.sh` verifier rejected the fresh failed artifact, emitted `[PREGRASP_EXIT_CODE] 1`, and made outer `make dofbot-pregrasp` fail. | RESOLVED | `artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json` | Preserve artifact-first semantic verification and the installed Isaac interpreter; do not trust `isaaclab.sh` status alone or restore generic `python3`. |
+| DF-034 | 2026-08-01 | Projected-force discriminator | All 61 observations contained finite, aligned projected force and PD estimates. Projected force peaked at only `[0.00114,0.50543,0.34284,0.16591]`, while approximate PD estimates peaked at `[0.04506,45.79868,76.42623,22.74781]`; the same 4.177019-degree and 0.0318089-m residual remained. | PARTIAL | `artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json` | The API and telemetry work, but projected joint force does not isolate the implicit drive. Do not tune gains or forces from their difference; choose a discriminator that changes one known trajectory/context factor. |
+| DF-035 | 2026-08-01 | Backend trajectory safety | Boundary-only command metadata falsely passed the velocity/acceleration gates. Each 4-degree cubic smoothstep over 200 ms actually peaks at 30 degrees/s and 600 degrees/s2, exceeding the declared 20/60 envelope; the previously passing isolated calibration instead used one 24-degree boundary over 2000 ms, peaking at 18/36. | PARTIAL | `artifacts/dofbot/pregrasp_command_space_contract.json` | Never infer internal interpolation safety from low-rate command differences. The next machine discriminator uses exactly one 2000-ms Yahboom candidate boundary in the unchanged task scene; if it passes, segmented trajectory was causal, otherwise task scene/context remains. |
+| DF-036 | 2026-08-01 | CPU CI evidence transport | The first clean GitHub CPU run passed lint, 228 tests, Phase 2 validation, and the first nine DOFBOT checks, then failed because full velocity reanalysis assumed three ignored raw Isaac payloads that existed locally but not in a clean checkout. | RESOLVED | GitHub Actions run `30726854242`; `tools/audit_dofbot_velocity_reanalysis_evidence.py` | Never assume ignored raw machine payloads exist in CI. Replay them when locally available; otherwise audit the promoted analysis against tracked config, upstream-result, byte-count, and SHA-256 bindings while unit tests cover the computation. |
+| DF-037 | 2026-08-01 | CPU CI evidence transport | After DF-036 was bypassed correctly, the second clean run reached residual-force analysis and exposed two more ignored raw drive-model payloads that existed only in the retained local evidence. | RESOLVED | GitHub Actions run `30727030093`; `tools/audit_dofbot_residual_force_evidence.py` | Apply the same raw-evidence boundary to every offline audit: replay when payloads exist; otherwise verify the promoted result's tracked upstream files and raw byte/SHA bindings before allowing downstream previews to consume it. |
 
 ## Current evidence boundary
 

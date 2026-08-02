@@ -11,6 +11,8 @@ from tools.dofbot_pregrasp_pose import (
     VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
     PoseCommand,
     PregraspPoseError,
+    cubic_smoothstep_motion_contract,
+    cubic_smoothstep_motion_state,
     derive_grasp_frame,
     direction_error_vector,
     evaluate_pregrasp_observation,
@@ -596,10 +598,14 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             report["solver_probe"]["command"]["velocities_deg_s"],
             [0.0, 0.0, 0.0, 0.0],
         )
-        self.assertLess(
+        self.assertEqual(
             len(report["solver_probe"]["command_trajectory"]),
-            60,
+            1,
         )
+        motion = report["solver_probe"]["candidate_backend_motion_contract"]
+        self.assertEqual(motion["duration_s"], 2.0)
+        self.assertEqual(motion["maximum_peak_velocity_deg_s"], 18.0)
+        self.assertEqual(motion["maximum_peak_acceleration_deg_s2"], 36.0)
         checked_in = json.loads(
             COMMAND_SPACE_CONTRACT_PATH.read_text(encoding="utf-8")
         )
@@ -609,6 +615,41 @@ class DofbotPregraspPoseTest(unittest.TestCase):
             if source_path.is_absolute():
                 source["path"] = str(source_path.relative_to(PROJECT_DIR))
         self.assertEqual(normalized, checked_in)
+
+    def test_cubic_smoothstep_contract_captures_internal_motion(self) -> None:
+        contract = cubic_smoothstep_motion_contract(
+            start_angles_deg=(90.0, 90.0, 90.0, 90.0),
+            goal_angles_deg=(90.0, 66.0, 66.0, 66.0),
+            duration_s=2.0,
+        )
+        self.assertEqual(
+            contract["peak_velocity_deg_s"],
+            [0.0, 18.0, 18.0, 18.0],
+        )
+        self.assertEqual(
+            contract["peak_acceleration_deg_s2"],
+            [0.0, 36.0, 36.0, 36.0],
+        )
+        velocity, acceleration = cubic_smoothstep_motion_state(
+            start_angles_deg=(90.0, 90.0, 90.0, 90.0),
+            goal_angles_deg=(90.0, 66.0, 66.0, 66.0),
+            duration_s=2.0,
+            elapsed_s=1.0,
+        )
+        self.assertEqual(velocity, (0.0, -18.0, -18.0, -18.0))
+        self.assertEqual(acceleration, (0.0, 0.0, 0.0, 0.0))
+
+    def test_cubic_smoothstep_exposes_rejected_200ms_step_profile(self) -> None:
+        contract = cubic_smoothstep_motion_contract(
+            start_angles_deg=(90.0, 88.0, 88.0, 88.0),
+            goal_angles_deg=(90.0, 84.0, 84.0, 84.0),
+            duration_s=0.2,
+        )
+        self.assertEqual(contract["maximum_peak_velocity_deg_s"], 30.0)
+        self.assertAlmostEqual(
+            contract["maximum_peak_acceleration_deg_s2"],
+            600.0,
+        )
 
 
 if __name__ == "__main__":

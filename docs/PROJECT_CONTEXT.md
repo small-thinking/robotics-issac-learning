@@ -87,10 +87,14 @@ lightweight VLA post-training, and optional real hardware.
   discriminator. The exact API command reached both backend and live
   `joint_pos_target`, rejecting target-write loss. Because Isaac Lab's
   implicit-actuator torque buffers are only approximate PD values, `DF-030`
-  now requires measured PhysX projected joint force with every control factor
-  held fixed. `DF-031` separately tracks the missing-verifier-interpreter
-  defect and its local Isaac-Python repair. Viewer, contact, and grasp remain
-  blocked.
+  required measured PhysX projected joint force with every control factor held
+  fixed. `DF-034` completed that run: all 61 observations were valid, but the
+  projection is only active joint-force balance and the `4.177019 degrees`
+  residual remained. `DF-033` remotely resolved the verifier defect. `DF-035`
+  now tracks the local proof that the old 200-ms segmented smoothsteps exceeded
+  the declared internal motion envelope; one accepted 2000-ms pose boundary is
+  prepared for the next headless discriminator. Viewer, contact, and grasp
+  remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -175,14 +179,13 @@ initial native-frontend failure and repaired success have separate SHA-bound
 records. The selected force `1048/53/100`, external-force iteration,
 native-Warp feed-forward, API probe, effort isolation, live-drive readback,
 telemetry, and failure-classification contracts are now shared with the
-  pre-grasp runner. The unchanged target/torque rerun proved backend and live
-  target-buffer propagation while reproducing the `4.177019°` residual. The
-  local follow-up records PhysX `get_dof_projected_joint_forces` and replaces
-  the missing generic `python3` verifier with `./_isaac_sim/python.sh`. Before
-  another paid run, consult `DF-030` and `DF-031`, keep the pose, gains, limits,
-  solver settings, feed-forward, and gates fixed, obtain a fresh quote and
-  explicit approval, and run only the instrumented headless discriminator. Do
-  not open the Viewer until that machine artifact passes. Contact and grasping
+  pre-grasp runner. The target/torque and projected-force reruns proved backend
+  and live target propagation, complete force telemetry, and reliable remote
+  semantic failure while reproducing the `4.177019°` residual. Before another
+  paid run, consult `DF-035`, keep the pose, scene, gains, limits, solver,
+  feed-forward, and gates fixed, obtain a fresh quote and explicit approval,
+  and change only the candidate trajectory to one 2000-ms API boundary. Do not
+  open the Viewer until that machine artifact passes. Contact and grasping
   remain out of scope.
 
 ## Sources of truth

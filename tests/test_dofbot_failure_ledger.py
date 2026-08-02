@@ -15,6 +15,10 @@ TARGET_TORQUE_EVIDENCE_PATH = (
     PROJECT_DIR
     / "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json"
 )
+PROJECTED_FORCE_EVIDENCE_PATH = (
+    PROJECT_DIR
+    / "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json"
+)
 ALLOWED_VERDICTS = {
     "RESOLVED",
     "FALSIFIED",
@@ -44,6 +48,7 @@ REQUIRED_EVIDENCE = {
     "artifacts/dofbot/pregrasp_no_reissue_machine_result_2026-07-31.json",
     "artifacts/dofbot/pregrasp_startup_operational_2026-08-01.json",
     "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json",
+    "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json",
 }
 REQUIRED_POLICY_FILES = (
     "AGENTS.md",
@@ -103,16 +108,24 @@ class DofbotFailureLedgerTest(unittest.TestCase):
 
     def test_current_discriminator_preserves_projected_force_boundary(self) -> None:
         target = next(row for row in self.rows if row[0] == "DF-030")
-        current = next(row for row in self.rows if row[0] == "DF-032")
+        semantics = next(row for row in self.rows if row[0] == "DF-032")
+        result = next(row for row in self.rows if row[0] == "DF-034")
+        current = next(row for row in self.rows if row[0] == "DF-035")
         self.assertEqual(target[4], "PARTIAL")
         self.assertIn("joint_pos_target", target[3])
         self.assertIn("PD estimates", target[3])
+        self.assertEqual(semantics[4], "PARTIAL")
+        self.assertIn("active component", semantics[3])
+        self.assertIn("not an isolated", semantics[3])
+        self.assertEqual(result[4], "PARTIAL")
+        self.assertIn("All 61 observations", result[3])
+        self.assertIn("does not isolate", result[6])
         self.assertEqual(current[4], "PARTIAL")
-        self.assertIn("active component", current[3])
-        self.assertIn("not an isolated", current[3])
-        self.assertIn("every observation", current[6])
+        self.assertIn("30 degrees/s", current[3])
+        self.assertIn("600 degrees/s2", current[3])
+        self.assertIn("2000-ms", current[6])
         self.assertIn("Viewer remains blocked", self.text)
-        self.assertIn("must collect that value for every observation", self.text)
+        self.assertIn("The current unresolved item is **DF-035**", self.text)
 
     def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
         wrapper = next(row for row in self.rows if row[0] == "DF-031")
@@ -120,6 +133,9 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         self.assertIn("python3", wrapper[3])
         self.assertIn("./_isaac_sim/python.sh", wrapper[6])
         self.assertIn("future remote run", wrapper[6])
+        resolution = next(row for row in self.rows if row[0] == "DF-033")
+        self.assertEqual(resolution[4], "RESOLVED")
+        self.assertIn("[PREGRASP_EXIT_CODE] 1", resolution[3])
 
     def test_startup_failure_does_not_replace_scientific_discriminator(self) -> None:
         startup = next(row for row in self.rows if row[0] == "DF-029")
@@ -161,6 +177,24 @@ class DofbotFailureLedgerTest(unittest.TestCase):
             evidence["infrastructure"]["terminal_instance_state"],
             "STOPPED",
         )
+
+    def test_projected_force_result_preserves_semantics_and_stop_state(self) -> None:
+        evidence = json.loads(
+            PROJECTED_FORCE_EVIDENCE_PATH.read_text(encoding="utf-8")
+        )
+        self.assertFalse(evidence["machine"]["machine_passed"])
+        telemetry = evidence["projected_joint_force_telemetry"]
+        self.assertEqual(telemetry["observation_count"], 61)
+        self.assertTrue(
+            telemetry["every_observation_finite_dof_aligned_and_sample_aligned"]
+        )
+        self.assertFalse(
+            evidence["conclusion"][
+                "projected_force_isolated_implicit_drive_torque"
+            ]
+        )
+        self.assertTrue(evidence["remote_wrapper"]["df_031_resolved"])
+        self.assertEqual(evidence["infrastructure"]["final_status"], "STOPPED")
 
     def test_repo_policy_links_the_canonical_ledger(self) -> None:
         for relative_path in REQUIRED_POLICY_FILES:

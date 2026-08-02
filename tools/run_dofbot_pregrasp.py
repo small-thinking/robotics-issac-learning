@@ -26,6 +26,8 @@ from dofbot_pregrasp_pose import (
     VALIDATED_JOINT_CANDIDATE_CONTROL_MODE,
     PregraspPoseConfig,
     PregraspPoseError,
+    cubic_smoothstep_motion_contract,
+    cubic_smoothstep_motion_state,
     derive_grasp_frame,
     evaluate_pregrasp_observation,
     load_pregrasp_pose_config,
@@ -256,6 +258,26 @@ class _IsaacJointPositionBackend:
     @property
     def interpolated_target_rad(self) -> tuple[float, ...] | None:
         return self._target
+
+    @property
+    def trajectory_complete(self) -> bool:
+        return self._goal is not None and self._elapsed_s >= self._duration_s
+
+    def interpolated_motion_deg(
+        self,
+    ) -> tuple[
+        tuple[float, float, float, float],
+        tuple[float, float, float, float],
+    ]:
+        if self._start is None or self._goal is None:
+            zero = (0.0, 0.0, 0.0, 0.0)
+            return zero, zero
+        return cubic_smoothstep_motion_state(
+            start_angles_deg=_angles_deg_from_rad(self._start),
+            goal_angles_deg=_angles_deg_from_rad(self._goal),
+            duration_s=self._duration_s,
+            elapsed_s=self._elapsed_s,
+        )
 
     def command_joint_positions(self, command: JointPositionCommand) -> None:
         self._pending_goal = tuple(command.positions_rad)
@@ -636,6 +658,7 @@ def _run_pose_controller(
     body_ids: dict[str, int],
     contact_reporter: _CriticalContactReporter,
     controlled_joint_ids: list[int],
+    candidate_duration_ms: int,
     render: bool,
 ) -> tuple[list[dict[str, Any]], int, list[list[float]]] | None:
     dt = pose.solver.control_dt_s
@@ -674,6 +697,70 @@ def _run_pose_controller(
         f"contact_force_n={initial['maximum_critical_contact_force_n']:.4f}",
         flush=True,
     )
+    if pose.solver.control_mode == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE:
+        candidate_angles = pose.solver.preferred_angles_deg
+        candidate_duration_s = candidate_duration_ms / 1000.0
+        motion_contract = cubic_smoothstep_motion_contract(
+            start_angles_deg=initial["angles_deg"],
+            goal_angles_deg=candidate_angles,
+            duration_s=candidate_duration_s,
+        )
+        if motion_contract["maximum_peak_velocity_deg_s"] > (
+            pose.solver.maximum_joint_velocity_deg_s + 1.0e-9
+        ) or motion_contract["maximum_peak_acceleration_deg_s2"] > (
+            pose.solver.maximum_joint_acceleration_deg_s2 + 1.0e-9
+        ):
+            raise PregraspPoseError(
+                "candidate backend trajectory exceeds the analytic motion envelope"
+            )
+        _precommand_safety_checks(initial)
+        api_calls = _issue_angles(
+            yahboom_api=yahboom_api,
+            angles_deg=candidate_angles,
+            duration_ms=candidate_duration_ms,
+        )
+        for step_index in range(1, pose.solver.maximum_steps + 1):
+            if not _step_simulation(
+                scene=scene,
+                sim=sim,
+                backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
+                gravity_samples=gravity_samples,
+                physics_steps=physics_steps,
+                render=render,
+            ):
+                return None
+            velocity, acceleration = backend.interpolated_motion_deg()
+            observation = _observation(
+                scene=scene,
+                arm=arm,
+                backend=backend,
+                gravity_feed_forward=gravity_feed_forward,
+                controlled_joint_ids=controlled_joint_ids,
+                pose=pose,
+                scene_config=scene_config,
+                body_ids=body_ids,
+                contact_reporter=contact_reporter,
+                velocities_deg_s=velocity,
+                accelerations_deg_s2=acceleration,
+                step_index=step_index,
+            )
+            observations.append(observation)
+            print(
+                "[PREGRASP] "
+                f"step={step_index} "
+                "mode=single_candidate_pose_boundary_without_api_reissue "
+                f"angles_deg={observation['angles_deg']} "
+                f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
+                f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
+                f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
+                f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
+                flush=True,
+            )
+            if observation["evaluation"]["passed"] and backend.trajectory_complete:
+                break
+            _precommand_safety_checks(observation)
+        return observations, api_calls, [list(candidate_angles)]
     previous_velocity = zero
     previous_command_angles = tuple(float(value) for value in NEUTRAL_ANGLES_DEG)
     api_calls = 0
@@ -688,48 +775,6 @@ def _run_pose_controller(
         if prior["evaluation"]["passed"] and command_trajectory_settled:
             break
         _precommand_safety_checks(prior)
-        if (
-            pose.solver.control_mode
-            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
-            and command_trajectory_settled
-        ):
-            if not _step_simulation(
-                scene=scene,
-                sim=sim,
-                backend=backend,
-                gravity_feed_forward=gravity_feed_forward,
-                gravity_samples=gravity_samples,
-                physics_steps=physics_steps,
-                render=render,
-            ):
-                return None
-            observation = _observation(
-                scene=scene,
-                arm=arm,
-                backend=backend,
-                gravity_feed_forward=gravity_feed_forward,
-                controlled_joint_ids=controlled_joint_ids,
-                pose=pose,
-                scene_config=scene_config,
-                body_ids=body_ids,
-                contact_reporter=contact_reporter,
-                velocities_deg_s=zero,
-                accelerations_deg_s2=zero,
-                step_index=step_index,
-            )
-            observations.append(observation)
-            print(
-                "[PREGRASP] "
-                f"step={step_index} "
-                "mode=candidate_settle_without_api_reissue "
-                f"angles_deg={observation['angles_deg']} "
-                f"position_error_m={observation['evaluation']['position_error_m']:.5f} "
-                f"approach_error_deg={observation['evaluation']['approach_error_deg']:.2f} "
-                f"closing_error_deg={observation['evaluation']['closing_error_deg']:.2f} "
-                f"contact_force_n={observation['maximum_critical_contact_force_n']:.4f}",
-                flush=True,
-            )
-            continue
         current_angles = _observed_angles_deg(arm)
         frame_value = prior["grasp_frame"]
         frame = derive_grasp_frame(
@@ -1143,6 +1188,7 @@ def main() -> None:
             body_ids=body_ids,
             contact_reporter=contact_reporter,
             controlled_joint_ids=controlled_joint_ids,
+            candidate_duration_ms=actuator_runtime.trajectory_duration_ms,
             render=render,
         )
         if controller_result is None:
@@ -1195,6 +1241,16 @@ def main() -> None:
             initialization_api_calls + controller_api_calls + reset_api_calls
         )
         expected_api_calls = 4 + len(controller_command_angles) * 4 + 4
+        candidate_motion_contract = (
+            cubic_smoothstep_motion_contract(
+                start_angles_deg=observations[0]["angles_deg"],
+                goal_angles_deg=pose.solver.preferred_angles_deg,
+                duration_s=actuator_runtime.trajectory_duration_ms / 1000.0,
+            )
+            if pose.solver.control_mode
+            == VALIDATED_JOINT_CANDIDATE_CONTROL_MODE
+            else None
+        )
         all_api_command_angles = [
             list(NEUTRAL_ANGLES_DEG),
             *controller_command_angles,
@@ -1317,6 +1373,18 @@ def main() -> None:
             "validated_joint_candidate_command_reached": (
                 candidate_command_reached
             ),
+            "backend_trajectory_peak_velocity_within_limit": (
+                candidate_motion_contract is None
+                or candidate_motion_contract["maximum_peak_velocity_deg_s"]
+                <= pose.solver.maximum_joint_velocity_deg_s + 1.0e-9
+            ),
+            "backend_trajectory_peak_acceleration_within_limit": (
+                candidate_motion_contract is None
+                or candidate_motion_contract[
+                    "maximum_peak_acceleration_deg_s2"
+                ]
+                <= pose.solver.maximum_joint_acceleration_deg_s2 + 1.0e-9
+            ),
             "joint_target_buffer_telemetry_available": (
                 target_buffer_telemetry_available
             ),
@@ -1377,6 +1445,7 @@ def main() -> None:
             ),
             "official_api_call_count": official_api_calls,
             "expected_official_api_call_count": expected_api_calls,
+            "candidate_backend_motion_contract": candidate_motion_contract,
             "final_observed_angles_deg": list(final_observed_angles),
             "final_backend_interpolated_target_angles_deg": (
                 final_backend_target
