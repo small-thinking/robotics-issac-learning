@@ -167,11 +167,14 @@ The detailed first-stage contract lives in
    pre-grasp now passes: the machine evidence and config are SHA-bound, the
    live drive and three APIs are probed before motion, the native-Warp setter
    is shared with calibration, and failures are classified in the artifact.
-   The separate single-boundary headless run is now complete and reproduced
-   the approximately 4.2-degree integrated tracking residual, falsifying
-   trajectory segmentation as a sufficient repair. The next gate is a
-   GPU-free comparison of the passing isolated calibration and failing task
-   contexts, followed by one explicitly selected discriminator. Viewer, wrist
+   The separate single-boundary headless run reproduced the approximately
+   4.2-degree integrated residual. The completed GPU-free audit then corrected
+   the protocol comparison: the old isolated candidate used a 12-degree
+   `90 -> 78 -> 66` entry, while the failed integrated run used direct
+   24-degree `90 -> 66`; the old artifact also lacks a current shared-runtime
+   source bundle. The next paid gate is a fail-fast A/B/C matrix that first
+   reproduces the old split path on current code, then changes only path or
+   static scene. Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

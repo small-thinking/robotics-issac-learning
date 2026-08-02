@@ -253,6 +253,8 @@ assert_contains "$dofbot_pregrasp_output" '--viewer-connection-hold-seconds 0'
 assert_contains "$dofbot_pregrasp_output" '--device cpu'
 assert_contains "$dofbot_pregrasp_output" '--headless'
 assert_contains "$dofbot_pregrasp_output" 'verify_dofbot_pregrasp_gpu_preflight.py'
+assert_contains "$dofbot_pregrasp_output" 'verify_dofbot_context_transfer_admission.py'
+assert_contains "$dofbot_pregrasp_output" 'pregrasp_context_transfer_audit.json'
 assert_contains "$dofbot_pregrasp_output" 'pregrasp_command_space_contract.json'
 assert_contains "$dofbot_pregrasp_output" 'verify_dofbot_pregrasp_machine_contract.py'
 assert_contains "$dofbot_pregrasp_output" './_isaac_sim/python.sh'
@@ -269,6 +271,8 @@ dofbot_pregrasp_view_output="$(
 )"
 
 assert_contains "$dofbot_pregrasp_view_output" 'run_dofbot_pregrasp.py'
+assert_contains "$dofbot_pregrasp_view_output" 'verify_dofbot_context_transfer_admission.py'
+assert_contains "$dofbot_pregrasp_view_output" 'pregrasp_context_transfer_audit.json'
 assert_contains "$dofbot_pregrasp_view_output" 'pregrasp_viewer_contract.json'
 assert_contains "$dofbot_pregrasp_view_output" 'pregrasp_viewer.log'
 assert_contains "$dofbot_pregrasp_view_output" 'goal5_gravity_feed_forward_diagnostic.json'
@@ -365,11 +369,41 @@ assert_not_contains "$gravity_feed_forward_output" '--livestream'
 assert_not_contains "$gravity_feed_forward_output" '--viz'
 assert_contains "$gravity_feed_forward_output" '[dry-run] Command displayed but not executed.'
 
+context_transfer_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_context_transfer_matrix.sh
+)"
+
+assert_contains "$context_transfer_output" 'goal5_gravity_feed_forward_diagnostic.json'
+assert_contains "$context_transfer_output" 'goal5_gravity_feed_forward_direct_diagnostic.json'
+assert_contains "$context_transfer_output" 'goal5_angled_pregrasp_scene_candidate.json'
+assert_contains "$context_transfer_output" 'run_cell A'
+assert_contains "$context_transfer_output" 'run_cell B'
+assert_contains "$context_transfer_output" 'run_cell C'
+assert_contains "$context_transfer_output" 'verify_dofbot_context_transfer_case.py'
+assert_contains "$context_transfer_output" 'summarize_dofbot_context_transfer_matrix.py'
+assert_contains "$context_transfer_output" 'pregrasp_single_boundary_discriminator_2026-08-01.json'
+assert_contains "$context_transfer_output" '[CONTEXT_TRANSFER_EXIT_CODE]'
+assert_contains "$context_transfer_output" '--device cpu'
+assert_contains "$context_transfer_output" '--headless'
+assert_not_contains "$context_transfer_output" '--livestream'
+assert_not_contains "$context_transfer_output" '--viz'
+assert_contains "$context_transfer_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \
   ./scripts/isaac/run_dofbot_actuator_calibration.sh >/dev/null 2>&1; then
   printf 'expected actuator calibration preview to reject unsafe timeout\n' >&2
+  exit 1
+fi
+
+if DOFBOT_CONTEXT_TRANSFER_TIMEOUT_SECONDS=59 \
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_context_transfer_matrix.sh >/dev/null 2>&1; then
+  printf 'expected context-transfer preview to reject unsafe timeout\n' >&2
   exit 1
 fi
 

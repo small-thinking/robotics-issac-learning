@@ -357,3 +357,11 @@ falsifies trajectory segmentation/duration as a sufficient fix (`DF-039`). It
 also records the local `DF-040` verifier repair for the real `0.0023-degree`
 neutral-start noise. Viewer and all contact/grasp scope remain blocked, and
 the retained L4 was explicitly stopped after artifact retrieval.
+
+`pregrasp_context_transfer_audit.json` is GPU-free corrective evidence. It
+shows that the accepted isolated candidate entered through a 12-degree
+`90 -> 78 -> 66` transition, while the failed integrated discriminator used a
+direct 24-degree `90 -> 66` transition. It also records that the historical
+pass lacks an exact current-runtime source bundle. The artifact defines the
+fail-fast A/B/C matrix and keeps integrated pre-grasp, Viewer, contact, and
+grasp unauthorized.

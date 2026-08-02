@@ -2273,3 +2273,45 @@
 - Lifecycle: Viewer never started. Evidence retrieval preceded stop;
   `brev ls --all --json` confirmed explicit `STOPPED`. The instance and disk
   were retained, and no resource was created, deleted, resized, or reset.
+
+## 2026-08-01 — DF-041/DF-042 causal context audit and fail-fast matrix
+
+- Historical correction: the accepted isolated candidate did not enter via
+  the direct 24-degree boundary tested by DF-039. It entered through
+  `[90,78,78,78] -> [90,66,66,66]`, a 12-degree cubic smoothstep with
+  `9 degrees/s` peak velocity and `18 degrees/s2` peak acceleration. The
+  separate 24-degree candidate-to-neutral return caused the earlier mistaken
+  full-sequence equivalence claim. `DF-041` records that falsification.
+- Provenance correction: the 2026-07-31 pass binds config and runtime-fix
+  commit `1cf25a0`, but contains no exact source-file bundle and predates the
+  shared runtime extraction. It cannot authorize the checked-out runtime;
+  `DF-042` remains open until current code reproduces the isolated pass.
+- New protocol: A runs the current source-bound runtime on the original split
+  path without boxes and stops the matrix immediately if it fails. Only after
+  A passes, B changes solely to the direct path and C adds solely the static
+  table/cube. Existing failed integrated cell D is referenced, not rerun.
+- Enforcement: each matrix artifact binds commit, config/scene SHA, exact
+  runtime files, actuator case, pose sequence, every-step telemetry, and
+  prohibited scope. Both headless pre-grasp and Viewer wrappers reject launch
+  until promoted context-transfer evidence explicitly authorizes them.
+- Local result: deterministic audit complete; no controller parameter,
+  acceptance threshold, GPU, Isaac runtime, Viewer, contact, grasp, hardware,
+  policy, or checkpoint was used.
+- CI correction: the first full local gate exposed a temporary-output
+  environment variable leaking into remote command previews. `DF-043` scopes
+  that override to the generator invocation; it is not simulator evidence.
+- Tested-object correction: the second full gate proved that a shared scene
+  helper had changed the integrated runner SHA and invalidated its existing
+  preflight. `DF-044` restores that runner byte-for-byte and confines optional
+  scene injection to the isolated calibration runner.
+- Publication correction: an inline Markdown PR body allowed shell backticks
+  to execute local CI and attempt the matrix command. The SSH connection failed
+  before remote execution, and a fresh Brev query confirmed the retained L4
+  remained `STOPPED`. `DF-045` requires `--body-file` for future PR Markdown.
+- Next paid command, only after review/merge, a fresh matching quote, and
+  explicit approval:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-context-transfer-matrix
+  ```

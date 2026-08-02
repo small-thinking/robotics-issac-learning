@@ -21,6 +21,10 @@ from typing import Any
 
 from isaaclab.app import AppLauncher
 
+from audit_dofbot_context_transfer import (
+    CURRENT_SHARED_RUNTIME_PATHS,
+    _source_bundle,
+)
 from dofbot_actuator_calibration import (
     ActuatorCalibrationError,
     GRAVITY_FEED_FORWARD_CASE_NAMES,
@@ -50,6 +54,15 @@ parser.add_argument(
     default=Path(
         "/workspace/robotics-issac-learning/configs/dofbot/calibration/"
         "goal5_actuator_diagnostic.json"
+    ),
+)
+parser.add_argument(
+    "--scene-config",
+    type=Path,
+    default=None,
+    help=(
+        "Optional static reaching scene for a context-transfer discriminator; "
+        "omit for the canonical isolated calibration."
     ),
 )
 parser.add_argument("--case-name", required=True)
@@ -92,7 +105,9 @@ from dofbot_gravity_feed_forward_runtime import (
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_PATHS,
     DofbotPregraspSceneCfg,
+    spawn_static_reaching_boxes,
 )
+from dofbot_reaching import load_reaching_config
 
 TERMINAL_BODY_NAMES = (
     "Wrist_Twist",
@@ -775,7 +790,15 @@ def main() -> None:
             ),
         )
     )
+    context_scene = None
+    context_scene_sha256 = None
+    if args_cli.scene_config is not None:
+        context_scene, context_scene_sha256 = load_reaching_config(
+            args_cli.scene_config
+        )
     scene = InteractiveScene(scene_cfg)
+    if context_scene is not None:
+        spawn_static_reaching_boxes(context_scene)
     sim.reset()
     scene.update(sim.get_physics_dt())
     assert_compatible_asset_contracts(
@@ -953,6 +976,10 @@ def main() -> None:
         "experiment": "dofbot_actuator_diagnostic_case",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": args_cli.git_commit,
+        "runtime_source_bundle": _source_bundle(
+            project_dir=Path(__file__).resolve().parents[1],
+            paths=CURRENT_SHARED_RUNTIME_PATHS,
+        ),
         "asset_contract": {
             "path": str(args_cli.asset_contract),
             "sha256": asset_contract_sha256,
@@ -961,6 +988,16 @@ def main() -> None:
             "path": str(args_cli.calibration_config),
             "sha256": preflight_config_sha256,
         },
+        "context_scene_config": (
+            {
+                "path": str(args_cli.scene_config),
+                "sha256": context_scene_sha256,
+                "table_prim_path": context_scene.table.prim_path,
+                "target_cube_prim_path": context_scene.target_cube.prim_path,
+            }
+            if context_scene is not None
+            else None
+        ),
         "case": case.to_dict(),
         "runtime": {
             "physics_dt_s": sim.get_physics_dt(),
@@ -1057,7 +1094,7 @@ def main() -> None:
         },
         "evaluation": evaluation,
         "scope": {
-            "table_or_cube_spawned": False,
+            "table_or_cube_spawned": context_scene is not None,
             "viewer_started": False,
             "camera_tensor_captured": False,
             "real_hardware_commanded": False,

@@ -15,6 +15,7 @@ SHELL := /bin/bash
 	dofbot-actuator-velocity-evidence-audit \
 	dofbot-residual-force-evidence-audit \
 	dofbot-gravity-feed-forward-dry-run dofbot-gravity-feed-forward \
+	dofbot-context-transfer-audit dofbot-context-transfer-matrix \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
@@ -24,6 +25,7 @@ SHELL := /bin/bash
 	show-dofbot-actuator-calibration \
 	show-dofbot-solver-drive show-dofbot-drive-model \
 	show-dofbot-gravity-feed-forward \
+	show-dofbot-context-transfer-matrix \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test ci-cpu
@@ -211,6 +213,15 @@ dofbot-gravity-feed-forward-dry-run:
 dofbot-gravity-feed-forward:
 	@./scripts/isaac/run_dofbot_gravity_feed_forward_diagnostic.sh
 
+dofbot-context-transfer-audit:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/audit_dofbot_context_transfer.py \
+	 --output "$${DOFBOT_CONTEXT_TRANSFER_AUDIT:-artifacts/dofbot/pregrasp_context_transfer_audit.json}" \
+	 $${DOFBOT_CONTEXT_TRANSFER_EXPECTED:+--expected "$${DOFBOT_CONTEXT_TRANSFER_EXPECTED}"}
+
+dofbot-context-transfer-matrix:
+	@./scripts/isaac/run_dofbot_context_transfer_matrix.sh
+
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh
 
@@ -304,6 +315,9 @@ show-dofbot-drive-model:
 
 show-dofbot-gravity-feed-forward:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_gravity_feed_forward_diagnostic.sh
+
+show-dofbot-context-transfer-matrix:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_context_transfer_matrix.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

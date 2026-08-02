@@ -27,6 +27,7 @@ export DOFBOT_VELOCITY_EVIDENCE_AUDIT="$ci_tmp_dir/dofbot-velocity-evidence-audi
 export DOFBOT_RESIDUAL_FORCE_AUDIT="$ci_tmp_dir/dofbot-residual-force-audit.json"
 export DOFBOT_RESIDUAL_FORCE_EVIDENCE_AUDIT="$ci_tmp_dir/dofbot-residual-force-evidence-audit.json"
 export DOFBOT_GRAVITY_FEED_FORWARD_PLAN="$ci_tmp_dir/dofbot-gravity-feed-forward-plan.json"
+dofbot_context_transfer_audit="$ci_tmp_dir/dofbot-context-transfer-audit.json"
 
 printf '[cpu-ci] Ruff\n'
 if command -v ruff >/dev/null 2>&1 && [[ "$(ruff --version)" == "ruff 0.15.0" ]]; then
@@ -104,6 +105,9 @@ if [[ "$residual_sources_available" != true ]]; then
   export DOFBOT_RESIDUAL_FORCE_AUDIT="artifacts/dofbot/residual_force_audit_2026-07-30.json"
 fi
 make dofbot-gravity-feed-forward-dry-run
+DOFBOT_CONTEXT_TRANSFER_AUDIT="$dofbot_context_transfer_audit" \
+  DOFBOT_CONTEXT_TRANSFER_EXPECTED=artifacts/dofbot/pregrasp_context_transfer_audit.json \
+  make dofbot-context-transfer-audit
 
 printf '[cpu-ci] Generated artifact validation\n'
 while IFS= read -r -d '' artifact; do

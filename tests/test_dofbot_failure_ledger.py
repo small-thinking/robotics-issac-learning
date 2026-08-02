@@ -54,6 +54,7 @@ REQUIRED_EVIDENCE = {
     "artifacts/dofbot/pregrasp_target_torque_discriminator_2026-08-01.json",
     "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json",
     "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json",
+    "artifacts/dofbot/pregrasp_context_transfer_audit.json",
 }
 REQUIRED_POLICY_FILES = (
     "AGENTS.md",
@@ -134,7 +135,27 @@ class DofbotFailureLedgerTest(unittest.TestCase):
         self.assertIn("4.196145 degrees", trajectory_result[3])
         self.assertIn("Do not repeat trajectory-duration", trajectory_result[6])
         self.assertIn("Viewer remains blocked", self.text)
-        self.assertIn("no authorized next paid discriminator", self.text)
+        protocol = next(row for row in self.rows if row[0] == "DF-041")
+        provenance = next(row for row in self.rows if row[0] == "DF-042")
+        self.assertEqual(protocol[4], "FALSIFIED")
+        self.assertIn("12-degree boundary", protocol[3])
+        self.assertIn("does not falsify", protocol[6])
+        self.assertEqual(provenance[4], "OPEN")
+        self.assertIn("no exact source-file bundle", provenance[3])
+        self.assertIn("fail-fast cell A", provenance[6])
+        ci_isolation = next(row for row in self.rows if row[0] == "DF-043")
+        self.assertEqual(ci_isolation[4], "RESOLVED")
+        self.assertIn("exported", ci_isolation[3])
+        self.assertIn("one Make invocation", ci_isolation[6])
+        tested_object = next(row for row in self.rows if row[0] == "DF-044")
+        self.assertEqual(tested_object[4], "RESOLVED")
+        self.assertIn("source SHA", tested_object[3])
+        self.assertIn("byte-identical", tested_object[6])
+        publication = next(row for row in self.rows if row[0] == "DF-045")
+        self.assertEqual(publication[4], "RESOLVED")
+        self.assertIn("Backticks", publication[3])
+        self.assertIn("--body-file", publication[6])
+        self.assertIn("STOPPED", publication[3])
 
     def test_remote_verifier_interpreter_defect_is_not_hidden(self) -> None:
         wrapper = next(row for row in self.rows if row[0] == "DF-031")
