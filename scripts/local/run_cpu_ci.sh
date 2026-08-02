@@ -25,6 +25,7 @@ export DOFBOT_DRIVE_MODEL_PLAN="$ci_tmp_dir/dofbot-drive-model-plan.json"
 export DOFBOT_VELOCITY_REANALYSIS="$ci_tmp_dir/dofbot-velocity-reanalysis.json"
 export DOFBOT_VELOCITY_EVIDENCE_AUDIT="$ci_tmp_dir/dofbot-velocity-evidence-audit.json"
 export DOFBOT_RESIDUAL_FORCE_AUDIT="$ci_tmp_dir/dofbot-residual-force-audit.json"
+export DOFBOT_RESIDUAL_FORCE_EVIDENCE_AUDIT="$ci_tmp_dir/dofbot-residual-force-evidence-audit.json"
 export DOFBOT_GRAVITY_FEED_FORWARD_PLAN="$ci_tmp_dir/dofbot-gravity-feed-forward-plan.json"
 
 printf '[cpu-ci] Ruff\n'
@@ -76,7 +77,26 @@ else
   printf '[cpu-ci] Raw velocity payloads are intentionally untracked; full replay skipped\n'
 fi
 make dofbot-actuator-velocity-evidence-audit
-make dofbot-residual-force-audit
+residual_input_dir="${DRIVE_MODEL_DIAGNOSTIC_CASES:-artifacts/dofbot/drive_model_diagnostic_cases}"
+residual_sources=(
+  "$residual_input_dir/force_damping_53.json"
+  "$residual_input_dir/force_authored_tuning.json"
+)
+residual_sources_available=true
+for source in "${residual_sources[@]}"; do
+  if [[ ! -f "$source" ]]; then
+    residual_sources_available=false
+  fi
+done
+if [[ "$residual_sources_available" == true ]]; then
+  make dofbot-residual-force-audit
+else
+  printf '[cpu-ci] Raw residual-force payloads are intentionally untracked; full replay skipped\n'
+fi
+make dofbot-residual-force-evidence-audit
+if [[ "$residual_sources_available" != true ]]; then
+  export DOFBOT_RESIDUAL_FORCE_AUDIT="artifacts/dofbot/residual_force_audit_2026-07-30.json"
+fi
 make dofbot-gravity-feed-forward-dry-run
 
 printf '[cpu-ci] Generated artifact validation\n'

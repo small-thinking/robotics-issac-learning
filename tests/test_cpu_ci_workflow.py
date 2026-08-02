@@ -43,6 +43,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
             "dofbot-actuator-velocity-reanalysis",
             "dofbot-actuator-velocity-evidence-audit",
             "dofbot-residual-force-audit",
+            "dofbot-residual-force-evidence-audit",
             "dofbot-gravity-feed-forward-dry-run",
         )
         for target in expected_targets:
@@ -58,6 +59,8 @@ class CpuCiWorkflowTests(unittest.TestCase):
         self.assertIn('export UV_TOOL_DIR="${UV_TOOL_DIR:-$ci_tmp_dir/uv-tools}"', script)
         self.assertIn("ACTUATOR_CALIBRATION_CASES", script)
         self.assertIn("Raw velocity payloads are intentionally untracked", script)
+        self.assertIn("DRIVE_MODEL_DIAGNOSTIC_CASES", script)
+        self.assertIn("Raw residual-force payloads are intentionally untracked", script)
 
     def test_cpu_entry_point_cannot_start_paid_or_isaac_runtime_work(self) -> None:
         script = SCRIPT.read_text()

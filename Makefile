@@ -12,6 +12,7 @@ SHELL := /bin/bash
 	dofbot-solver-drive dofbot-drive-model-dry-run dofbot-drive-model \
 	dofbot-actuator-velocity-reanalysis dofbot-residual-force-audit \
 	dofbot-actuator-velocity-evidence-audit \
+	dofbot-residual-force-evidence-audit \
 	dofbot-gravity-feed-forward-dry-run dofbot-gravity-feed-forward \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
@@ -183,6 +184,15 @@ dofbot-residual-force-audit:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
 	 uv run --python 3.12 python tools/audit_dofbot_residual_force.py \
 	 --output "$${DOFBOT_RESIDUAL_FORCE_AUDIT:-artifacts/dofbot/residual_force_audit_2026-07-30.json}"
+
+dofbot-residual-force-evidence-audit:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/audit_dofbot_residual_force_evidence.py \
+	 --drive-result "$${DRIVE_MODEL_RESULT:-artifacts/dofbot/drive_model_diagnostic_result_2026-07-30.json}" \
+	 --actuator-result "$${ACTUATOR_CALIBRATION_RESULT:-artifacts/dofbot/actuator_calibration_result_2026-07-30.json}" \
+	 --asset-audit "$${DOFBOT_ASSET_DRIVE_AUDIT:-artifacts/dofbot/asset_drive_audit_2026-07-30.json}" \
+	 --residual-audit "$${DOFBOT_RESIDUAL_FORCE_EVIDENCE_INPUT:-artifacts/dofbot/residual_force_audit_2026-07-30.json}" \
+	 --output "$${DOFBOT_RESIDUAL_FORCE_EVIDENCE_AUDIT:-/tmp/dofbot-residual-force-evidence-audit.json}"
 
 dofbot-gravity-feed-forward-dry-run:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
