@@ -1,4 +1,4 @@
-"""Isaac scene config for contact-reported DOFBOT pre-grasp validation.
+"""Isaac scene helpers for contact-reported DOFBOT pre-grasp validation.
 
 Import only after AppLauncher starts Kit.
 
@@ -7,6 +7,9 @@ nested DOFBOT rigid-body paths. The runner therefore consumes PhysX contact
 report events for these complete actor paths instead.
 """
 
+from typing import Any
+
+import isaaclab.sim as sim_utils
 from dofbot_scene_cfg import DOFBOT_CFG, DofbotAssetSceneCfg
 
 DIRECT_CONTACT_BODIES = ("link2", "link3", "link4")
@@ -36,3 +39,22 @@ class DofbotPregraspSceneCfg(DofbotAssetSceneCfg):
         prim_path="{ENV_REGEX_NS}/Dofbot",
         spawn=DOFBOT_CFG.spawn.replace(activate_contact_sensors=True),
     )
+
+
+def spawn_static_reaching_boxes(config: Any) -> None:
+    """Spawn the exact static table/cube pair from a reaching config."""
+    for box in (config.table, config.target_cube):
+        spawn_cfg = sim_utils.CuboidCfg(
+            size=box.size_m,
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=box.color_rgb,
+                roughness=0.8,
+                metallic=0.0,
+            ),
+        )
+        spawn_cfg.func(
+            box.prim_path,
+            spawn_cfg,
+            translation=box.center_world_m,
+        )

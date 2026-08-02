@@ -352,7 +352,7 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
                 ]
             )
 
-    def test_runner_records_full_chain_without_task_scene_or_viewer(self) -> None:
+    def test_runner_records_full_chain_with_optional_task_scene_and_no_viewer(self) -> None:
         runner = RUNNER_PATH.read_text(encoding="utf-8")
         run_script = RUN_SCRIPT_PATH.read_text(encoding="utf-8")
         for field in (
@@ -374,6 +374,8 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
             "get_dof_max_forces",
             "optional_probe_errors",
             "hasattr(value, \"tolist\")",
+            "runtime_source_bundle",
+            "CURRENT_SHARED_RUNTIME_PATHS",
         ):
             self.assertIn(field, runner)
         self.assertIn("sample_every_physics_step", runner)
@@ -383,6 +385,9 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
         )
         self.assertNotIn("CameraCfg", runner)
         self.assertNotIn("_spawn_scene_boxes", runner)
+        self.assertIn('"--scene-config"', runner)
+        self.assertIn("spawn_static_reaching_boxes(context_scene)", runner)
+        self.assertIn('"table_or_cube_spawned": context_scene is not None', runner)
         self.assertNotIn("Arm_Lib", runner)
         self.assertNotIn("--livestream", run_script)
         self.assertNotIn("--viz", run_script)

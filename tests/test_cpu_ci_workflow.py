@@ -47,6 +47,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
             "dofbot-residual-force-audit",
             "dofbot-residual-force-evidence-audit",
             "dofbot-gravity-feed-forward-dry-run",
+            "dofbot-context-transfer-audit",
         )
         for target in expected_targets:
             self.assertIn(f"make {target}", script)
@@ -59,6 +60,7 @@ class CpuCiWorkflowTests(unittest.TestCase):
         self.assertIn("bash -n", script)
         self.assertIn("python -m json.tool", script)
         self.assertIn("pregrasp_command_space_contract.json", script)
+        self.assertIn("pregrasp_context_transfer_audit.json", script)
         self.assertIn('export UV_TOOL_DIR="${UV_TOOL_DIR:-$ci_tmp_dir/uv-tools}"', script)
         self.assertIn("ACTUATOR_CALIBRATION_CASES", script)
         self.assertIn("Raw velocity payloads are intentionally untracked", script)

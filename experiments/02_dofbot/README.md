@@ -30,14 +30,13 @@ falsified or partial correction, superseded diagnosis, runtime/telemetry
 incompatibility, artifact/transport defect, and paid-window failure must update
 that ledger in the same pull request.
 
-The current scientific item is `DF-030`: the unchanged rerun proved the API
-target reaches both the backend and live `joint_pos_target`, while the
-pre-grasp machine gate still fails at `4.177019°` joint tracking and
-`0.0318089 m` position error. The next paid run must collect measured PhysX
-`get_dof_projected_joint_forces` without changing pose, gains, limits, solver
-settings, feed-forward, or acceptance thresholds. The Viewer remains blocked.
-`DF-031` separately records the locally repaired semantic-verifier interpreter
-defect; it must also pass the next remote headless gate.
+The current scientific item is `DF-042`. The offline audit corrected a prior
+equivalence error: the accepted isolated candidate entered through
+`90 -> 78 -> 66` (12 degrees, `9/18 degrees/s(/s)`), while `DF-039` tested
+direct `90 -> 66` (24 degrees, `18/36`). It also found that the historical
+isolated pass does not bind the current shared runtime source bundle. The next
+paid gate is therefore the fail-fast A/B/C context-transfer matrix, not another
+parameter tune or integrated Viewer attempt.
 
 ## First stage: asset, motion, and camera
 
@@ -1674,3 +1673,24 @@ is a controlled offline comparison of the successful isolated calibration
 and failed integrated task contexts, followed by one newly named ledger
 discriminator. Viewer, contact, gripper, grasp, lift, place, hardware, policy,
 and checkpoint remain blocked.
+
+## DF-041/DF-042 offline context-transfer audit
+
+The deterministic audit in
+`artifacts/dofbot/pregrasp_context_transfer_audit.json` SHA-binds the accepted
+isolated config/result, failed direct integrated result, current shared runtime,
+and integrated consumer. It proves the candidate-entry histories differ and
+that the historical pass cannot validate the refactored source bundle.
+
+The prepared paid protocol is deliberately fail-fast:
+
+1. A: current shared runtime, original `90 -> 78 -> 66` path, no boxes.
+2. B: same runtime and no boxes, direct `90 -> 66` path; run only after A.
+3. C: original split path plus the exact static table/cube; run only after A.
+4. D: existing DF-039 integrated failure, referenced but never rerun.
+
+Every new artifact carries the exact runtime source bundle and is checked for
+commit, config/scene hashes, actuator factors, full pose sequence, telemetry,
+scope, and tracking verdict. `make dofbot-pregrasp` and
+`make dofbot-pregrasp-view` now fail closed while this evidence is absent.
+No GPU or Isaac runtime was started for this audit.

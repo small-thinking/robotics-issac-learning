@@ -30,14 +30,20 @@
   proved command propagation and complete telemetry without resolving the
   residual; the DF-035 single 2000-ms boundary then reproduced
   `4.196145 degrees / 0.0318115 m`, falsifying trajectory segmentation as a
-  sufficient repair; 40 historical failure, falsification, partial-fix, and
+  sufficient repair; the offline causal audit then found that the accepted
+  isolated candidate entered through a 12-degree `90 -> 78 -> 66` path, not
+  the direct 24-degree `90 -> 66` DF-039 path, and that the old pass did not
+  bind the post-refactor shared runtime source bundle; 44 historical failure,
+  falsification, partial-fix, and
   operational cases are consolidated in
   `experiments/02_dofbot/FAILURE_LEDGER.md`; no new paid discriminator is
-  selected until the passing isolated calibration and failed integrated task
-  contexts are compared offline; Viewer remains blocked
+  selected; the next paid gate is the fail-fast A/B/C context-transfer matrix,
+  and both integrated pre-grasp wrappers now reject execution until that
+  source-bound evidence is promoted; 44 ledger cases now include two local
+  CI failures caught and resolved during this audit; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-08-01 19:25 PDT after the DF-035 evidence retrieval
+  2026-08-01 20:51 PDT after the offline context audit
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
@@ -1363,12 +1369,14 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. `DF-039` now proves that the merged DF-035
-single-boundary trajectory does not resolve the loaded residual. The next work
-is GPU-free: compare the successful isolated calibration and failed integrated
-task contexts, identify the smallest remaining factor or missing observable,
-and add one new unresolved ledger discriminator. Only after that local gate,
-a fresh quote, and explicit approval may another headless run occur.
+Keep the Brev instance stopped. The GPU-free comparison is complete: `DF-041`
+corrects the false isolated/integrated protocol-equivalence claim, and
+`DF-042` records the missing current-runtime machine provenance. After review,
+merge, a fresh quote, and explicit approval, run only
+`make dofbot-context-transfer-matrix`. Cell A is a fail-fast reproduction of
+the old split-path pass on the exact current source bundle; B changes only the
+entry path, and C changes only the static scene. Existing failed cell D is not
+rerun.
 `make dofbot-pregrasp-view` remains blocked until every machine gate passes.
 Contact, closing, grasping, lifting, and placing remain unauthorized.
 

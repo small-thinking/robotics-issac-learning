@@ -76,6 +76,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/reaching_viewer_contract.json
 !artifacts/dofbot/pregrasp_scene_calibration.json
 !artifacts/dofbot/pregrasp_scene_calibration.svg
+!artifacts/dofbot/pregrasp_context_transfer_audit.json
 !artifacts/dofbot/pregrasp_pose_contract.json
 !artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json
 !artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json

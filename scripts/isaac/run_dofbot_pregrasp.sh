@@ -8,6 +8,7 @@ pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/preg
 actuator_config="${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-${GRAVITY_FEED_FORWARD_DIAGNOSTIC:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}}"
 actuator_result="${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}"
 preflight_contract="${DOFBOT_PREGRASP_PREFLIGHT_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_command_space_contract.json}"
+context_transfer_contract="${DOFBOT_CONTEXT_TRANSFER_AUDIT:-$project_dir/artifacts/dofbot/pregrasp_context_transfer_audit.json}"
 output="${DOFBOT_PREGRASP_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_machine_contract.json}"
 isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"
 
@@ -31,6 +32,7 @@ printf -v quoted_pose_config '%q' "$pose_config"
 printf -v quoted_actuator_config '%q' "$actuator_config"
 printf -v quoted_actuator_result '%q' "$actuator_result"
 printf -v quoted_preflight_contract '%q' "$preflight_contract"
+printf -v quoted_context_transfer_contract '%q' "$context_transfer_contract"
 printf -v quoted_output '%q' "$output"
 printf -v quoted_isaac_python '%q' "$isaac_python"
 
@@ -46,6 +48,12 @@ if [[ ! -x $quoted_isaac_python ]]; then
     $quoted_isaac_python >&2
   pregrasp_exit_code=126
 else
+  $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_context_transfer_admission.py \
+    --contract $quoted_context_transfer_contract \
+    --project-dir $quoted_project_dir
+  pregrasp_exit_code="\$?"
+fi
+if [[ "\$pregrasp_exit_code" -eq 0 ]]; then
   $quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_pregrasp_gpu_preflight.py \
     --contract $quoted_preflight_contract \
     --project-dir $quoted_project_dir

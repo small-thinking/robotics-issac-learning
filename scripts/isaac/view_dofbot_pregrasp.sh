@@ -7,6 +7,8 @@ scene_config="${DOFBOT_PREGRASP_SCENE_CONFIG:-${REACHING:-configs/dofbot/reachin
 pose_config="${DOFBOT_PREGRASP_POSE_CONFIG:-${PREGRASP_POSE:-configs/dofbot/pregrasp/goal5_angled_pregrasp.json}}"
 actuator_config="${DOFBOT_PREGRASP_ACTUATOR_CONFIG:-${GRAVITY_FEED_FORWARD_DIAGNOSTIC:-configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json}}"
 actuator_result="${DOFBOT_PREGRASP_ACTUATOR_RESULT:-artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json}"
+context_transfer_contract="${DOFBOT_CONTEXT_TRANSFER_AUDIT:-$project_dir/artifacts/dofbot/pregrasp_context_transfer_audit.json}"
+isaac_python="${ISAAC_PYTHON_EXE:-./_isaac_sim/python.sh}"
 output="${DOFBOT_PREGRASP_VIEW_CONTRACT:-$project_dir/artifacts/dofbot/pregrasp_viewer_contract.json}"
 log_path="${DOFBOT_PREGRASP_VIEWER_LOG:-$project_dir/artifacts/dofbot/pregrasp_viewer.log}"
 connection_hold="${DOFBOT_PREGRASP_VIEW_HOLD_SECONDS:-20}"
@@ -30,12 +32,17 @@ printf -v quoted_scene_config '%q' "$scene_config"
 printf -v quoted_pose_config '%q' "$pose_config"
 printf -v quoted_actuator_config '%q' "$actuator_config"
 printf -v quoted_actuator_result '%q' "$actuator_result"
+printf -v quoted_context_transfer_contract '%q' "$context_transfer_contract"
+printf -v quoted_isaac_python '%q' "$isaac_python"
 printf -v quoted_output '%q' "$output"
 printf -v quoted_log_path '%q' "$log_path"
 printf -v quoted_connection_hold '%q' "$connection_hold"
 
 remote_command="
 set -euo pipefail
+$quoted_isaac_python $quoted_project_dir/tools/verify_dofbot_context_transfer_admission.py \
+  --contract $quoted_context_transfer_contract \
+  --project-dir $quoted_project_dir
 mkdir -p \"\$(dirname $quoted_output)\" \"\$(dirname $quoted_log_path)\"
 stale_pids=\"\$(ps -eo pid=,comm=,args= | awk '\$2 ~ /^python/ && \$0 ~ /run_dofbot_pregrasp.py/ {print \$1}')\"
 if [[ -n \"\$stale_pids\" ]]; then

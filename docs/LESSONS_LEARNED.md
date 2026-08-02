@@ -283,3 +283,18 @@ from that measured start. Then enforce the unchanged duration, goal, and
 safety envelope. This accepts real sensor/solver noise without accepting a
 forged or unsafe trajectory. It does not turn a failed tracking result into a
 pass.
+
+## Compare command history and source provenance, not just endpoints
+
+Two runs that end at the same joint target and share the same full-sequence
+maximum delta are not necessarily equivalent. Compare the actual incoming
+transition, derivative envelope, preceding poses, settling protocol, and scene
+context. Here the accepted candidate used `90 -> 78 -> 66`, while the failed
+task used direct `90 -> 66`; the later 24-degree neutral return had obscured
+that distinction.
+
+A commit or config hash also cannot validate code introduced by a later shared
+runtime refactor. Machine artifacts must bind the exact source bundle they
+executed. When that binding is absent, first reproduce the historical pass on
+current code as a fail-fast sentinel before testing new factors or opening a
+Viewer.
