@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_goal5_df035_single_boundary_discriminator",
+  "generated_at_utc": "2026-08-02T02:12:58.971336+00:00",
+  "git_commit": "2e7f7aa7da4c92989de229189cae8dc700646d0b",
+  "infrastructure": {
+    "instance_name": "isaac-launchable-f150a5",
+    "instance_id": "92xbacz46",
+    "provider": "aws",
+    "instance_type": "g6.4xlarge",
+    "gpu": "NVIDIA L4",
+    "gpu_memory_mib": 23034,
+    "quoted_compute_price_per_hour_usd": 1.58784,
+    "final_status": "STOPPED",
+    "instance_or_disk_created_deleted_resized_or_reset": false
+  },
+  "raw_machine_artifact": {
+    "retained_local_path": "artifacts/dofbot/pregrasp_df035_single_boundary_raw_2026-08-01.json",
+    "tracked": false,
+    "byte_count": 2283434,
+    "sha256": "62edc78fa2491ac07670222cac093f92e0e0c90e5974743bd627c68d2fdddbd3"
+  },
+  "preflight": {
+    "gpu_admission_passed": true,
+    "source_count": 7,
+    "offline_check_count": 27,
+    "expected_candidate_api_boundaries": 1,
+    "expected_total_api_calls": 12,
+    "viewer_authorized": false
+  },
+  "changed_factor": {
+    "ledger_id": "DF-035",
+    "description": "replace the former segmented 200-ms candidate trajectory with one 2000-ms Yahboom API pose boundary",
+    "all_scene_actuator_solver_feed_forward_safety_and_acceptance_factors_held_fixed": true
+  },
+  "machine": {
+    "machine_passed": false,
+    "decision": "joint_tracking_failed",
+    "passed_check_count": 35,
+    "total_check_count": 37,
+    "failed_checks": [
+      "grasp_origin_reached_pregrasp_position",
+      "final_api_joint_tracking_within_tolerance"
+    ],
+    "target_angles_deg": [
+      90.0,
+      66.0,
+      66.0,
+      66.0
+    ],
+    "final_observed_angles_deg": [
+      90.0085106825101,
+      68.46749908490735,
+      70.19614483175671,
+      67.24669497832136
+    ],
+    "maximum_final_joint_tracking_error_deg": 4.196144831756712,
+    "maximum_allowed_final_joint_tracking_error_deg": 1.0,
+    "initial_position_error_m": 0.2557291596536446,
+    "final_position_error_m": 0.03181153960990212,
+    "maximum_allowed_final_position_error_m": 0.025,
+    "position_improvement_m": 0.2239176200437425,
+    "final_approach_error_deg": 7.917486489268536,
+    "final_closing_error_deg": 0.33937226789180736,
+    "maximum_contact_force_n": 0.0,
+    "official_api_call_count": 12,
+    "expected_official_api_call_count": 12,
+    "maximum_backend_target_api_error_deg": 0.0,
+    "maximum_target_buffer_backend_error_deg": 6.678608457377777e-7,
+    "maximum_neutral_reset_error_deg": 0.0022159213490198226,
+    "motion_contract": {
+      "profile": "cubic_smoothstep_3u2_minus_2u3",
+      "duration_s": 2.0,
+      "maximum_peak_velocity_deg_s": 18.000942997187153,
+      "maximum_peak_acceleration_deg_s2": 36.001885994374305,
+      "maximum_allowed_velocity_deg_s": 20.0,
+      "maximum_allowed_acceleration_deg_s2": 60.0
+    },
+    "telemetry": {
+      "observation_count": 61,
+      "projected_force_samples_complete_and_aligned": true,
+      "maximum_absolute_physx_projected_joint_forces": [
+        0.008445958606898785,
+        0.49810951948165894,
+        0.34023019671440125,
+        0.17271585762500763
+      ],
+      "maximum_absolute_implicit_actuator_pd_estimates": [
+        0.18885603547096252,
+        45.1419563293457,
+        78.44522094726562,
+        25.113004684448242
+      ],
+      "gravity_feed_forward_sample_count": 900,
+      "maximum_absolute_applied_gravity_effort": 0.3309653103351593,
+      "gravity_effort_clipped_sample_count": 0
+    }
+  },
+  "comparison": {
+    "previous_projected_force_result": "artifacts/dofbot/pregrasp_projected_force_discriminator_2026-08-01.json",
+    "previous_maximum_tracking_error_deg": 4.177019,
+    "current_maximum_tracking_error_deg": 4.196144831756712,
+    "tracking_error_change_deg": 0.019125831756712,
+    "previous_final_position_error_m": 0.0318089,
+    "current_final_position_error_m": 0.03181153960990212,
+    "scientifically_material_improvement": false
+  },
+  "verifier_follow_up": {
+    "ledger_id": "DF-040",
+    "issue": "the post-run verifier compared a noisy measured neutral start with an idealized motion dictionary by exact equality",
+    "resolution": "bind the motion start to observation zero, require the one-degree neutral gate, recompute deltas and derivatives, and enforce the unchanged 20/60 envelope",
+    "controller_or_scene_changed": false
+  },
+  "conclusion": {
+    "ledger_id": "DF-039",
+    "classification": "trajectory_only_hypothesis_falsified",
+    "single_2000_ms_boundary_executed": true,
+    "segmented_trajectory_was_sufficient_cause": false,
+    "viewer_authorized": false,
+    "goal5_complete": false,
+    "next_step": "offline comparison of the accepted isolated calibration and failed integrated task contexts before selecting another paid discriminator"
+  },
+  "scope": {
+    "viewer_started": false,
+    "contact_authorized": false,
+    "gripper_commanded": false,
+    "target_cube_moved": false,
+    "real_hardware_commanded": false,
+    "policy_or_checkpoint_loaded": false
+  }
+}

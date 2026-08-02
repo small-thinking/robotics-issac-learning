@@ -269,3 +269,17 @@ scientific status with exit 127 if it assumes a generic interpreter.
 Use the already proven Isaac interpreter for post-run verification, preserve
 the retrieved artifact regardless of wrapper status, and test the emitted
 sentinel separately from the launcher exit code.
+
+## Verify trajectory invariants from the measured start
+
+A deterministic command can begin from a physically measured state that is
+safely near, but not byte-identical to, its ideal neutral target. Comparing a
+machine-generated motion dictionary directly with a theoretical dry-run
+dictionary can therefore reject a correct run for the wrong reason.
+
+Bind the runtime motion start to observation zero, require the configured
+neutral tolerance, and recompute delta, peak velocity, and peak acceleration
+from that measured start. Then enforce the unchanged duration, goal, and
+safety envelope. This accepts real sensor/solver noise without accepting a
+forged or unsafe trajectory. It does not turn a failed tracking result into a
+pass.

@@ -53,13 +53,13 @@ proved that this measurement is only the small active joint-force balance, not
 an isolated implicit-drive torque sensor; the loaded residual was unchanged.
 The same run resolves the **DF-031** wrapper prerequisite through **DF-033**:
 the installed Isaac Python rejected the failed artifact and propagated
-sentinel 1. The current unresolved item is **DF-035**. Local analytic review
-found that the former 4-degree/200-ms segmented cubic smoothsteps peaked at
-30 degrees/s and 600 degrees/s2 even though boundary-only metadata reported
-the 20 degrees/s and 60 degrees/s2 envelope as passing. The next run must
-change only that trajectory to one accepted 2000-ms Yahboom pose boundary,
-whose analytic peaks are 18 degrees/s and 36 degrees/s2. Viewer remains
-blocked.
+sentinel 1. The **DF-035** discriminator is now complete and **DF-039**
+falsifies its trajectory-only hypothesis as a sufficient repair. One accepted
+2000-ms Yahboom boundary preserved the same approximately 4.2-degree loaded
+residual. There is no authorized next paid discriminator yet: first compare
+the accepted isolated calibration and failed integrated task contexts offline,
+select one new observable or single-factor hypothesis, and add it here. Viewer
+remains blocked.
 
 ## Consolidated ledger
 
@@ -103,6 +103,8 @@ blocked.
 | DF-036 | 2026-08-01 | CPU CI evidence transport | The first clean GitHub CPU run passed lint, 228 tests, Phase 2 validation, and the first nine DOFBOT checks, then failed because full velocity reanalysis assumed three ignored raw Isaac payloads that existed locally but not in a clean checkout. | RESOLVED | GitHub Actions run `30726854242`; `tools/audit_dofbot_velocity_reanalysis_evidence.py` | Never assume ignored raw machine payloads exist in CI. Replay them when locally available; otherwise audit the promoted analysis against tracked config, upstream-result, byte-count, and SHA-256 bindings while unit tests cover the computation. |
 | DF-037 | 2026-08-01 | CPU CI evidence transport | After DF-036 was bypassed correctly, the second clean run reached residual-force analysis and exposed two more ignored raw drive-model payloads that existed only in the retained local evidence. | RESOLVED | GitHub Actions run `30727030093`; `tools/audit_dofbot_residual_force_evidence.py` | Apply the same raw-evidence boundary to every offline audit: replay when payloads exist; otherwise verify the promoted result's tracked upstream files and raw byte/SHA bindings before allowing downstream previews to consume it. |
 | DF-038 | 2026-08-01 | Machine semantic verifier | The post-run verifier accepted a synthetic minimal pass with the right commit, `machine_passed=true`, and no failed checks even though all 37 safety/telemetry checks, source bindings, observations, motion contract, API accounting, and scope were absent. | RESOLVED | `tools/verify_dofbot_pregrasp_gpu_preflight.py`; `tests/test_dofbot_pregrasp_contract_verifier.py` | Verify the seven-file DF-035 input bundle before Isaac launch and require the complete strict machine schema afterward. Never infer semantic success from a summary boolean and empty failure list. |
+| DF-039 | 2026-08-01 | Backend trajectory hypothesis | The exact single `[90,66,66,66]` command over 2000 ms executed with 12/12 API calls and safe analytic peaks, but settled at `[90.008511,68.467499,70.196145,67.246695]`, leaving `4.196145 degrees` joint and `0.0318115 m` position error, essentially reproducing the prior residual. | FALSIFIED | `artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json` | Do not repeat trajectory-duration or segmentation changes as the loaded-tracking fix. Compare the accepted isolated calibration with the integrated task context offline and name one new discriminator before another paid run; Viewer remains blocked. |
+| DF-040 | 2026-08-01 | Machine semantic verifier | The hardened verifier compared the theoretical neutral-start motion dictionary byte-for-byte with the machine contract, but the real articulation began within `0.0023 degrees` of neutral, yielding self-consistent peaks of `18.000943 degrees/s` and `36.001886 degrees/s2`. A future true machine pass would have been rejected despite remaining inside the unchanged `20/60` envelope. | RESOLVED | `tools/verify_dofbot_pregrasp_machine_contract.py`; `tests/test_dofbot_pregrasp_contract_verifier.py` | Bind the motion start to the first observation, require it within the one-degree neutral gate, recompute every delta and derivative, and enforce the unchanged safety envelope. Do not require noisy observed state to equal an idealized constant. |
 
 ## Current evidence boundary
 
