@@ -365,3 +365,15 @@ direct 24-degree `90 -> 66` transition. It also records that the historical
 pass lacks an exact current-runtime source bundle. The artifact defines the
 fail-fast A/B/C matrix and keeps integrated pre-grasp, Viewer, contact, and
 grasp unauthorized.
+
+`context_transfer_matrix_contract.json` promotes the completed source-bound
+DF-042 matrix. Current-runtime cells A and B both pass without static scene
+boxes at `0.002391` and `0.002211` degrees maximum settled tracking error.
+Cell C adds only the exact static table/cube context and fails at
+`4.199411` degrees despite zero monitored contact, matching target buffers,
+the same actuator/runtime bundle, and a clean neutral return. The matrix
+therefore localizes the residual to the static-scene context but does not yet
+identify table versus cube, collision composition, or another scene-spawn
+side effect. Integrated pre-grasp and Viewer remain unauthorized. The three
+multi-megabyte raw cell JSON files and logs remain ignored locally; the
+promoted contract binds each raw JSON by byte count and SHA-256.

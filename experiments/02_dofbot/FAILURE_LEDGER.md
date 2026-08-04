@@ -47,19 +47,15 @@ ledger ID and state:
 4. why the run does not repeat a `FALSIFIED` case;
 5. the stop deadline and the machine gate that blocks Viewer launch.
 
-The target-buffer part of **DF-028** is resolved by **DF-030**. The paid
-**DF-034** discriminator then collected complete projected-force telemetry but
-proved that this measurement is only the small active joint-force balance, not
-an isolated implicit-drive torque sensor; the loaded residual was unchanged.
-The same run resolves the **DF-031** wrapper prerequisite through **DF-033**:
-the installed Isaac Python rejected the failed artifact and propagated
-sentinel 1. The **DF-035** discriminator is now complete and **DF-039**
-falsifies its trajectory-only hypothesis as a sufficient repair. One accepted
-2000-ms Yahboom boundary preserved the same approximately 4.2-degree loaded
-residual. There is no authorized next paid discriminator yet: first compare
-the accepted isolated calibration and failed integrated task contexts offline,
-select one new observable or single-factor hypothesis, and add it here. Viewer
-remains blocked.
+The target-buffer, torque-estimate, projected-force, trajectory, and runtime
+provenance discriminators are complete through **DF-042**. The source-bound
+A/B/C matrix reproduced both split and direct paths within `0.0024 degrees`
+without boxes, while adding only the exact static table/cube context restored
+the `4.199411-degree` residual with zero monitored contact. **DF-046** records
+this causal localization. It does not yet distinguish table from cube,
+collision composition, or another scene-spawn side effect. There is no
+authorized next paid discriminator: first audit the scene composition offline
+and define a minimal one-factor decomposition. Viewer remains blocked.
 
 ## Consolidated ledger
 
@@ -110,6 +106,7 @@ remains blocked.
 | DF-043 | 2026-08-01 | CPU CI environment isolation | The first full local gate exported the temporary audit output path globally, so the remote pre-grasp preview inherited a local `/tmp` contract instead of its canonical remote default and correctly failed its command assertion. | RESOLVED | `scripts/local/run_cpu_ci.sh`; `tests/test_remote_command_preview.sh` | Pass generator output paths to the one Make invocation only. Do not export a local artifact override across tests that verify default remote contracts. |
 | DF-044 | 2026-08-01 | Tested-object isolation | Extracting the integrated runner's static-box spawn into a shared helper changed its source SHA, so the existing 27-check preflight correctly rejected all downstream synthetic contracts before their own mutations could be tested. | RESOLVED | `artifacts/dofbot/pregrasp_command_space_contract.json`; `tools/run_dofbot_pregrasp.py` | Do not modify the integrated runner while building its context-transfer discriminator. Preserve its byte-identical spawn path and add optional scene context only to the isolated calibration runner. |
 | DF-045 | 2026-08-01 | PR publication quoting | Backticks in an inline `gh pr create --body` string were evaluated by the local shell, rerunning CPU CI and attempting the matrix command. SSH failed against the default stale instance alias before any remote command, and a follow-up `brev ls --all --json` proved the retained L4 remained `STOPPED`. | RESOLVED | PR #49; `docs/EXPERIMENTS.md` | Write Markdown PR bodies to a file and pass `--body-file`; never place command-formatted Markdown inside a shell-interpreted argument. Recheck live resource state after any accidental remote attempt. |
+| DF-046 | 2026-08-03 | Static scene context | On current `main@4b88d07`, A reproduced the split no-box pass at `0.002391 degrees` and B proved the direct no-box path at `0.002211 degrees`; C added only the exact static table/cube pair and failed at `4.199411 degrees` with zero monitored contact, matching target buffers, identical actuator/runtime source bindings, and a passing neutral return. | PARTIAL | `artifacts/dofbot/context_transfer_matrix_contract.json` | Do not revisit trajectory history, runtime provenance, API targets, drive tuning, or feed-forward as the primary cause. Before another paid run, audit scene composition offline and prepare a one-factor table/cube/collision-or-spawn decomposition; Viewer remains blocked. |
 
 ## Current evidence boundary
 

@@ -2315,3 +2315,50 @@
   BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
     make dofbot-context-transfer-matrix
   ```
+
+## 2026-08-03 — DF-042 matrix localizes residual to static-scene context
+
+- Pre-run gate: PR #49 was merged at `main@4b88d07`; `make ci-cpu` passed
+  Ruff, 258 tests, deterministic analyses, contract regeneration, and remote
+  previews. The retained `isaac-launchable-f150a5` (`92xbacz46`) matched AWS
+  `g6.4xlarge`, NVIDIA L4, explicit `STOPPED`, and the fresh
+  `$1.58784/hour` quote before the approved start.
+- Command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-context-transfer-matrix
+  ```
+
+- A, current source-bound split path without boxes, passed at
+  `0.002390900 degrees` maximum settled tracking error. This resolves the
+  `DF-042` runtime-provenance prerequisite: the current shared runtime
+  reproduces the accepted isolated behavior.
+- B changed only the no-box entry path to direct `90 -> 66` and passed at
+  `0.002211285 degrees`. Candidate-entry history is therefore not the primary
+  cause of the integrated residual.
+- C restored the original split path and added only the exact static table and
+  cube. It failed the unchanged one-degree gate at `4.199411370 degrees`,
+  closely reproducing DF-039. Target-buffer agreement stayed below
+  `0.000000854 degrees`; the pose settled; monitored contact remained `0 N`;
+  and neutral return passed at `0.002211290 degrees`.
+- Decision: `static_scene_context_is_causal`. This localizes the remaining
+  failure family without claiming whether table, cube, collision composition,
+  or another spawn-side effect is the mechanism. `DF-046` records that
+  partial causal finding and blocks another paid run until an offline
+  one-factor scene decomposition is prepared.
+- Evidence: promoted
+  `artifacts/dofbot/context_transfer_matrix_contract.json`, SHA-256
+  `f3bf9a6aee2f1e53da177eb101129309b83e61ef400f9a2c11345c3d138189de`.
+  It binds raw A/B/C JSON artifacts of `3,124,556`, `3,091,114`, and
+  `3,261,631` bytes by SHA-256. The raw JSON and three logs were retrieved
+  locally and remain ignored.
+- Scope: D was referenced but not rerun. No Viewer, camera tensor, contact
+  task, gripper command, target motion, grasp, hardware command, policy, or
+  checkpoint ran. Integrated pre-grasp remains unauthorized.
+- Lifecycle: start was requested at `2026-08-03 22:41:52 PDT`; scientific
+  output completed at approximately `22:45:37 PDT`; evidence retrieval
+  preceded the stop request at `22:47:51 PDT`; `brev ls --all --json` reached
+  explicit `STOPPED` at `22:56:47 PDT`. The under-15-minute start-to-terminal-
+  stop interval cost at most about `$0.40` at the live quote. No instance or
+  disk was created, resized, reset, or deleted.

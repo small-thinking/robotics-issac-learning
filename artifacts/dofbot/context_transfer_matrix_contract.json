@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_context_transfer_machine_matrix",
+  "generated_at_utc": "2026-08-04T05:45:37.022691+00:00",
+  "git_commit": "4b88d07fcd42f3558acabcfc0c4c0cd2a2567082",
+  "cells": {
+    "A": {
+      "cell_id": "A",
+      "integrity_passed": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.002390900139928931,
+      "calibration_config_sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef",
+      "context_scene_spawned": false,
+      "runtime_source_bundle_sha256": "0aeeb044837af67eadc59bbf7dc61c64ccebbcebb0f686db180fe5d6e2ddb53a",
+      "artifact": {
+        "path": "artifacts/dofbot/context_transfer_cases/cell_a.json",
+        "sha256": "471a7354a6b3bbedeae57763792d5e3b5c281eecae1258749846b95163b1adda",
+        "bytes": 3124556
+      }
+    },
+    "B": {
+      "cell_id": "B",
+      "integrity_passed": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.0022112849996034356,
+      "calibration_config_sha256": "9d051e5a83ed21700bf4187bb252cdedafb2914ba070e0597ff8a1a69a699d07",
+      "context_scene_spawned": false,
+      "runtime_source_bundle_sha256": "0aeeb044837af67eadc59bbf7dc61c64ccebbcebb0f686db180fe5d6e2ddb53a",
+      "artifact": {
+        "path": "artifacts/dofbot/context_transfer_cases/cell_b.json",
+        "sha256": "dc37ff8951252ed0479af5afc291e5dc9737fb3233c49771bc2db7c4e3b8fba3",
+        "bytes": 3091114
+      }
+    },
+    "C": {
+      "cell_id": "C",
+      "integrity_passed": true,
+      "tracking_gate_passed": false,
+      "maximum_settled_tracking_error_deg": 4.199411369727272,
+      "calibration_config_sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef",
+      "context_scene_spawned": true,
+      "runtime_source_bundle_sha256": "0aeeb044837af67eadc59bbf7dc61c64ccebbcebb0f686db180fe5d6e2ddb53a",
+      "artifact": {
+        "path": "artifacts/dofbot/context_transfer_cases/cell_c.json",
+        "sha256": "835dca64894e830478e9e7677d2bb674a0f2a762a4fd1243e531b4f2b4665e13",
+        "bytes": 3261631
+      }
+    }
+  },
+  "existing_failed_reference": {
+    "id": "D",
+    "path": "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json",
+    "sha256": "a8f92e436f469d2c7105c44763bec0b1dbd4d19a0781a48ae67ad13afcff1646",
+    "rerun": false
+  },
+  "matrix": {
+    "complete": true,
+    "fail_fast_triggered": false,
+    "executed_cells": [
+      "A",
+      "B",
+      "C"
+    ],
+    "decision": "static_scene_context_is_causal",
+    "causal_conclusion": "The direct isolated path passes, while adding only static boxes breaks the split path. Static scene context is the isolated cause."
+  },
+  "authorization": {
+    "integrated_pregrasp": false,
+    "viewer": false,
+    "contact_or_grasp": false,
+    "reason": "This matrix isolates context transfer; it does not itself constitute a passing integrated pre-grasp run."
+  }
+}
