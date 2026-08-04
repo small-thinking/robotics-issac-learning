@@ -98,8 +98,12 @@ lightweight VLA post-training, and optional real hardware.
   The completed offline audit then found that the accepted isolated candidate
   used a 12-degree `90 -> 78 -> 66` entry rather than the direct 24-degree
   DF-039 transition, and that its artifact does not bind the current shared
-  runtime. `DF-042` selects a fail-fast, source-bound A/B/C matrix as the next
-  paid discriminator. Viewer, contact, and grasp remain blocked.
+  runtime. The completed `DF-042` source-bound matrix now proves both split and
+  direct no-box paths track within `0.0024 degrees`; adding only the exact
+  static table/cube context restores a `4.199411-degree` residual with zero
+  monitored contact. `DF-046` therefore localizes the remaining failure family
+  to static-scene composition, while its mechanism remains open. Viewer,
+  contact, and grasp remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -147,9 +151,11 @@ The CartPole stage is complete. The canonical next-stage plan is
    SHA-256 values, probes the installed runtime before motion, reads back the
    live USD drives, records every physics-step feed-forward sample, and emits
    a failure classification. The separate single-boundary headless gate ran
-   and failed only final position and joint tracking. Offline context
-   comparison is complete; the current-runtime split-path regression sentinel
-   must pass before path and static-scene cells may run. Viewer remains blocked.
+   and failed only final position and joint tracking. The context-transfer
+   matrix is now complete: current runtime and direct path pass without boxes,
+   while the exact static scene reproduces the residual. A GPU-free scene-spawn
+   audit and one-factor decomposition must precede another paid run. Viewer
+   remains blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older

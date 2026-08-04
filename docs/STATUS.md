@@ -1,6 +1,6 @@
 # Status
 
-- Updated: 2026-08-01 America/Los_Angeles
+- Updated: 2026-08-03 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
@@ -33,24 +33,26 @@
   sufficient repair; the offline causal audit then found that the accepted
   isolated candidate entered through a 12-degree `90 -> 78 -> 66` path, not
   the direct 24-degree `90 -> 66` DF-039 path, and that the old pass did not
-  bind the post-refactor shared runtime source bundle; 45 historical failure,
-  falsification, partial-fix, and
+  bind the post-refactor shared runtime source bundle; the completed
+  source-bound A/B/C matrix now proves the current shared runtime and both
+  split/direct no-box paths track within `0.0024°`, while adding only the exact
+  static table/cube context restores a `4.199411°` residual with zero monitored
+  contact; `DF-046` localizes the remaining failure family to static-scene
+  composition without yet distinguishing table, cube, collision, or another
+  spawn-side effect; 46 historical failure, falsification, partial-fix, and
   operational cases are consolidated in
-  `experiments/02_dofbot/FAILURE_LEDGER.md`; no new paid discriminator is
-  selected; the next paid gate is the fail-fast A/B/C context-transfer matrix,
-  and both integrated pre-grasp wrappers now reject execution until that
-  source-bound evidence is promoted; 45 ledger cases now include the local
-  CI and publication failures caught and resolved during this audit; Viewer
-  remains blocked
+  `experiments/02_dofbot/FAILURE_LEDGER.md`; no further paid discriminator is
+  authorized until a GPU-free one-factor scene decomposition is prepared;
+  Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with `brev ls --all --json` after the
-  PR-publication quoting error attempted SSH but before any remote command
+- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
+  2026-08-03 22:56:47 PDT after the DF-042 artifacts and logs were retrieved
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
-  `$1.58784/hour` compute; rechecked 2026-08-01 before the DF-035 run
+  `$1.58784/hour` compute; rechecked 2026-08-03 before the DF-042 run
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1370,16 +1372,15 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. The GPU-free comparison is complete: `DF-041`
-corrects the false isolated/integrated protocol-equivalence claim, and
-`DF-042` records the missing current-runtime machine provenance. After review,
-merge, a fresh quote, and explicit approval, run only
-`make dofbot-context-transfer-matrix`. Cell A is a fail-fast reproduction of
-the old split-path pass on the exact current source bundle; B changes only the
-entry path, and C changes only the static scene. Existing failed cell D is not
-rerun.
-`make dofbot-pregrasp-view` remains blocked until every machine gate passes.
-Contact, closing, grasping, lifting, and placing remain unauthorized.
+Keep the Brev instance stopped. `DF-042` is complete: A and B pass on current
+code without boxes, while C adds the exact static table/cube context and
+reproduces the residual. Do not rerun path, duration, drive, target-buffer,
+feed-forward, or integrated Viewer cases. First perform a GPU-free audit of the
+scene-spawn boundary and prepare the smallest one-factor table/cube/collision-
+or-spawn decomposition. Record that plan under a new ledger discriminator
+before requesting another quote or paid run. `make dofbot-pregrasp-view`
+remains blocked. Contact, closing, grasping, lifting, and placing remain
+unauthorized.
 
 ## DF-030/DF-032 projected-force local contract hardening
 
@@ -1506,3 +1507,33 @@ Contact, closing, grasping, lifting, and placing remain unauthorized.
   calibration and failed integrated task contexts offline, record the
   differing factors, and select one new falsifiable discriminator before a new
   quote or Viewer attempt.
+
+## DF-042 context-transfer matrix result
+
+- Remote source: merged `main@4b88d07`; retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, at the
+  freshly rechecked `$1.58784/hour` quote.
+- A, split `90 -> 78 -> 66` without boxes: machine and integrity pass,
+  `0.002391°` maximum settled tracking error.
+- B, direct `90 -> 66` without boxes: machine and integrity pass,
+  `0.002211°` maximum settled tracking error.
+- C, split path plus the exact static table/cube: integrity pass but tracking
+  fail at `4.199411°`; target buffers, settling, runtime APIs, bounded gravity
+  feed-forward, zero monitored contact, and neutral return all pass.
+- Decision: `static_scene_context_is_causal`. Current-runtime regression and
+  candidate-entry history are rejected as primary causes; the exact static
+  scene family is causal, while its table/cube/collision/spawn mechanism
+  remains unresolved (`DF-046`).
+- Evidence: `artifacts/dofbot/context_transfer_matrix_contract.json`, SHA-256
+  `f3bf9a6aee2f1e53da177eb101129309b83e61ef400f9a2c11345c3d138189de`;
+  ignored A/B/C raw JSON and logs were retrieved locally and are byte/SHA-bound
+  by the promoted contract.
+- Scope: existing D was not rerun; no Viewer, camera capture, contact task,
+  gripper command, hardware, policy, or checkpoint ran. Integrated pre-grasp
+  and Viewer remain blocked.
+- Lifecycle: start request `22:41:52 PDT`; matrix complete approximately
+  `22:45:37 PDT`; evidence retrieval preceded stop request `22:47:51 PDT`;
+  asynchronous shutdown reached explicit `STOPPED` at `22:56:47 PDT`.
+  The under-15-minute start-to-terminal-stop interval cost at most about
+  `$0.40` at the live quote. No instance or disk was created, resized, reset,
+  or deleted.

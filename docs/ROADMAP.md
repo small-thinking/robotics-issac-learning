@@ -172,9 +172,12 @@ The detailed first-stage contract lives in
    the protocol comparison: the old isolated candidate used a 12-degree
    `90 -> 78 -> 66` entry, while the failed integrated run used direct
    24-degree `90 -> 66`; the old artifact also lacks a current shared-runtime
-   source bundle. The next paid gate is a fail-fast A/B/C matrix that first
-   reproduces the old split path on current code, then changes only path or
-   static scene. Viewer, wrist
+   source bundle. The completed source-bound matrix reproduces both split and
+   direct paths within `0.0024 degrees` without boxes, while adding only the
+   exact static table/cube context restores a `4.199411-degree` residual.
+   Runtime and path are now rejected as primary causes; static-scene
+   composition is causal but still requires a GPU-free one-factor
+   decomposition before another paid run. Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

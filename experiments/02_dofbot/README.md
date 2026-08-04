@@ -1694,3 +1694,39 @@ commit, config/scene hashes, actuator factors, full pose sequence, telemetry,
 scope, and tracking verdict. `make dofbot-pregrasp` and
 `make dofbot-pregrasp-view` now fail closed while this evidence is absent.
 No GPU or Isaac runtime was started for this audit.
+
+## DF-042 source-bound context-transfer machine result
+
+The approved headless matrix ran on merged `main@4b88d07` using the retained
+`isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4 at the
+fresh `$1.58784/hour` quote. It executed only A/B/C; existing failed reference
+D was hash-bound and not rerun. No Viewer, camera capture, contact task,
+gripper command, hardware command, policy, or checkpoint ran.
+
+| Cell | Candidate path | Static scene | Maximum settled error | Result |
+| --- | --- | --- | ---: | --- |
+| A | `90 -> 78 -> 66` | none | `0.002391 degrees` | pass |
+| B | direct `90 -> 66` | none | `0.002211 degrees` | pass |
+| C | `90 -> 78 -> 66` | exact table + cube | `4.199411 degrees` | tracking fail |
+
+All three cells passed artifact integrity, source/config bindings, API count,
+target-buffer, settling, velocity-consistency, overshoot, runtime API,
+bounded-feed-forward, and zero-contact checks. Cell C alone failed the
+unchanged one-degree tracking gate at the candidate pose; it returned to
+neutral within `0.002212 degrees`. This rejects both current-runtime regression
+and candidate-entry history as the remaining primary cause. It localizes the
+residual to the static-scene context, not yet to a particular table/cube,
+collision, or spawn-side-effect mechanism.
+
+Promoted evidence is
+`artifacts/dofbot/context_transfer_matrix_contract.json`. It SHA-binds the
+ignored raw A/B/C artifacts (`3,124,556`, `3,091,114`, and `3,261,631` bytes)
+and exact current runtime bundle `0aeeb044...`. The reviewed matrix decision is
+`static_scene_context_is_causal`.
+
+Acceptance is **current shared runtime passed / direct path passed / static
+scene context reproduced the residual / integrated pre-grasp and Viewer still
+blocked**. The next work is GPU-free: audit the exact scene-spawn composition
+and prepare the smallest table/cube/collision-or-spawn decomposition before
+proposing another paid run. Drive, trajectory, API-target, feed-forward, and
+acceptance parameters must remain unchanged.
