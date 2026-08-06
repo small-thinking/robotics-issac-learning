@@ -2400,3 +2400,61 @@
   mandatory before `make dofbot-scene-decomposition-matrix`.
 - Authorization: **GPU false / Isaac false / paid run false / Viewer false /
   integrated pre-grasp false / contact and grasp false**.
+
+## 2026-08-05 — DF-047 adaptive matrix localizes residual to near table collision context
+
+- Pre-run gate: PR #51 was merged at `main@d5191f5`; Brev authentication was
+  restored; the retained `isaac-launchable-f150a5` (`92xbacz46`) matched AWS
+  `g6.4xlarge`, NVIDIA L4, explicit `STOPPED`, and the refreshed
+  `$1.58784/hour` quote. The user explicitly approved this paid window.
+- Exact command:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-scene-decomposition-matrix
+  ```
+
+- S0, current source with no static scene, passed at `0.002390900 degrees`.
+  This rejects a PR #51/runtime regression before testing scene factors.
+- T1 added only the near collision-on table and reproduced the exact
+  `4.199411370-degree` residual. The cube was never spawned.
+- T0 kept the same table transform/size/material but omitted collision and
+  passed at `0.002390900 degrees`.
+- TF restored collision and moved the table `+1.25 m` in world X; it also
+  passed at `0.002390900 degrees`. The adaptive tree then stopped without
+  running cube or pair cells.
+- Runtime readback proved the requested prim presence, static state, collision
+  API on/off, transform, and AABB in every cell. The exact 11-joint/12-body
+  articulation, controlled IDs `[0,1,2,3]`, source bundle, path, drive,
+  feed-forward, thresholds, and API count remained fixed.
+- In T1, `joint_pos_target` stayed within `0.000000852 degrees` of the backend
+  target, all poses settled, neutral return passed, and monitored contact force
+  remained `0 N`. No contact callbacks or headers were observed. The nearest
+  terminal-body-center/AABB distance was `0.0473568 m`; because this measures
+  only three body centers, it cannot exclude another-link collision shape,
+  collider extent/contact offset, filtering, broadphase, or path-decoding
+  effects.
+- Matrix decision: **`near_table_collision_context_is_causal`**. This
+  supersedes the broader DF-046 family localization but does not yet establish
+  the exact collision mechanism or authorize integrated pre-grasp/Viewer.
+- Promoted contract:
+  `artifacts/dofbot/scene_decomposition_matrix_contract.json`, SHA-256
+  `b12d64fcf1939de01eab8bf61850387eaf269e898151e2ca08bcf35561fdc1a4`.
+  Raw S0/T1/T0/TF JSON SHA-256 values are respectively
+  `3fe77793da5385c5c04a4461c4b9416339dc3a6aece1d82237175e25ef44b8b1`,
+  `f5fe4fd0693390ac01a02430af100a117a0793f7c83f701badcf1dd48275307a`,
+  `01d87021447f034f3d07a20a5a4511ddea8b4ecae316dea0f2b8efccbcda25b9`,
+  and `317c8f2ad3bdaf9390731405c2f14e304cc9d7d46f024d54b556af2cca246feb`.
+- Complete S0/T1/T0/TF log SHA-256 values are respectively
+  `0856bee83394879d6dfd306e1436a6cd4823e37a61e23b7f9cd69104a604fd82`,
+  `1d5aabee9e121b621c66cc90de6553863c10972a919c224b70e7f8498d1919de`,
+  `646ae683a1c33742f4081cb9b4af956583570b0e6f17e9b3dd5feec0479ae148`,
+  and `07b3675600c05f99b7a689d8787d3229c6d20db344e7865fe98e1a73d316776d`.
+  All remote/local SHA values matched before stop.
+- Lifecycle: the machine reached `RUNNING / READY / HEALTHY`, matrix execution
+  began at `2026-08-05 19:31 PDT`, evidence retrieval preceded the stop
+  request, and `brev ls --json` reached explicit `STOPPED` at approximately
+  `19:42 PDT`. The full start-to-terminal-stop window remained under 30
+  minutes. No instance or disk was created, resized, reset, or deleted; no
+  Viewer, camera tensor, contact task, gripper, hardware, policy, or checkpoint
+  ran.

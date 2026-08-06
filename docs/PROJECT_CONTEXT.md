@@ -102,12 +102,13 @@ lightweight VLA post-training, and optional real hardware.
   direct no-box paths track within `0.0024 degrees`; adding only the exact
   static table/cube context restores a `4.199411-degree` residual with zero
   monitored contact. `DF-046` therefore localizes the remaining failure family
-  to static-scene composition, while its mechanism remains open. Viewer,
-  contact, and grasp remain blocked. The GPU-free `DF-047` preparation now
-  proves that `DF-046` changed table and cube together while collision was
-  always authored. Its adaptive matrix begins with a new-source no-scene
-  sentinel and follows only one table, cube, or pair branch with collision-off
-  and far-away controls.
+  to static-scene composition. The completed `DF-047` adaptive matrix now
+  proves that the near collision-on table alone reproduces the residual, while
+  the identical collision-off table and the collision-on table moved 1.25
+  meters away both track at `0.002391 degrees`. Cube and pair branches were
+  correctly skipped. The exact robot/table collider, contact-offset, filter,
+  broadphase, or reporting mechanism remains open. Viewer, contact, and grasp
+  remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -117,6 +118,12 @@ settings across them.
 
 The CartPole stage is complete. The canonical next-stage plan is
 `experiments/02_dofbot/README.md`.
+
+Before another paid DOFBOT run, audit the composed robot and table collision
+shapes, world bounds, contact offsets/filters, and actor-path normalization
+offline. The next discriminator must distinguish actual collider proximity or
+constraint generation from a collision-registration side effect without
+changing motion, drive, feed-forward, or acceptance gates.
 
 1. Goal 1: complete — official USD asset and stationary Viewer contract.
 2. Goal 2: complete — hard-coded joint motion, limits, sign, and reset.

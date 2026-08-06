@@ -54,10 +54,12 @@ without boxes, while adding only the exact static table/cube context restored
 the `4.199411-degree` residual with zero monitored contact. **DF-046** records
 this causal localization. It does not yet distinguish table from cube,
 collision composition, or another scene-spawn side effect. The GPU-free audit
-and adaptive one-factor decomposition are now prepared by **DF-047**. This does
-not itself authorize compute: after its PR is merged, a fresh matching quote,
-authenticated `brev ls --json`, explicit user approval, and the unchanged
-retained-instance check are still required. Viewer remains blocked.
+and adaptive one-factor decomposition were prepared by **DF-047**. The completed
+machine branch then proves that the near collision-on table alone reproduces
+the residual, while the same table collision-off and the collision-on table
+1.25 meters away both pass. **DF-048** records this localization. It does not
+yet prove which robot collider, contact offset, broadphase, filter, or other
+collision-registration mechanism is responsible. Viewer remains blocked.
 
 ## Consolidated ledger
 
@@ -110,6 +112,7 @@ retained-instance check are still required. Viewer remains blocked.
 | DF-045 | 2026-08-01 | PR publication quoting | Backticks in an inline `gh pr create --body` string were evaluated by the local shell, rerunning CPU CI and attempting the matrix command. SSH failed against the default stale instance alias before any remote command, and a follow-up `brev ls --all --json` proved the retained L4 remained `STOPPED`. | RESOLVED | PR #49; `docs/EXPERIMENTS.md` | Write Markdown PR bodies to a file and pass `--body-file`; never place command-formatted Markdown inside a shell-interpreted argument. Recheck live resource state after any accidental remote attempt. |
 | DF-046 | 2026-08-03 | Static scene context | On current `main@4b88d07`, A reproduced the split no-box pass at `0.002391 degrees` and B proved the direct no-box path at `0.002211 degrees`; C added only the exact static table/cube pair and failed at `4.199411 degrees` with zero monitored contact, matching target buffers, identical actuator/runtime source bindings, and a passing neutral return. | PARTIAL | `artifacts/dofbot/context_transfer_matrix_contract.json` | Do not revisit trajectory history, runtime provenance, API targets, drive tuning, or feed-forward as the primary cause. Before another paid run, audit scene composition offline and prepare a one-factor table/cube/collision-or-spawn decomposition; Viewer remains blocked. |
 | DF-047 | 2026-08-05 | Static scene decomposition | The GPU-free audit proved DF-046 changed table and cube together and that the historical spawner always authored collision, so neither object identity nor collision was independently tested. A strict adaptive matrix now starts with a new-source no-scene sentinel, then tests table-only, cube-only, or pair interaction with collision-off and far-away controls only on the selected failing branch. | OPEN | `artifacts/dofbot/scene_decomposition_plan.json` | Do not sweep all ten cells or change motion/drive/feed-forward/gates. After merge and a fresh approved quote, run at most the one adaptive branch (maximum six cells), retrieve readback/index/contact/clearance evidence, and stop before Viewer. |
+| DF-048 | 2026-08-05 | Near-table collision context | On merged `main@d5191f5`, S0 no scene passed at `0.002391 degrees`; T1 added only the near collision-on table and reproduced `4.199411 degrees`; T0 kept the same table/pose but removed collision and passed at `0.002391 degrees`; TF restored collision but moved the table 1.25 meters and also passed at `0.002391 degrees`. All four artifacts passed integrity/source/readback gates, retained zero monitored contact, and used the same 11-joint/12-body articulation and control factors. | PARTIAL | `artifacts/dofbot/scene_decomposition_matrix_contract.json` | Do not revisit cube, pair, motion, drive, feed-forward, or thresholds. Before another paid run, audit every robot/table collision shape, world AABB, contact offset/filter, and contact-report path offline; terminal-body-center clearance and zero reported contact do not exclude another-link collider or proximity constraint. Viewer remains blocked. |
 
 ## Current evidence boundary
 
