@@ -7,13 +7,14 @@ nested DOFBOT rigid-body paths. The runner therefore consumes PhysX contact
 report events for these complete actor paths instead.
 """
 
+import math
 from typing import Any
 
 import isaaclab.sim as sim_utils
 from dofbot_scene_cfg import DOFBOT_CFG, DofbotAssetSceneCfg
 from pxr import Usd, UsdGeom, UsdPhysics
 
-DIRECT_CONTACT_BODIES = ("link2", "link3", "link4")
+DIRECT_CONTACT_BODIES = ("base_link", "link1", "link2", "link3", "link4")
 NESTED_CONTACT_BODIES = (
     "Wrist_Twist",
     "Finger_Left_01",
@@ -157,3 +158,156 @@ def inspect_spawned_reaching_objects(
             }
         )
     return snapshots
+
+
+def _json_compatible(value: Any) -> Any:
+    if isinstance(value, float) and not math.isfinite(value):
+        return str(value)
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if hasattr(value, "pathString"):
+        return str(value)
+    if isinstance(value, (list, tuple)) or hasattr(value, "__iter__"):
+        try:
+            return [_json_compatible(item) for item in value]
+        except TypeError:
+            pass
+    return str(value)
+
+
+def _attribute_snapshot(prim: Any, name: str) -> dict[str, Any]:
+    attribute = prim.GetAttribute(name)
+    if not attribute:
+        return {"present": False, "authored": False, "value": None}
+    return {
+        "present": True,
+        "authored": bool(attribute.HasAuthoredValueOpinion()),
+        "value": _json_compatible(attribute.Get()),
+    }
+
+
+def _relationship_targets(prim: Any, name: str) -> list[str]:
+    relationship = prim.GetRelationship(name)
+    if not relationship:
+        return []
+    return [str(path) for path in relationship.GetTargets()]
+
+
+def _nearest_rigid_body_ancestor(prim: Any, root: Any) -> Any | None:
+    value = prim
+    while value and value.IsValid():
+        if value.HasAPI(UsdPhysics.RigidBodyAPI):
+            return value
+        if value == root:
+            break
+        value = value.GetParent()
+    return None
+
+
+def _aligned_box(value: Any, *, frame: str) -> dict[str, list[float]]:
+    aligned = value.ComputeAlignedBox()
+    minimum = aligned.GetMin()
+    maximum = aligned.GetMax()
+    return {
+        f"minimum_{frame}_m": [float(minimum[index]) for index in range(3)],
+        f"maximum_{frame}_m": [float(maximum[index]) for index in range(3)],
+    }
+
+
+def inspect_collision_shapes(
+    stage: Any,
+    *,
+    root_prim_path: str,
+    require_rigid_body_owner: bool,
+    known_body_names: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Inventory every collision prim and its body-relative/world bounds."""
+    root = stage.GetPrimAtPath(root_prim_path)
+    if not root.IsValid():
+        return []
+    cache = UsdGeom.BBoxCache(
+        Usd.TimeCode.Default(),
+        [UsdGeom.Tokens.default_, UsdGeom.Tokens.render, UsdGeom.Tokens.proxy],
+        useExtentsHint=False,
+    )
+    result: list[dict[str, Any]] = []
+    for prim in Usd.PrimRange(root):
+        if not prim.HasAPI(UsdPhysics.CollisionAPI):
+            continue
+        owner = _nearest_rigid_body_ancestor(prim, root)
+        owner_path = str(owner.GetPath()) if owner is not None else None
+        owner_name = str(owner.GetName()) if owner is not None else None
+        if require_rigid_body_owner and owner is None:
+            owner_status = "missing"
+        elif (
+            owner_name is not None
+            and known_body_names is not None
+            and owner_name not in known_body_names
+        ):
+            owner_status = "not_in_articulation_body_names"
+        else:
+            owner_status = "resolved" if owner is not None else "static"
+        local_aabb = (
+            _aligned_box(cache.ComputeRelativeBound(prim, owner), frame="body")
+            if owner is not None
+            else None
+        )
+        collision_enabled = UsdPhysics.CollisionAPI(
+            prim
+        ).GetCollisionEnabledAttr().Get()
+        result.append(
+            {
+                "prim_path": str(prim.GetPath()),
+                "prim_type": prim.GetTypeName(),
+                "applied_schemas": [str(value) for value in prim.GetAppliedSchemas()],
+                "owner_body_path": owner_path,
+                "owner_body_name": owner_name,
+                "owner_status": owner_status,
+                "collision_enabled": (
+                    True if collision_enabled is None else bool(collision_enabled)
+                ),
+                "body_local_aabb": local_aabb,
+                "world_aabb": _aligned_box(
+                    cache.ComputeWorldBound(prim),
+                    frame="world",
+                ),
+                "contact_offset": _attribute_snapshot(
+                    prim, "physxCollision:contactOffset"
+                ),
+                "rest_offset": _attribute_snapshot(
+                    prim, "physxCollision:restOffset"
+                ),
+                "collision_approximation": _attribute_snapshot(
+                    prim, "physics:approximation"
+                ),
+                "filtered_pairs_targets": _relationship_targets(
+                    prim, "physics:filteredPairs"
+                ),
+            }
+        )
+    return result
+
+
+def inspect_collision_filter_relationships(stage: Any) -> list[dict[str, Any]]:
+    """Capture authored collision-group/filter relationships without inference."""
+    result: list[dict[str, Any]] = []
+    for prim in stage.Traverse():
+        relationships = []
+        for relationship in prim.GetRelationships():
+            name = str(relationship.GetName())
+            if "filter" in name.lower() or "collider" in name.lower():
+                relationships.append(
+                    {
+                        "name": name,
+                        "targets": [str(path) for path in relationship.GetTargets()],
+                    }
+                )
+        if relationships:
+            result.append(
+                {
+                    "prim_path": str(prim.GetPath()),
+                    "prim_type": prim.GetTypeName(),
+                    "relationships": relationships,
+                }
+            )
+    return result

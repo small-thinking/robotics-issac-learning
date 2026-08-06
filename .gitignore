@@ -80,6 +80,7 @@ artifacts/dofbot/*
 !artifacts/dofbot/context_transfer_matrix_contract.json
 !artifacts/dofbot/scene_decomposition_plan.json
 !artifacts/dofbot/scene_decomposition_matrix_contract.json
+!artifacts/dofbot/collider_audit_plan.json
 !artifacts/dofbot/pregrasp_pose_contract.json
 !artifacts/dofbot/pregrasp_angled_machine_failure_2026-07-29.json
 !artifacts/dofbot/pregrasp_joint_candidate_machine_failure_2026-07-29.json

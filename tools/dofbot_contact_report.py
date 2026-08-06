@@ -7,6 +7,28 @@ from collections.abc import Callable, Iterable, Sequence
 from typing import Any
 
 
+def resolve_monitored_path(path: str, monitored_paths: frozenset[str]) -> str | None:
+    """Map a rigid-body or descendant collider path to its monitored owner."""
+    matches = [
+        candidate
+        for candidate in monitored_paths
+        if path == candidate or path.startswith(f"{candidate}/")
+    ]
+    return max(matches, key=len, default=None)
+
+
+def normalized_contact_pair(
+    actor0: str,
+    actor1: str,
+    monitored_paths: frozenset[str],
+) -> tuple[str | None, str | None]:
+    """Preserve pair ordering while normalizing descendant shape paths."""
+    return (
+        resolve_monitored_path(actor0, monitored_paths),
+        resolve_monitored_path(actor1, monitored_paths),
+    )
+
+
 def maximum_monitored_contact_force_n(
     *,
     headers: Iterable[Any],
@@ -22,9 +44,10 @@ def maximum_monitored_contact_force_n(
     for header in headers:
         actor0 = decode_path(header.actor0)
         actor1 = decode_path(header.actor1)
+        owner0, owner1 = normalized_contact_pair(actor0, actor1, critical_paths)
         monitored = (
-            (actor0, 1.0) if actor0 in critical_paths else None,
-            (actor1, -1.0) if actor1 in critical_paths else None,
+            (owner0, 1.0) if owner0 is not None else None,
+            (owner1, -1.0) if owner1 is not None else None,
         )
         monitored = tuple(value for value in monitored if value is not None)
         if not monitored:

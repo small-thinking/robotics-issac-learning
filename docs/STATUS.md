@@ -43,10 +43,11 @@
   collision-off table, and the collision-on table moved 1.25 meters all pass at
   `0.002391°`; cube and pair cells were correctly skipped; `DF-048` preserves
   the remaining uncertainty over exact collider/contact-offset/filter/
-  broadphase/reporting mechanism; 48 historical failure, falsification,
-  partial-fix, and operational cases are consolidated in
-  `experiments/02_dofbot/FAILURE_LEDGER.md`; the next work is a GPU-free
-  robot/table collision-geometry and contact-path audit; Viewer remains blocked
+  broadphase/reporting mechanism; the GPU-free `DF-049` full-collider and
+  descendant contact-path diagnostic is now prepared; 49 historical failure,
+  falsification, partial-fix, and operational cases are consolidated in
+  `experiments/02_dofbot/FAILURE_LEDGER.md`; its two-cell Isaac run remains
+  unexecuted and Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --json` at approximately
   2026-08-05 19:42 PDT after the DF-047 artifacts and logs were retrieved
@@ -1375,18 +1376,20 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. `DF-047` completed the smallest adaptive
-branch and `DF-048` localizes the residual to the near collision-on table
-context. Do not run the unused cube/pair cells or revisit path, duration, drive,
-target-buffer, feed-forward, thresholds, or integrated Viewer cases.
+Keep the Brev instance stopped until the DF-049 branch is merged and a fresh
+matching instance/state/price check plus explicit approval are present. The
+GPU-free collider audit is complete: it records every robot/table collision
+prim, nearest articulation-body owner, local/world bounds, offsets, filters,
+all raw contact pairs, and descendant-path-normalized owners.
 
-The next work is GPU-free: enumerate every composed robot and table collider,
-read world AABBs/contact offsets/filter data, test analytical overlap/proximity
-for every pose sample, and normalize contact-report actor paths to collider
-descendants. Use that audit to define one new discriminator separating actual
-collider proximity/constraint generation from collision-registration or
-reporting effects. `make dofbot-pregrasp-view` remains blocked. Contact,
-closing, grasping, lifting, and placing remain unauthorized.
+The only next machine command is `make dofbot-collider-audit`. It runs a
+current-source S0 sentinel and then the known failing T1, with a two-cell cap
+and 480-second internal deadline. It changes measurement only. Do not run the
+unused cube/pair cells or revisit path, duration, drive, target buffer,
+feed-forward, table pose, thresholds, or integrated Viewer cases. Select the
+next mechanism test from the named closest collider/contact evidence.
+`make dofbot-pregrasp-view` remains blocked. Contact, closing, grasping,
+lifting, and placing remain unauthorized.
 
 ## DF-030/DF-032 projected-force local contract hardening
 
@@ -1612,3 +1615,34 @@ closing, grasping, lifting, and placing remain unauthorized.
   under 30 minutes. No instance or disk was created, resized, reset, or
   deleted; no Viewer, camera tensor, contact task, gripper, hardware, policy,
   or checkpoint ran.
+
+## DF-049 full-collider diagnostic prepared offline
+
+- Historical boundary: DF-048 proves the near collision-on table context is
+  causal, but its clearance proxy sampled only `Wrist_Twist` and two terminal
+  finger body centers. Contact monitoring required exact equality with ten
+  rigid-body paths, so a descendant collision-shape actor path could be
+  ignored. `base_link` and `link1` were not in that monitored set.
+- Instrumentation: every robot/table prim carrying `CollisionAPI` is now
+  recorded with its nearest rigid-body owner, collision state, body-relative
+  and world AABB, applied schemas, contact/rest offsets, approximation, and
+  filtered-pair relationships. All authored collider/filter relationships on
+  the stage are retained.
+- Dynamic geometry: each robot collider's USD bound in its owner-body frame is
+  transformed by live `body_pos_w/body_quat_w` every physics step. The artifact
+  retains the closest robot/table pair, conservative signed AABB separation or
+  overlap, and the first overlap sample. AABB overlap remains a conservative
+  candidate, not exact mesh-distance proof.
+- Contact repair: monitored paths now come from every live robot collider's
+  resolved rigid-body owner instead of an assumed USD hierarchy. Actor
+  matching resolves an exact body or any descendant collider path to its
+  deepest known owner while retaining all raw and normalized pairs.
+- Anti-loop gate: the only prepared cells are S0 then T1. Motion, drive,
+  feed-forward, table pose, cube state, one-degree tracking, and `0.5 N`
+  contact gates remain fixed. The runner has a two-cell cap, 180-second cell
+  timeouts, 480-second deadline, semantic per-cell verifier, and exit sentinel.
+- Local evidence: `artifacts/dofbot/collider_audit_plan.json`; local unit,
+  mutation, geometry, summarization, shell, and remote-preview gates pass.
+- Authorization: **GPU false / Isaac false / paid run false / Viewer false /
+  integrated pre-grasp false / contact and grasp false**. No Brev command was
+  issued in this preparation.

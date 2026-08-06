@@ -107,8 +107,9 @@ lightweight VLA post-training, and optional real hardware.
   the identical collision-off table and the collision-on table moved 1.25
   meters away both track at `0.002391 degrees`. Cube and pair branches were
   correctly skipped. The exact robot/table collider, contact-offset, filter,
-  broadphase, or reporting mechanism remains open. Viewer, contact, and grasp
-  remain blocked.
+  broadphase, or reporting mechanism remains open. The GPU-free `DF-049`
+  two-cell full-collider/contact-path diagnostic is now prepared but has not
+  run Isaac. Viewer, contact, and grasp remain blocked.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -119,11 +120,11 @@ settings across them.
 The CartPole stage is complete. The canonical next-stage plan is
 `experiments/02_dofbot/README.md`.
 
-Before another paid DOFBOT run, audit the composed robot and table collision
-shapes, world bounds, contact offsets/filters, and actor-path normalization
-offline. The next discriminator must distinguish actual collider proximity or
+The composed robot/table collision audit is prepared offline under `DF-049`.
+After merge, fresh instance/state/price verification, and explicit approval,
+run only S0 then T1. It must distinguish actual collider proximity or
 constraint generation from a collision-registration side effect without
-changing motion, drive, feed-forward, or acceptance gates.
+changing motion, drive, feed-forward, table pose, or acceptance gates.
 
 1. Goal 1: complete — official USD asset and stationary Viewer contract.
 2. Goal 2: complete — hard-coded joint motion, limits, sign, and reset.
@@ -165,9 +166,10 @@ changing motion, drive, feed-forward, or acceptance gates.
    and failed only final position and joint tracking. The context-transfer
    matrix is now complete: current runtime and direct path pass without boxes,
    while the exact static scene reproduces the residual. The GPU-free scene-
-   spawn audit and adaptive one-factor decomposition now pass preparation under
-   `DF-047`. A merge, authenticated instance/price check, and explicit approval
-   still precede any paid run. Viewer remains blocked.
+   spawn audit and adaptive one-factor decomposition passed and ran under
+   `DF-047`; DF-049 now prepares the full-collider measurement boundary. A
+   merge, authenticated instance/price check, and explicit approval still
+   precede any paid run. Viewer remains blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -208,12 +210,12 @@ pre-grasp runner. The target/torque and projected-force reruns proved backend
 and live target propagation, complete force telemetry, and reliable remote
 semantic failure while reproducing the `4.177019°` residual. The later
 single-boundary run preserved that residual at `4.196145°`, closing DF-035
-through the falsified DF-039 hypothesis. The offline comparison and named
-`DF-047` discriminator are now prepared; the only next machine command is the
-adaptive `make dofbot-scene-decomposition-matrix`, after merge, a fresh quote,
-authenticated `brev ls --json`, and explicit approval. Do not open the Viewer
-until a complete integrated machine artifact passes. Contact and grasping
-remain out of scope.
+through the falsified DF-039 hypothesis. The DF-047 matrix is complete and the
+DF-049 measurement-only discriminator is prepared. The only next machine
+command is `make dofbot-collider-audit`, after merge, a fresh quote,
+authenticated `brev ls --json`, and explicit approval. It runs only S0 then
+T1. Do not open the Viewer until a complete integrated machine artifact
+passes. Contact and grasping remain out of scope.
 
 ## Sources of truth
 

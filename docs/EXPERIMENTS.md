@@ -2458,3 +2458,40 @@
   minutes. No instance or disk was created, resized, reset, or deleted; no
   Viewer, camera tensor, contact task, gripper, hardware, policy, or checkpoint
   ran.
+
+## 2026-08-05 — DF-049 full-collider and contact-path gate prepared offline
+
+- DF-048 made real progress: S0/T0/TF pass and only the near collision-on table
+  T1 fails. Cube, pair, trajectory, target propagation, drive, bounded gravity
+  feed-forward, thresholds, and far-table collision are no longer primary
+  factors. The remaining observation gap was collider-level, not another
+  parameter choice.
+- The old proxy recorded only three terminal body centers. The contact reducer
+  accepted only exact rigid-body paths and omitted `base_link`/`link1`, so zero
+  monitored contact could not exclude a descendant shape path or another-link
+  interaction.
+- DF-049 adds every robot/table collision prim, nearest rigid-body owner,
+  body-local/world bounds, contact/rest offsets, approximation and filter
+  relationships. Live articulation body position/quaternion transforms each
+  conservative robot bound every physics step; the closest pair and first
+  overlap are preserved.
+- Contact events now retain every raw actor pair and normalize exact or
+  descendant collider paths to their deepest monitored rigid-body ancestor.
+  The monitored body paths are derived from every live robot collider owner
+  rather than an assumed USD hierarchy.
+- The new remote gate runs exactly S0 and T1. T1 is repeated only because it
+  now collects observations absent from DF-048; no control or scene factor
+  changes. A source regression stops after S0. The T1 result classifies
+  normalized contact, conservative AABB overlap, or a remaining
+  offset/filter/broadphase/registration layer and names the closest pair.
+- Prepared command, still unauthorized:
+
+  ```bash
+  BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+    make dofbot-collider-audit
+  ```
+
+- Evidence: `artifacts/dofbot/collider_audit_plan.json`. No Brev, Isaac,
+  Viewer, contact task, gripper, hardware, policy, or checkpoint command ran.
+  A merge, authenticated `brev ls --json`, fresh exact quote/state match, and
+  explicit paid-window approval remain mandatory.

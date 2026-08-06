@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "ledger_discriminator": "DF-049",
+  "sources": {
+    "prior_matrix_artifact": "artifacts/dofbot/scene_decomposition_matrix_contract.json",
+    "scene_decomposition_config": "configs/dofbot/calibration/goal5_scene_decomposition.json"
+  },
+  "cells": ["S0", "T1"],
+  "prim_roots": {
+    "robot": "/World/envs/env_0/Dofbot",
+    "table": "/World/ReachScene/Table"
+  },
+  "required_evidence": {
+    "every_robot_and_table_collision_prim": true,
+    "nearest_rigid_body_owner": true,
+    "body_local_and_world_aabb": true,
+    "collision_contact_rest_offsets": true,
+    "collision_filter_relationships": true,
+    "raw_and_normalized_contact_actor_paths": true,
+    "per_step_closest_collider_pair": true
+  },
+  "paid_window": {
+    "maximum_executed_cells": 2,
+    "case_timeout_seconds": 180,
+    "deadline_seconds": 480,
+    "viewer_authorized": false
+  }
+}
