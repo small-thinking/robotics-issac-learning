@@ -47,6 +47,7 @@ except ImportError:
 
 CURRENT_SHARED_RUNTIME_PATHS = (
     "tools/dofbot_actuator_calibration.py",
+    "tools/dofbot_collider_audit.py",
     "tools/dofbot_contact_report.py",
     "tools/dofbot_control_api.py",
     "tools/dofbot_gravity_feed_forward.py",

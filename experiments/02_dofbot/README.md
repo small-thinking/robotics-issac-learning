@@ -1835,3 +1835,47 @@ integrated pre-grasp pass. `DF-048` requires a GPU-free audit of every
 robot/table collider, world bound, contact offset/filter, and contact actor
 path before another paid discriminator. Viewer, contact, closing, grasping,
 lifting, placing, hardware, policy, and checkpoints remain blocked.
+
+## DF-049 GPU-free full-collider and contact-path diagnostic
+
+DF-048 is not another undifferentiated `4.199411°` failure. It excludes the
+cube, table/cube pair, trajectory history, target propagation, drive, bounded
+gravity feed-forward, acceptance threshold, collision-off table, and far
+collision-on table as primary causes. The remaining gap is that the old
+clearance proxy sampled only three terminal body centers and the contact
+reducer required exact rigid-body actor paths.
+
+DF-049 prepares a measurement-only S0/T1 gate. It inventories every robot and
+table `CollisionAPI` prim; maps robot shapes to their nearest live articulation
+body; records body-relative/world AABBs, applied schemas, collision state,
+contact/rest offsets, approximation and filter relationships; and transforms
+each conservative body-relative bound by live `body_pos_w/body_quat_w` every
+physics step. The closest pair, signed AABB gap/overlap, and first overlap
+sample remain in the artifact. Contact reporting now derives monitored body
+paths from every live robot collider owner, retains every raw actor pair, and
+normalizes exact or descendant collider paths to the deepest known rigid-body
+ancestor.
+
+The anti-loop rule is strict: run S0, stop on regression, otherwise run T1 and
+stop. T1 is repeated solely to collect observations that DF-048 did not have.
+Do not change motion, drive, feed-forward, table pose, cube state, one-degree
+tracking, or `0.5 N` contact gates. The T1 result must name a normalized
+contact pair, a closest conservative-overlap collider/body, or the remaining
+offset/filter/broadphase/registration layer before another fix is selected.
+
+```bash
+make dofbot-collider-audit-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-collider-audit
+```
+
+Prepared future command, still blocked on merge, authenticated live
+instance/state/price verification, and explicit approval:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-collider-audit
+```
+
+Evidence: `artifacts/dofbot/collider_audit_plan.json`. Preparation is **local
+passed / paid run unauthorized / Viewer blocked**. Contact, closing, grasping,
+lifting, placing, hardware, policy, and checkpoints remain out of scope.

@@ -401,3 +401,14 @@ are retained as evidence boundaries, not proof that no robot collision shape,
 contact offset, broadphase, or registration effect exists. The four raw JSON
 artifacts and logs remain ignored locally; the promoted contract binds each raw
 JSON by byte count and SHA-256. Viewer and integrated pre-grasp remain blocked.
+
+`collider_audit_plan.json` is the GPU-free DF-049 anti-loop contract. It binds
+the completed DF-048 matrix and permits only a current-source S0 sentinel plus
+the known failing near collision-on table T1. The new observation inventories
+every composed collision prim, nearest rigid-body owner, body-local/world AABB,
+contact/rest offset, filter relationship, raw contact actor pair, and
+descendant-path-normalized owner. Conservative robot bounds are transformed by
+the live articulation body pose every physics step and the closest pair is
+retained. No controller, motion, drive, feed-forward, threshold, table pose, or
+cube factor changes. The artifact authorizes no paid run, Viewer, contact, or
+grasp.

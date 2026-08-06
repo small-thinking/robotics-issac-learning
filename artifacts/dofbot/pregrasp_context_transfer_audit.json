@@ -29,36 +29,38 @@
     "accepted_machine_result_source_bundle": null,
     "current_shared_runtime_bundle": {
       "algorithm": "sha256(path_nul_sha256_newline_sorted_v1)",
-      "sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "sha256": "146b5779272059cef3aec6db0534414b39513ec3bf4a3b58a50cdb4debfcb83b",
       "files": {
         "tools/dofbot_actuator_calibration.py": "7eb77de48e410ac98bc608bf58843946517e20516ef644deb3873bba17d6b52e",
-        "tools/dofbot_contact_report.py": "aa1146b0724ccb3f868b0d0641b8bf7ca303e1e2635324e98765b7715afab65b",
+        "tools/dofbot_collider_audit.py": "6c4386c564ba1bae79f887b640773685761bf2bf6c24738665e87b34d84d59bf",
+        "tools/dofbot_contact_report.py": "696e4934339df26f52650741f2cc15cc8aeb71f6d24008b56feb0374c9fedb68",
         "tools/dofbot_control_api.py": "ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035",
         "tools/dofbot_gravity_feed_forward.py": "3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16",
         "tools/dofbot_gravity_feed_forward_runtime.py": "0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669",
-        "tools/dofbot_pregrasp_scene_cfg.py": "6a1f4291507ee747a5aa32d11babcac1d2dedfb58160a1d486e6406087e1ed79",
+        "tools/dofbot_pregrasp_scene_cfg.py": "db4417d0dddc345f06f6be5ae6c456ca131c46923918bb4fe8d6c0a386b952f8",
         "tools/dofbot_motion_plan.py": "fb4ab74662acce2200918f36e4372529629b068005953cf59a67a00cbc1b844b",
         "tools/dofbot_reaching.py": "927fcdee6af232a0d5e5f4e0ebdd119bb8c52616f03e6b4008dbc96b74ddc466",
         "tools/dofbot_scene_decomposition.py": "9b035c4948660241b1014d67d7f57a669fe92514319f17a6270c066d90e8e704",
         "tools/dofbot_scene_cfg.py": "7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556",
-        "tools/run_dofbot_actuator_calibration.py": "4276a76d9a4b6334c1294c9e5be8e62b1ec1cf9b1d09b94c2096014de4b30e0b"
+        "tools/run_dofbot_actuator_calibration.py": "6bb62b3460dbc1c47e850f6fd66aa51e9e8bf32179e84f2715a626b75179e0a6"
       }
     },
     "current_integrated_consumer_bundle": {
       "algorithm": "sha256(path_nul_sha256_newline_sorted_v1)",
-      "sha256": "cdfdee1cab9dbe6245007ccb889de77ef1f809c7b114eaf23ca4572d7914fa80",
+      "sha256": "58387d7b3b331ed73ea541b468636dd54be4ce65f3c7e7390d99e093d0b243b1",
       "files": {
         "tools/dofbot_actuator_calibration.py": "7eb77de48e410ac98bc608bf58843946517e20516ef644deb3873bba17d6b52e",
-        "tools/dofbot_contact_report.py": "aa1146b0724ccb3f868b0d0641b8bf7ca303e1e2635324e98765b7715afab65b",
+        "tools/dofbot_collider_audit.py": "6c4386c564ba1bae79f887b640773685761bf2bf6c24738665e87b34d84d59bf",
+        "tools/dofbot_contact_report.py": "696e4934339df26f52650741f2cc15cc8aeb71f6d24008b56feb0374c9fedb68",
         "tools/dofbot_control_api.py": "ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035",
         "tools/dofbot_gravity_feed_forward.py": "3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16",
         "tools/dofbot_gravity_feed_forward_runtime.py": "0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669",
-        "tools/dofbot_pregrasp_scene_cfg.py": "6a1f4291507ee747a5aa32d11babcac1d2dedfb58160a1d486e6406087e1ed79",
+        "tools/dofbot_pregrasp_scene_cfg.py": "db4417d0dddc345f06f6be5ae6c456ca131c46923918bb4fe8d6c0a386b952f8",
         "tools/dofbot_motion_plan.py": "fb4ab74662acce2200918f36e4372529629b068005953cf59a67a00cbc1b844b",
         "tools/dofbot_reaching.py": "927fcdee6af232a0d5e5f4e0ebdd119bb8c52616f03e6b4008dbc96b74ddc466",
         "tools/dofbot_scene_decomposition.py": "9b035c4948660241b1014d67d7f57a669fe92514319f17a6270c066d90e8e704",
         "tools/dofbot_scene_cfg.py": "7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556",
-        "tools/run_dofbot_actuator_calibration.py": "4276a76d9a4b6334c1294c9e5be8e62b1ec1cf9b1d09b94c2096014de4b30e0b",
+        "tools/run_dofbot_actuator_calibration.py": "6bb62b3460dbc1c47e850f6fd66aa51e9e8bf32179e84f2715a626b75179e0a6",
         "tools/run_dofbot_pregrasp.py": "f364d11360dee9e2938ca1911b8bfd224fe67c434b958e11df7327ccd93e43d5"
       }
     },

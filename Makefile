@@ -17,6 +17,7 @@ SHELL := /bin/bash
 	dofbot-gravity-feed-forward-dry-run dofbot-gravity-feed-forward \
 	dofbot-context-transfer-audit dofbot-context-transfer-matrix \
 	dofbot-scene-decomposition-dry-run dofbot-scene-decomposition-matrix \
+	dofbot-collider-audit-dry-run dofbot-collider-audit \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
@@ -28,6 +29,7 @@ SHELL := /bin/bash
 	show-dofbot-gravity-feed-forward \
 	show-dofbot-context-transfer-matrix \
 	show-dofbot-scene-decomposition-matrix \
+	show-dofbot-collider-audit \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test ci-cpu
@@ -232,6 +234,14 @@ dofbot-scene-decomposition-dry-run:
 dofbot-scene-decomposition-matrix:
 	@./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh
 
+dofbot-collider-audit-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/prepare_dofbot_collider_audit.py \
+	 --output "$${DOFBOT_COLLIDER_AUDIT_PLAN:-artifacts/dofbot/collider_audit_plan.json}"
+
+dofbot-collider-audit:
+	@./scripts/isaac/run_dofbot_collider_audit.sh
+
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh
 
@@ -331,6 +341,9 @@ show-dofbot-context-transfer-matrix:
 
 show-dofbot-scene-decomposition-matrix:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh
+
+show-dofbot-collider-audit:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_collider_audit.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

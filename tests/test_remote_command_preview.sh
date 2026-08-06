@@ -419,6 +419,26 @@ assert_not_contains "$scene_decomposition_output" '--livestream'
 assert_not_contains "$scene_decomposition_output" '--viz'
 assert_contains "$scene_decomposition_output" '[dry-run] Command displayed but not executed.'
 
+collider_audit_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_collider_audit.sh
+)"
+
+assert_contains "$collider_audit_output" 'goal5_collider_audit.json'
+assert_contains "$collider_audit_output" '--collider-audit-config'
+assert_contains "$collider_audit_output" 'run_cell S0'
+assert_contains "$collider_audit_output" 'run_cell T1'
+assert_not_contains "$collider_audit_output" 'run_cell T0'
+assert_contains "$collider_audit_output" 'verify_dofbot_collider_audit_case.py'
+assert_contains "$collider_audit_output" 'summarize_dofbot_collider_audit.py'
+assert_contains "$collider_audit_output" '[COLLIDER_AUDIT_EXIT_CODE]'
+assert_contains "$collider_audit_output" '--device cpu'
+assert_contains "$collider_audit_output" '--headless'
+assert_not_contains "$collider_audit_output" '--livestream'
+assert_not_contains "$collider_audit_output" '--viz'
+assert_contains "$collider_audit_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \

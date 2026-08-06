@@ -41,6 +41,7 @@ from dofbot_scene_decomposition import (
     load_scene_decomposition_config,
     minimum_body_center_aabb_clearances,
 )
+from dofbot_collider_audit import load_collider_audit_config
 
 parser = argparse.ArgumentParser(
     description="Run one fail-closed DOFBOT actuator calibration case."
@@ -62,6 +63,12 @@ parser.add_argument(
     "--scene-cell",
     default=None,
     help="One cell ID from --scene-decomposition-config.",
+)
+parser.add_argument(
+    "--collider-audit-config",
+    type=Path,
+    default=None,
+    help="Optional strict DF-049 full-collider diagnostic contract.",
 )
 parser.add_argument(
     "--calibration-config",
@@ -93,6 +100,8 @@ preflight_case = preflight_config.case(args_cli.case_name)
 preflight_scene_decomposition = None
 preflight_scene_decomposition_sha256 = None
 preflight_scene_cell = None
+preflight_collider_audit = None
+preflight_collider_audit_sha256 = None
 if (args_cli.scene_decomposition_config is None) != (args_cli.scene_cell is None):
     parser.error(
         "--scene-decomposition-config and --scene-cell must be supplied together"
@@ -105,6 +114,15 @@ if args_cli.scene_decomposition_config is not None:
         preflight_scene_decomposition_sha256,
     ) = load_scene_decomposition_config(args_cli.scene_decomposition_config)
     preflight_scene_cell = preflight_scene_decomposition.cell(args_cli.scene_cell)
+if args_cli.collider_audit_config is not None:
+    if preflight_scene_cell is None:
+        parser.error("--collider-audit-config requires a scene-decomposition cell")
+    (
+        preflight_collider_audit,
+        preflight_collider_audit_sha256,
+    ) = load_collider_audit_config(args_cli.collider_audit_config)
+    if preflight_scene_cell.id not in preflight_collider_audit.allowed_cells:
+        parser.error("DF-049 permits only S0 and T1")
 
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
@@ -117,7 +135,14 @@ from isaaclab.scene import InteractiveScene
 from isaaclab_physx.physics import PhysxCfg
 from pxr import PhysicsSchemaTools
 
-from dofbot_contact_report import maximum_monitored_contact_force_n
+from dofbot_collider_audit import (
+    evaluate_collider_clearance,
+    summarize_collider_clearance_samples,
+)
+from dofbot_contact_report import (
+    maximum_monitored_contact_force_n,
+    normalized_contact_pair,
+)
 from dofbot_control_api import (
     CONTROLLED_JOINT_NAMES,
     DofbotArm,
@@ -135,6 +160,8 @@ from dofbot_gravity_feed_forward_runtime import (
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_PATHS,
     DofbotPregraspSceneCfg,
+    inspect_collision_filter_relationships,
+    inspect_collision_shapes,
     inspect_spawned_reaching_objects,
     spawn_reaching_scene_cell,
     spawn_static_reaching_boxes,
@@ -194,6 +221,12 @@ def _terminal_body_ids(scene: InteractiveScene) -> dict[str, int]:
             f"live articulation is missing terminal bodies: {missing}"
         )
     return {name: name_to_index[name] for name in TERMINAL_BODY_NAMES}
+
+
+def _all_body_ids(scene: InteractiveScene) -> dict[str, int]:
+    return {
+        name: index for index, name in enumerate(scene["dofbot"].body_names)
+    }
 
 
 class _IsaacJointPositionBackend:
@@ -280,13 +313,21 @@ class _IsaacJointPositionBackend:
 class _CriticalContactReporter:
     """Accumulate monitored contact impulses between observation reads."""
 
-    def __init__(self, physics_dt: float) -> None:
+    def __init__(
+        self,
+        physics_dt: float,
+        critical_paths: frozenset[str] | None = None,
+    ) -> None:
         self._physics_dt = physics_dt
-        self._critical_paths = frozenset(CONTACT_BODY_PATHS)
+        self._critical_paths = critical_paths or frozenset(CONTACT_BODY_PATHS)
         self._maximum_force_n_since_read = 0.0
         self._callback_count = 0
         self._header_count = 0
+        self._all_actor_pairs: set[tuple[str, str]] = set()
         self._monitored_actor_pairs: set[tuple[str, str]] = set()
+        self._normalized_monitored_actor_pairs: set[
+            tuple[str | None, str | None]
+        ] = set()
         self._subscription = (
             omni.physx.get_physx_simulation_interface()
             .subscribe_contact_report_events(self._on_contact_report)
@@ -303,8 +344,15 @@ class _CriticalContactReporter:
         for header in headers:
             actor0 = decode(header.actor0)
             actor1 = decode(header.actor1)
-            if actor0 in self._critical_paths or actor1 in self._critical_paths:
+            self._all_actor_pairs.add((actor0, actor1))
+            normalized = normalized_contact_pair(
+                actor0,
+                actor1,
+                self._critical_paths,
+            )
+            if normalized[0] is not None or normalized[1] is not None:
                 self._monitored_actor_pairs.add((actor0, actor1))
+                self._normalized_monitored_actor_pairs.add(normalized)
         force_n = maximum_monitored_contact_force_n(
             headers=headers,
             contact_data=contact_data,
@@ -326,8 +374,20 @@ class _CriticalContactReporter:
         return {
             "callback_count": self._callback_count,
             "contact_header_count": self._header_count,
+            "path_matching_mode": "same_or_descendant_of_monitored_rigid_body",
+            "monitored_rigid_body_paths": sorted(self._critical_paths),
+            "all_actor_pairs": [
+                list(value) for value in sorted(self._all_actor_pairs)
+            ],
             "monitored_actor_pairs": [
                 list(value) for value in sorted(self._monitored_actor_pairs)
+            ],
+            "normalized_monitored_actor_pairs": [
+                list(value)
+                for value in sorted(
+                    self._normalized_monitored_actor_pairs,
+                    key=lambda pair: (pair[0] or "", pair[1] or ""),
+                )
             ],
         }
 
@@ -415,6 +475,65 @@ def _body_positions_world_m(
     }
 
 
+def _body_poses_world_m(
+    scene: InteractiveScene,
+    body_ids: dict[str, int],
+) -> dict[str, dict[str, list[float]]]:
+    robot = scene["dofbot"]
+    return {
+        name: {
+            "position_world_m": [
+                float(value)
+                for value in robot.data.body_pos_w[0, body_id]
+                .detach()
+                .cpu()
+                .tolist()
+            ],
+            "quaternion_wxyz": [
+                float(value)
+                for value in robot.data.body_quat_w[0, body_id]
+                .detach()
+                .cpu()
+                .tolist()
+            ],
+        }
+        for name, body_id in body_ids.items()
+    }
+
+
+class _ColliderAuditSampler:
+    def __init__(
+        self,
+        *,
+        robot_colliders: list[dict[str, Any]],
+        table_colliders: list[dict[str, Any]],
+        body_ids: dict[str, int],
+    ) -> None:
+        self.robot_colliders = robot_colliders
+        self.table_colliders = table_colliders
+        self.body_ids = body_ids
+
+    def sample(
+        self,
+        *,
+        scene: InteractiveScene,
+        pose_name: str,
+        pose_step: int,
+        elapsed_s: float,
+    ) -> dict[str, Any]:
+        result = evaluate_collider_clearance(
+            robot_colliders=self.robot_colliders,
+            table_colliders=self.table_colliders,
+            body_poses=_body_poses_world_m(scene, self.body_ids),
+        )
+        return {
+            "pose_name": pose_name,
+            "pose_step": pose_step,
+            "elapsed_s": elapsed_s,
+            **result,
+        }
+
+
 def _issue_pose(
     *,
     yahboom_api: YahboomServoApiAdapter,
@@ -449,6 +568,7 @@ def _sample(
     elapsed_s: float,
     api_command_angles_deg: tuple[int, int, int, int],
     gravity_feed_forward: dict[str, Any] | None,
+    collider_audit: _ColliderAuditSampler | None,
 ) -> dict[str, Any]:
     robot = scene["dofbot"]
     observed_rad = [
@@ -534,6 +654,16 @@ def _sample(
         "body_positions_world_m": _body_positions_world_m(
             scene,
             body_ids,
+        ),
+        "collider_audit": (
+            collider_audit.sample(
+                scene=scene,
+                pose_name=pose_name,
+                pose_step=pose_step,
+                elapsed_s=elapsed_s,
+            )
+            if collider_audit is not None
+            else None
         ),
     }
 
@@ -653,6 +783,7 @@ def _run_pose(
     position_velocity_window_ms: int,
     maximum_velocity_signal_mismatch_deg_s: float,
     gravity_feed_forward: BoundedGravityFeedForward | None,
+    collider_audit: _ColliderAuditSampler | None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], int]:
     robot = scene["dofbot"]
     start_angles_deg = _angles_deg_from_rad(
@@ -709,6 +840,7 @@ def _run_pose(
             elapsed_s=elapsed_s,
             api_command_angles_deg=target_angles_deg,
             gravity_feed_forward=gravity_sample,
+            collider_audit=collider_audit,
         )
         samples.append(observation)
         position_derived_velocities = position_derived_velocity_deg_s(
@@ -892,6 +1024,48 @@ def main() -> None:
         sim_utils.get_current_stage(),
         spawned_scene_objects,
     )
+    robot_collider_inventory: list[dict[str, Any]] = []
+    table_collider_inventory: list[dict[str, Any]] = []
+    collision_filter_relationships: list[dict[str, Any]] = []
+    collider_audit_sampler: _ColliderAuditSampler | None = None
+    if preflight_collider_audit is not None:
+        stage = sim_utils.get_current_stage()
+        all_body_ids = _all_body_ids(scene)
+        robot_collider_inventory = inspect_collision_shapes(
+            stage,
+            root_prim_path=preflight_collider_audit.robot_root_prim_path,
+            require_rigid_body_owner=True,
+            known_body_names=set(all_body_ids),
+        )
+        table_collider_inventory = inspect_collision_shapes(
+            stage,
+            root_prim_path=preflight_collider_audit.table_root_prim_path,
+            require_rigid_body_owner=False,
+        )
+        collision_filter_relationships = inspect_collision_filter_relationships(
+            stage
+        )
+        if not robot_collider_inventory:
+            raise ActuatorCalibrationError("DF-049 found no robot collision prims")
+        unresolved = [
+            value["prim_path"]
+            for value in robot_collider_inventory
+            if value["owner_status"] != "resolved"
+        ]
+        if unresolved:
+            raise ActuatorCalibrationError(
+                f"DF-049 could not resolve collider owners: {unresolved}"
+            )
+        expected_table_count = 0 if preflight_scene_cell.id == "S0" else 1
+        if (len(table_collider_inventory) > 0) != (expected_table_count > 0):
+            raise ActuatorCalibrationError(
+                "DF-049 table collider presence disagrees with the selected cell"
+            )
+        collider_audit_sampler = _ColliderAuditSampler(
+            robot_colliders=robot_collider_inventory,
+            table_colliders=table_collider_inventory,
+            body_ids=all_body_ids,
+        )
     assert_compatible_asset_contracts(
         recorded_contract,
         _live_asset_contract(scene),
@@ -914,7 +1088,19 @@ def main() -> None:
     )
     arm = DofbotArm(backend)
     yahboom_api = YahboomServoApiAdapter(arm)
-    contact_reporter = _CriticalContactReporter(sim.get_physics_dt())
+    live_collider_owner_paths = frozenset(
+        str(value["owner_body_path"])
+        for value in robot_collider_inventory
+        if value.get("owner_body_path") is not None
+    )
+    contact_reporter = _CriticalContactReporter(
+        sim.get_physics_dt(),
+        critical_paths=(
+            live_collider_owner_paths
+            if preflight_collider_audit is not None
+            else None
+        ),
+    )
     gravity_feed_forward: BoundedGravityFeedForward | None = None
     if config.case_names == GRAVITY_FEED_FORWARD_CASE_NAMES:
         if case.gravity_compensation_feed_forward is None:
@@ -960,6 +1146,7 @@ def main() -> None:
                 config.trajectory.maximum_velocity_signal_mismatch_deg_s
             ),
             gravity_feed_forward=gravity_feed_forward,
+            collider_audit=collider_audit_sampler,
         )
         pose_summaries.append(summary)
         all_samples.extend(samples)
@@ -1062,6 +1249,11 @@ def main() -> None:
             <= config.acceptance.maximum_settled_tracking_error_deg
         )
     optional_physx_probe_errors: dict[str, str] = {}
+    collider_samples = [
+        sample["collider_audit"]
+        for sample in all_samples
+        if sample["collider_audit"] is not None
+    ]
     result = {
         "schema_version": 1,
         "experiment": "dofbot_actuator_diagnostic_case",
@@ -1102,6 +1294,27 @@ def main() -> None:
                 ),
             }
             if preflight_scene_cell is not None
+            else None
+        ),
+        "collider_audit": (
+            {
+                "config_path": str(args_cli.collider_audit_config),
+                "config_sha256": preflight_collider_audit_sha256,
+                "config": preflight_collider_audit.to_dict(),
+                "robot_colliders": robot_collider_inventory,
+                "table_colliders": table_collider_inventory,
+                "collision_filter_relationships": collision_filter_relationships,
+                "clearance_summary": summarize_collider_clearance_samples(
+                    collider_samples
+                ),
+                "body_pose_source": "Isaac ArticulationData body_pos_w/body_quat_w",
+                "aabb_method": (
+                    "USD collider bound relative to nearest rigid body, transformed "
+                    "by the live body pose each physics step"
+                ),
+                "aabb_is_conservative_not_exact_shape_distance": True,
+            }
+            if preflight_collider_audit is not None
             else None
         ),
         "case": case.to_dict(),
