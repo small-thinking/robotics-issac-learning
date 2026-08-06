@@ -176,12 +176,14 @@ The detailed first-stage contract lives in
    direct paths within `0.0024 degrees` without boxes, while adding only the
    exact static table/cube context restores a `4.199411-degree` residual.
    Runtime and path are now rejected as primary causes; static-scene
-   composition is causal. The GPU-free `DF-047` preparation separates table,
-   cube, pair interaction, collision state, and near/far placement in one
-   adaptive branch with a new-source sentinel and a six-cell cap. It still
-   requires merge, a fresh quote, and explicit paid approval. Viewer, wrist
-   twist, gripper closing, target motion, contact, and grasp success remain
-   unauthorized.
+   composition is causal. The completed `DF-047` adaptive branch now narrows
+   that family further: S0 passes, the near collision-on table alone reproduces
+   `4.199411 degrees`, and both the same collision-off table and a collision-on
+   table 1.25 meters away pass at `0.002391 degrees`. The next step is a GPU-
+   free audit of all robot/table collision geometry, contact offsets/filters,
+   and contact-report actor paths before defining another paid discriminator.
+   Viewer, wrist twist, gripper closing, target motion, contact, and grasp
+   success remain unauthorized.
 
 ## Phase 4 — Demonstrations and imitation learning
 

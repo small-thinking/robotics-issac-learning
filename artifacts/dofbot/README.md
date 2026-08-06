@@ -388,3 +388,16 @@ deadline. Future artifacts must read back prim/collision/static state, world
 transforms and bounds, articulation/DOF indices, gravity and target telemetry,
 contact-event actor pairs, and terminal-body/AABB clearance. This plan
 authorizes no GPU, integrated pre-grasp, Viewer, contact, or grasp.
+
+`scene_decomposition_matrix_contract.json` promotes the completed DF-047
+machine matrix on merged `main@d5191f5`. The adaptive branch executed only S0,
+T1, T0, and TF. S0, collision-off T0, and 1.25-meter-far collision-on TF all
+passed at `0.002391` degrees, while near collision-on table-only T1 reproduced
+the exact `4.199411`-degree residual. The decision is
+`near_table_collision_context_is_causal`. Runtime readback proves the requested
+collision/static/transform/AABB states and the unchanged 11-joint/12-body
+articulation. Zero monitored contact and terminal-body-center/AABB clearance
+are retained as evidence boundaries, not proof that no robot collision shape,
+contact offset, broadphase, or registration effect exists. The four raw JSON
+artifacts and logs remain ignored locally; the promoted contract binds each raw
+JSON by byte count and SHA-256. Viewer and integrated pre-grasp remain blocked.

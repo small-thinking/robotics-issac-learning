@@ -13,7 +13,7 @@ learning narrative.
 | --- | --- | --- |
 | [`00_task_sanity`](00_task_sanity/README.md) | Is the MDP wired correctly, and what does random behavior look like? | complete |
 | [`01_cartpole_ppo`](01_cartpole_ppo/README.md) | Can we reproduce, measure, and explain PPO learning on one MDP? | complete; reproduction, curve, and controlled study complete |
-| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; DF-046 localizes the residual to static-scene composition, and the GPU-free DF-047 adaptive table/cube/collision/near-far matrix is prepared. [A fresh paid approval is still required; Viewer remains blocked](02_dofbot/FAILURE_LEDGER.md) |
+| [`02_dofbot`](02_dofbot/README.md) | Can the user's robot asset, joints, camera, and reaching baseline be made trustworthy before learning? | Goals 1-4 and ActionChunk complete; DF-047 machine evidence localizes the residual to the near collision-on table context. [Exact robot/table collider mechanism remains open; Viewer remains blocked](02_dofbot/FAILURE_LEDGER.md) |
 
 Every experiment section should leave:
 

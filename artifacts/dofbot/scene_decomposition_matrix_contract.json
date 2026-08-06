@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_scene_decomposition_machine_matrix",
+  "ledger_discriminator": "DF-047",
+  "generated_at_utc": "2026-08-06T02:32:40.896927+00:00",
+  "git_commit": "d5191f5b308529a4b064f5cab84d6ad84593ae21",
+  "config": {
+    "path": "configs/dofbot/calibration/goal5_scene_decomposition.json",
+    "sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392"
+  },
+  "cells": {
+    "S0": {
+      "cell_id": "S0",
+      "integrity_passed": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.002390900139928931,
+      "objects": [],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "runtime_source_bundle_sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "config_sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392",
+      "artifact": {
+        "path": "artifacts/dofbot/scene_decomposition_cases/cell_s0.json",
+        "sha256": "3fe77793da5385c5c04a4461c4b9416339dc3a6aece1d82237175e25ef44b8b1",
+        "bytes": 3126493
+      }
+    },
+    "T1": {
+      "cell_id": "T1",
+      "integrity_passed": true,
+      "tracking_gate_passed": false,
+      "maximum_settled_tracking_error_deg": 4.199411369727272,
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "runtime_source_bundle_sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "config_sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392",
+      "artifact": {
+        "path": "artifacts/dofbot/scene_decomposition_cases/cell_t1.json",
+        "sha256": "f5fe4fd0693390ac01a02430af100a117a0793f7c83f701badcf1dd48275307a",
+        "bytes": 3265219
+      }
+    },
+    "T0": {
+      "cell_id": "T0",
+      "integrity_passed": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.002390900139928931,
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "runtime_source_bundle_sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "config_sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392",
+      "artifact": {
+        "path": "artifacts/dofbot/scene_decomposition_cases/cell_t0.json",
+        "sha256": "01d87021447f034f3d07a20a5a4511ddea8b4ecae316dea0f2b8efccbcda25b9",
+        "bytes": 3128400
+      }
+    },
+    "TF": {
+      "cell_id": "TF",
+      "integrity_passed": true,
+      "tracking_gate_passed": true,
+      "maximum_settled_tracking_error_deg": 0.002390900139928931,
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        1.25,
+        0.0,
+        0.0
+      ],
+      "runtime_source_bundle_sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "config_sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392",
+      "artifact": {
+        "path": "artifacts/dofbot/scene_decomposition_cases/cell_tf.json",
+        "sha256": "317c8f2ad3bdaf9390731405c2f14e304cc9d7d46f024d54b556af2cca246feb",
+        "bytes": 3128438
+      }
+    }
+  },
+  "matrix": {
+    "complete": true,
+    "executed_cells": [
+      "S0",
+      "T1",
+      "T0",
+      "TF"
+    ],
+    "executed_cell_count": 4,
+    "maximum_executed_cells": 6,
+    "decision": "near_table_collision_context_is_causal",
+    "s0_regression_sentinel_passed": true
+  },
+  "authorization": {
+    "integrated_pregrasp": false,
+    "viewer": false,
+    "contact_or_grasp": false,
+    "reason": "DF-047 identifies a static-scene mechanism layer; it does not constitute a passing integrated pre-grasp machine gate."
+  }
+}

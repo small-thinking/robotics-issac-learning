@@ -1784,3 +1784,54 @@ Evidence: `artifacts/dofbot/scene_decomposition_plan.json`. Preparation is
 **local passed / paid run unauthorized / Viewer blocked**. Integrated pre-
 grasp, contact, closing, grasping, lifting, placing, hardware, policy, and
 checkpoint remain out of scope.
+
+## DF-048 machine result: near collision-on table context is causal
+
+The retained `isaac-launchable-f150a5` (`92xbacz46`) matched AWS
+`g6.4xlarge`, NVIDIA L4, explicit `STOPPED`, and the refreshed
+`$1.58784/hour` quote before the approved start. Remote source was merged
+`main@d5191f5`. The exact command was:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-scene-decomposition-matrix
+```
+
+The adaptive branch stopped after four cells, as designed:
+
+| Cell | Static scene change | Maximum settled error | Tracking gate |
+| --- | --- | ---: | --- |
+| S0 | no table or cube | `0.002390900°` | pass |
+| T1 | near table only, collision on | `4.199411370°` | fail |
+| T0 | same near table, collision off | `0.002390900°` | pass |
+| TF | collision-on table translated `+1.25 m` in world X | `0.002390900°` | pass |
+
+Every artifact passed commit/config/runtime-source integrity and runtime USD
+readback. T1 read back collision API
+`/World/ReachScene/Table/geometry/mesh`; T0 read back no collision API; TF read
+back the expected 1.25-meter translation. All objects remained static. The
+articulation stayed at 11 joints and 12 bodies, controlled IDs `[0,1,2,3]`,
+with one PhysX articulation view. Target-buffer, settling, gravity feed-
+forward, force, API-count, neutral-return, and all diagnostic checks passed.
+
+T1 reproduced the same candidate residual at observed joints
+`[90.010134,68.463674,70.199411,67.249789]°` while target-buffer mismatch
+stayed below `0.000000852°`. It reported zero contact callbacks/headers and
+zero maximum monitored contact force. The nearest measured terminal-body
+center was still `0.0473568 m` outside the table AABB. This proxy covers only
+the terminal body centers; it does not exclude another robot collider, collider
+extent/contact offset, filter, broadphase, or actor-path reporting defect.
+
+Promoted evidence is
+`artifacts/dofbot/scene_decomposition_matrix_contract.json`, SHA-256
+`b12d64fcf1939de01eab8bf61850387eaf269e898151e2ca08bcf35561fdc1a4`.
+It binds ignored raw S0/T1/T0/TF JSON artifacts of `3,126,493`, `3,265,219`,
+`3,128,400`, and `3,128,438` bytes by SHA-256. The four raw JSON files and
+four complete logs were retrieved and verified locally before shutdown.
+
+Decision: **`near_table_collision_context_is_causal`**. Cube and pair cells
+were correctly skipped. This is a meaningful causal localization, not an
+integrated pre-grasp pass. `DF-048` requires a GPU-free audit of every
+robot/table collider, world bound, contact offset/filter, and contact actor
+path before another paid discriminator. Viewer, contact, closing, grasping,
+lifting, placing, hardware, policy, and checkpoints remain blocked.

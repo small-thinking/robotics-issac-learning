@@ -439,3 +439,19 @@ and controlled-DOF indices, contact actor pairs, and terminal-body clearance
 must all be present. Hold the motion, drive, feed-forward, thresholds, and
 prohibited scope fixed. This decision prepares a machine discriminator only;
 it does not authorize GPU use, integrated pre-grasp, Viewer, or contact.
+
+## 2026-08-05 — Treat the near collision-on table context as causal, not as proven contact
+
+The DF-047 adaptive machine branch executes only S0, T1, T0, and TF. S0 passes,
+near collision-on table-only T1 reproduces the exact residual, and both the
+same collision-off table and a 1.25-meter-far collision-on table pass. Hold the
+object identity, collision state, and near/far localization as causal evidence.
+Do not spend on cube or pair cells after the table branch has classified.
+
+The T1 contact reporter emitted no events and the nearest measured terminal-
+body center remained `0.04736 m` outside the table AABB. Those observations do
+not prove that all robot collision geometry is clear: the metric covers only
+three terminal body centers, not every composed collider or contact offset, and
+contact actor-path matching may omit collider descendants. The next work is
+GPU-free collision-geometry and contact-path auditing. Integrated pre-grasp and
+Viewer remain blocked until that audit defines one new discriminator.

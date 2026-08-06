@@ -38,25 +38,24 @@
   split/direct no-box paths track within `0.0024°`, while adding only the exact
   static table/cube context restores a `4.199411°` residual with zero monitored
   contact; `DF-046` localizes the remaining failure family to static-scene
-  composition without yet distinguishing table, cube, collision, or another
-  spawn-side effect; the GPU-free `DF-047` audit now proves the old spawner
-  changed both objects while always authoring collision and prepares one
-  adaptive table/cube/pair, collision-off, and far-away branch behind a new-
-  source S0 sentinel; 47 historical failure, falsification, partial-fix, and
-  operational cases are consolidated in
-  `experiments/02_dofbot/FAILURE_LEDGER.md`; no further paid discriminator is
-  authorized by preparation alone; after merge the next paid discriminator
-  still requires Brev re-authentication, a fresh matching quote and STOPPED
-  instance check, and explicit user approval; Viewer remains blocked
+  composition; the completed `DF-047` adaptive branch now proves that the near
+  collision-on table alone reproduces `4.199411°`, while S0, the identical
+  collision-off table, and the collision-on table moved 1.25 meters all pass at
+  `0.002391°`; cube and pair cells were correctly skipped; `DF-048` preserves
+  the remaining uncertainty over exact collider/contact-offset/filter/
+  broadphase/reporting mechanism; 48 historical failure, falsification,
+  partial-fix, and operational cases are consolidated in
+  `experiments/02_dofbot/FAILURE_LEDGER.md`; the next work is a GPU-free
+  robot/table collision-geometry and contact-path audit; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
-- Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
-  2026-08-03 22:56:47 PDT after the DF-042 artifacts and logs were retrieved
+- Instance state: `STOPPED`, re-verified with `brev ls --json` at approximately
+  2026-08-05 19:42 PDT after the DF-047 artifacts and logs were retrieved
 - Billable GPU compute still running: no
 - Remaining resource: 256 GiB persistent disk, approximately `$0.04/hour`
   from the deployment quote
 - Deletion status: not requested; instance and disk preserved
 - Latest live L4 quote: existing AWS `g6.4xlarge` class displayed
-  `$1.58784/hour` compute; rechecked 2026-08-03 before the DF-042 run
+  `$1.58784/hour` compute; rechecked 2026-08-05 before the DF-047 run
 
 ## DOFBOT Goal 4 fixed-tabletop reaching gate
 
@@ -1376,21 +1375,18 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. `DF-047` completes the free preparation for
-the smallest adaptive scene decomposition. Do not rerun path, duration, drive,
-target-buffer, feed-forward, or integrated Viewer cases. After this branch is
-reviewed and merged, re-authenticate Brev, verify the exact retained instance
-is `STOPPED`, refresh the quote, and obtain explicit approval before running:
+Keep the Brev instance stopped. `DF-047` completed the smallest adaptive
+branch and `DF-048` localizes the residual to the near collision-on table
+context. Do not run the unused cube/pair cells or revisit path, duration, drive,
+target-buffer, feed-forward, thresholds, or integrated Viewer cases.
 
-```bash
-BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
-  make dofbot-scene-decomposition-matrix
-```
-
-The matrix runs S0 first and then only one table, cube, or pair branch, capped
-at six cells and a 20-minute internal deadline. `make dofbot-pregrasp-view`
-remains blocked. Contact, closing, grasping, lifting, and placing remain
-unauthorized.
+The next work is GPU-free: enumerate every composed robot and table collider,
+read world AABBs/contact offsets/filter data, test analytical overlap/proximity
+for every pose sample, and normalize contact-report actor paths to collider
+descendants. Use that audit to define one new discriminator separating actual
+collider proximity/constraint generation from collision-registration or
+reporting effects. `make dofbot-pregrasp-view` remains blocked. Contact,
+closing, grasping, lifting, and placing remain unauthorized.
 
 ## DF-030/DF-032 projected-force local contract hardening
 
@@ -1583,3 +1579,36 @@ unauthorized.
   attempted but the CLI session is logged out. Because no remote action is in
   this scope, preparation continued locally. Re-authentication and a fresh
   exact instance/state/price check are hard blockers before any paid command.
+
+## DF-048 near-table collision-context machine result
+
+- Remote source: merged `main@d5191f5`; retained
+  `isaac-launchable-f150a5` (`92xbacz46`), AWS `g6.4xlarge`, NVIDIA L4, at the
+  freshly rechecked `$1.58784/hour` quote.
+- Adaptive branch: S0 no scene passed `0.002390900°`; T1 near collision-on
+  table-only failed `4.199411370°`; T0 same near table collision-off passed
+  `0.002390900°`; TF collision-on table translated 1.25 meters passed
+  `0.002390900°`. Cube and pair cells did not run.
+- Integrity: all four cells bind the same config/runtime source and merged
+  commit; runtime collision/static/transform/AABB readbacks match; the
+  articulation remains 11 joints, 12 bodies, controlled IDs `[0,1,2,3]`, and
+  one PhysX view.
+- T1 evidence boundary: target mismatch stayed below `0.000000852°`; all
+  diagnostic checks except the unchanged one-degree tracking gate passed;
+  contact callbacks, headers, and force remained zero; nearest terminal-body-
+  center/AABB distance was `0.0473568 m`. This does not cover every composed
+  robot collider or contact offset and does not prove absence of proximity or
+  registration effects.
+- Decision: `near_table_collision_context_is_causal`. This is a successful
+  causal localization, not an integrated pre-grasp pass. The exact collision
+  mechanism remains open in `DF-048`; Viewer remains blocked.
+- Evidence: `artifacts/dofbot/scene_decomposition_matrix_contract.json`,
+  SHA-256
+  `b12d64fcf1939de01eab8bf61850387eaf269e898151e2ca08bcf35561fdc1a4`;
+  four raw JSON artifacts and four complete logs were retrieved and
+  remote/local SHA-verified before shutdown.
+- Lifecycle: evidence retrieval preceded stop; `brev ls --json` reached
+  explicit `STOPPED` at approximately 19:42 PDT. The paid window remained
+  under 30 minutes. No instance or disk was created, resized, reset, or
+  deleted; no Viewer, camera tensor, contact task, gripper, hardware, policy,
+  or checkpoint ran.
