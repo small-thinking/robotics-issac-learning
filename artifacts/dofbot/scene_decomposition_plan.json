@@ -1,0 +1,726 @@
+{
+  "schema_version": 1,
+  "experiment": "dofbot_scene_decomposition_preflight",
+  "ledger_discriminator": "DF-047",
+  "sources": {
+    "decomposition_config": {
+      "path": "configs/dofbot/calibration/goal5_scene_decomposition.json",
+      "sha256": "f80a93af9522a4d40d8f51c60fb870a410e67788e3463f5af5f408422ccdd392"
+    },
+    "source_scene_config": {
+      "path": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
+      "sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949"
+    },
+    "calibration_config": {
+      "path": "configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json",
+      "sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef"
+    },
+    "df_046_matrix": {
+      "path": "artifacts/dofbot/context_transfer_matrix_contract.json",
+      "sha256": "f3bf9a6aee2f1e53da177eb101129309b83e61ef400f9a2c11345c3d138189de",
+      "historical_cell_c_artifact": {
+        "path": "artifacts/dofbot/context_transfer_cases/cell_c.json",
+        "sha256": "835dca64894e830478e9e7677d2bb674a0f2a762a4fd1243e531b4f2b4665e13",
+        "bytes": 3261631
+      }
+    },
+    "taskspace_candidate": {
+      "path": "artifacts/dofbot/pregrasp_taskspace_candidate.json",
+      "sha256": "a1ed809760671da1493e67cf35c5dfaea783b3c5e42490b9f544c5a7e42ceb4a"
+    },
+    "runtime_source_bundle": {
+      "algorithm": "sha256(path_nul_sha256_newline_sorted_v1)",
+      "sha256": "6dd57ff64fbb877f34b379d85614b6412f502b5f7cc5c32d0cc89a504778e210",
+      "files": {
+        "tools/dofbot_actuator_calibration.py": "7eb77de48e410ac98bc608bf58843946517e20516ef644deb3873bba17d6b52e",
+        "tools/dofbot_contact_report.py": "aa1146b0724ccb3f868b0d0641b8bf7ca303e1e2635324e98765b7715afab65b",
+        "tools/dofbot_control_api.py": "ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035",
+        "tools/dofbot_gravity_feed_forward.py": "3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16",
+        "tools/dofbot_gravity_feed_forward_runtime.py": "0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669",
+        "tools/dofbot_pregrasp_scene_cfg.py": "6a1f4291507ee747a5aa32d11babcac1d2dedfb58160a1d486e6406087e1ed79",
+        "tools/dofbot_motion_plan.py": "fb4ab74662acce2200918f36e4372529629b068005953cf59a67a00cbc1b844b",
+        "tools/dofbot_reaching.py": "927fcdee6af232a0d5e5f4e0ebdd119bb8c52616f03e6b4008dbc96b74ddc466",
+        "tools/dofbot_scene_decomposition.py": "9b035c4948660241b1014d67d7f57a669fe92514319f17a6270c066d90e8e704",
+        "tools/dofbot_scene_cfg.py": "7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556",
+        "tools/run_dofbot_actuator_calibration.py": "4276a76d9a4b6334c1294c9e5be8e62b1ec1cf9b1d09b94c2096014de4b30e0b",
+        "tools/prepare_dofbot_scene_decomposition.py": "5c1513615a71e0861696f4b56180d4dac4dfcef3c864d64fd50f0b5b4fc1f253",
+        "scripts/isaac/run_dofbot_scene_decomposition_matrix.sh": "dbf89555c4b751369cd20c3a1fb34c68947f426dc8892de8de98a6a36cc7858d",
+        "tools/verify_dofbot_scene_decomposition_case.py": "4b9b8364440370060ef794cdc5635dd12a9efcc4b86a6bb87a937631dff12f58",
+        "tools/summarize_dofbot_scene_decomposition_matrix.py": "2fb482bfd1fcfe3074d4feba5167efa7760c32939c111b4a93b04b63c9641c6a"
+      }
+    }
+  },
+  "offline_scene_spawn_audit": {
+    "historical_spawner": {
+      "fixed_table_then_cube_iteration": true,
+      "collision_properties_unconditionally_constructed": true,
+      "source_config_collision_flag_not_read": true
+    },
+    "historical_df_046_changed_two_objects_together": true,
+    "historical_df_046_collision_flag_was_not_independent": true,
+    "candidate_terminal_midpoint_world_m": [
+      -0.0007122220316280922,
+      0.22051942039962125,
+      0.2827833512992581
+    ],
+    "candidate_terminal_table_clearance_m": 0.021179307252816793,
+    "candidate_terminal_cube_clearance_m": 0.05037008982720661,
+    "inference_boundary": "Analytical point/AABB clearance and zero monitored contact do not exclude a collision-registration, broadphase, indexing, or other scene-spawn side effect."
+  },
+  "cells": [
+    {
+      "id": "S0",
+      "objects": [],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "current-source no-scene regression sentinel",
+      "spawned_objects": []
+    },
+    {
+      "id": "T1",
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near table-only collision-on discriminator",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.2507122220316281,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              0.2492877779683719,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "T0",
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near table-only collision-off discriminator",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": false,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.2507122220316281,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              0.2492877779683719,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "TF",
+      "objects": [
+        "table"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        1.25,
+        0.0,
+        0.0
+      ],
+      "role": "far table-only collision-on discriminator",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            1.249287777968372,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              0.999287777968372,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              1.499287777968372,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "Q1",
+      "objects": [
+        "target_cube"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near cube-only collision-on discriminator",
+      "spawned_objects": [
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.025712222031628092,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              0.02428777796837191,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "Q0",
+      "objects": [
+        "target_cube"
+      ],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near cube-only collision-off discriminator",
+      "spawned_objects": [
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": false,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.025712222031628092,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              0.02428777796837191,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "QF",
+      "objects": [
+        "target_cube"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        1.25,
+        0.0,
+        0.0
+      ],
+      "role": "far cube-only collision-on discriminator",
+      "spawned_objects": [
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            1.249287777968372,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              1.224287777968372,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              1.274287777968372,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "objects": [
+        "table",
+        "target_cube"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near table-plus-cube collision-on reproduction",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.2507122220316281,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              0.2492877779683719,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        },
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.025712222031628092,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              0.02428777796837191,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P0",
+      "objects": [
+        "table",
+        "target_cube"
+      ],
+      "collision_enabled": false,
+      "translation_offset_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "near table-plus-cube collision-off discriminator",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": false,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.2507122220316281,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              0.2492877779683719,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        },
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": false,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              -0.025712222031628092,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              0.02428777796837191,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PF",
+      "objects": [
+        "table",
+        "target_cube"
+      ],
+      "collision_enabled": true,
+      "translation_offset_world_m": [
+        1.25,
+        0.0,
+        0.0
+      ],
+      "role": "far table-plus-cube collision-on discriminator",
+      "spawned_objects": [
+        {
+          "name": "table",
+          "prim_path": "/World/ReachScene/Table",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "authored_center_world_m": [
+            1.249287777968372,
+            0.35588951022682785,
+            0.24160404404644129
+          ],
+          "size_m": [
+            0.5,
+            0.3,
+            0.04
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              0.999287777968372,
+              0.20588951022682786,
+              0.2216040440464413
+            ],
+            "maximum_world_m": [
+              1.499287777968372,
+              0.5058895102268278,
+              0.2616040440464413
+            ]
+          }
+        },
+        {
+          "name": "target_cube",
+          "prim_path": "/World/ReachScene/TargetCube",
+          "source_center_world_m": [
+            -0.0007122220316280922,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "authored_center_world_m": [
+            1.249287777968372,
+            0.29588951022682786,
+            0.2866040440464413
+          ],
+          "size_m": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "collision_enabled": true,
+          "rigid_body_authored": false,
+          "expected_static": true,
+          "axis_aligned_bounds": {
+            "minimum_world_m": [
+              1.224287777968372,
+              0.27088951022682783,
+              0.2616040440464413
+            ],
+            "maximum_world_m": [
+              1.274287777968372,
+              0.3208895102268279,
+              0.3116040440464413
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "adaptive_execution": {
+    "paths": {
+      "S0_fails": [
+        "S0"
+      ],
+      "table_branch": [
+        "S0",
+        "T1",
+        "T0",
+        "TF"
+      ],
+      "cube_branch": [
+        "S0",
+        "T1",
+        "Q1",
+        "Q0",
+        "QF"
+      ],
+      "pair_branch": [
+        "S0",
+        "T1",
+        "Q1",
+        "P1",
+        "P0",
+        "PF"
+      ],
+      "nonreproduction_branch": [
+        "S0",
+        "T1",
+        "Q1",
+        "P1"
+      ]
+    },
+    "maximum_executed_cells": 6,
+    "case_timeout_seconds": 180,
+    "matrix_deadline_seconds": 1200,
+    "stop_rule": "Stop after the first completed table, cube, or pair branch; never sweep cells outside the selected adaptive path."
+  },
+  "required_machine_evidence": {
+    "source_and_config_hashes": true,
+    "authored_prim_paths_and_collision_flags": true,
+    "runtime_prim_type_collision_and_rigid_body_readback": true,
+    "runtime_world_bounds_and_transforms": true,
+    "articulation_joint_body_names_and_controlled_indices": true,
+    "physics_view_shape_before_motion": true,
+    "target_live_position_velocity_gravity_and_contact_telemetry": true,
+    "terminal_body_to_spawned_aabb_clearance": true,
+    "complete_contact_event_counts_and_actor_pairs": true
+  },
+  "controls_held_fixed": {
+    "candidate_path_angles_deg": [
+      [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      [
+        90.0,
+        78.0,
+        78.0,
+        78.0
+      ],
+      [
+        90.0,
+        66.0,
+        66.0,
+        66.0
+      ]
+    ],
+    "actuator_case": "bounded_gravity_feed_forward",
+    "tracking_tolerance_deg": 1.0,
+    "contact_limit_n": 0.5,
+    "trajectory_drive_and_feed_forward_unchanged": true
+  },
+  "checks": {
+    "df_046_matrix_complete": true,
+    "df_046_static_scene_family_is_causal": true,
+    "df_046_cell_c_failed_tracking": true,
+    "df_046_cell_c_had_integrity": true,
+    "source_scene_keeps_table_and_cube_collision_enabled": true,
+    "candidate_pose_source_passed": true,
+    "sentinel_runs_first": true,
+    "adaptive_paths_respect_cell_cap": true,
+    "per_cell_timeouts_fit_matrix_deadline": true,
+    "viewer_remains_blocked": true,
+    "gpu_not_started_by_preparation": true
+  },
+  "preflight_passed": true,
+  "authorization": {
+    "paid_run": false,
+    "viewer": false,
+    "integrated_pregrasp": false,
+    "contact_or_grasp": false,
+    "reason": "This artifact prepares DF-047 only. A fresh quote, Brev login, explicit approval, and a matching STOPPED instance are still required."
+  }
+}

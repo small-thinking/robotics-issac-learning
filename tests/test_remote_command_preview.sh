@@ -391,6 +391,34 @@ assert_not_contains "$context_transfer_output" '--livestream'
 assert_not_contains "$context_transfer_output" '--viz'
 assert_contains "$context_transfer_output" '[dry-run] Command displayed but not executed.'
 
+scene_decomposition_output="$(
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh
+)"
+
+assert_contains "$scene_decomposition_output" 'goal5_scene_decomposition.json'
+assert_contains "$scene_decomposition_output" 'goal5_gravity_feed_forward_diagnostic.json'
+assert_contains "$scene_decomposition_output" 'goal5_angled_pregrasp_scene_candidate.json'
+assert_contains "$scene_decomposition_output" 'run_cell S0'
+assert_contains "$scene_decomposition_output" 'run_cell T1'
+assert_contains "$scene_decomposition_output" 'run_cell T0'
+assert_contains "$scene_decomposition_output" 'run_cell TF'
+assert_contains "$scene_decomposition_output" 'run_cell Q1'
+assert_contains "$scene_decomposition_output" 'run_cell Q0'
+assert_contains "$scene_decomposition_output" 'run_cell QF'
+assert_contains "$scene_decomposition_output" 'run_cell P1'
+assert_contains "$scene_decomposition_output" 'run_cell P0'
+assert_contains "$scene_decomposition_output" 'run_cell PF'
+assert_contains "$scene_decomposition_output" 'verify_dofbot_scene_decomposition_case.py'
+assert_contains "$scene_decomposition_output" 'summarize_dofbot_scene_decomposition_matrix.py'
+assert_contains "$scene_decomposition_output" '[SCENE_DECOMPOSITION_EXIT_CODE]'
+assert_contains "$scene_decomposition_output" '--device cpu'
+assert_contains "$scene_decomposition_output" '--headless'
+assert_not_contains "$scene_decomposition_output" '--livestream'
+assert_not_contains "$scene_decomposition_output" '--viz'
+assert_contains "$scene_decomposition_output" '[dry-run] Command displayed but not executed.'
+
 if DOFBOT_ACTUATOR_CASE_TIMEOUT_SECONDS=59 \
   BREV_INSTANCE_NAME=preview-only \
   REMOTE_DRY_RUN=1 \
@@ -404,6 +432,22 @@ if DOFBOT_CONTEXT_TRANSFER_TIMEOUT_SECONDS=59 \
   REMOTE_DRY_RUN=1 \
   ./scripts/isaac/run_dofbot_context_transfer_matrix.sh >/dev/null 2>&1; then
   printf 'expected context-transfer preview to reject unsafe timeout\n' >&2
+  exit 1
+fi
+
+if DOFBOT_SCENE_DECOMPOSITION_CASE_TIMEOUT_SECONDS=59 \
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh >/dev/null 2>&1; then
+  printf 'expected scene decomposition preview to reject unsafe case timeout\n' >&2
+  exit 1
+fi
+
+if DOFBOT_SCENE_DECOMPOSITION_DEADLINE_SECONDS=599 \
+  BREV_INSTANCE_NAME=preview-only \
+  REMOTE_DRY_RUN=1 \
+  ./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh >/dev/null 2>&1; then
+  printf 'expected scene decomposition preview to reject unsafe deadline\n' >&2
   exit 1
 fi
 

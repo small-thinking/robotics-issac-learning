@@ -16,6 +16,7 @@ SHELL := /bin/bash
 	dofbot-residual-force-evidence-audit \
 	dofbot-gravity-feed-forward-dry-run dofbot-gravity-feed-forward \
 	dofbot-context-transfer-audit dofbot-context-transfer-matrix \
+	dofbot-scene-decomposition-dry-run dofbot-scene-decomposition-matrix \
 	dofbot-pregrasp dofbot-pregrasp-view \
 	show-dofbot-inspect show-dofbot-view show-dofbot-motion show-dofbot-motion-view \
 	show-dofbot-motion-config show-dofbot-motion-config-view \
@@ -26,6 +27,7 @@ SHELL := /bin/bash
 	show-dofbot-solver-drive show-dofbot-drive-model \
 	show-dofbot-gravity-feed-forward \
 	show-dofbot-context-transfer-matrix \
+	show-dofbot-scene-decomposition-matrix \
 	inspect-config show-sync show-remote-setup show-inspect-config show-smoke \
 	show-train show-play show-eval show-learning-curve study-validate study-matrix \
 	show-variant show-manifest show-study-run test ci-cpu
@@ -222,6 +224,14 @@ dofbot-context-transfer-audit:
 dofbot-context-transfer-matrix:
 	@./scripts/isaac/run_dofbot_context_transfer_matrix.sh
 
+dofbot-scene-decomposition-dry-run:
+	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \
+	 uv run --python 3.12 python tools/prepare_dofbot_scene_decomposition.py \
+	 --output "$${DOFBOT_SCENE_DECOMPOSITION_PLAN:-artifacts/dofbot/scene_decomposition_plan.json}"
+
+dofbot-scene-decomposition-matrix:
+	@./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh
+
 dofbot-pregrasp:
 	@./scripts/isaac/run_dofbot_pregrasp.sh
 
@@ -318,6 +328,9 @@ show-dofbot-gravity-feed-forward:
 
 show-dofbot-context-transfer-matrix:
 	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_context_transfer_matrix.sh
+
+show-dofbot-scene-decomposition-matrix:
+	@REMOTE_DRY_RUN=1 ./scripts/isaac/run_dofbot_scene_decomposition_matrix.sh
 
 study-validate:
 	@UV_CACHE_DIR="$${UV_CACHE_DIR:-/tmp/robotics-isaac-uv-cache}" \

@@ -1,1 +1,373 @@
-{"schema_version":1,"experiment":"dofbot_pregrasp_context_transfer_audit","sources":{"isolated_calibration_config":{"path":"configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json","sha256":"59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef"},"pregrasp_pose_config":{"path":"configs/dofbot/pregrasp/goal5_angled_pregrasp.json","sha256":"1f01c9437c2c8f38944364ad931e3eaf04cbf3f5b166c36a278f67dc9c0cd73f"},"pregrasp_scene_config":{"path":"configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json","sha256":"16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949"},"accepted_isolated_machine_result":{"path":"artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json","sha256":"a837f2b77ba32bd10d357f9c6b36db826affab1174fbfd05bbdfe2427617a42f","runtime_fix_commit":"1cf25a0502e8f4c9fdd3ad321feae42736482561"},"failed_direct_machine_result":{"path":"artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json","sha256":"a8f92e436f469d2c7105c44763bec0b1dbd4d19a0781a48ae67ad13afcff1646"}},"runtime_provenance":{"accepted_machine_result_contains_source_bundle":false,"accepted_machine_result_source_bundle":null,"current_shared_runtime_bundle":{"algorithm":"sha256(path_nul_sha256_newline_sorted_v1)","sha256":"0aeeb044837af67eadc59bbf7dc61c64ccebbcebb0f686db180fe5d6e2ddb53a","files":{"tools/dofbot_control_api.py":"ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035","tools/dofbot_gravity_feed_forward.py":"3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16","tools/dofbot_gravity_feed_forward_runtime.py":"0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669","tools/dofbot_pregrasp_scene_cfg.py":"aac6a3dbc514371e763306d91b6eb7959843fea9c4eacd4ed79ae2cc7596b4d5","tools/dofbot_scene_cfg.py":"7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556","tools/run_dofbot_actuator_calibration.py":"4acaf3dcd726f6906f36ec18150b63f62e110076655285c1b2564b7764b9ae6b"}},"current_integrated_consumer_bundle":{"algorithm":"sha256(path_nul_sha256_newline_sorted_v1)","sha256":"cbfd66bd4a7022ce2c082d7dacd7349f1330206cdc6811e8bc26cbb4d13eb9a6","files":{"tools/dofbot_control_api.py":"ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035","tools/dofbot_gravity_feed_forward.py":"3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16","tools/dofbot_gravity_feed_forward_runtime.py":"0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669","tools/dofbot_pregrasp_scene_cfg.py":"aac6a3dbc514371e763306d91b6eb7959843fea9c4eacd4ed79ae2cc7596b4d5","tools/dofbot_scene_cfg.py":"7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556","tools/run_dofbot_actuator_calibration.py":"4acaf3dcd726f6906f36ec18150b63f62e110076655285c1b2564b7764b9ae6b","tools/run_dofbot_pregrasp.py":"f364d11360dee9e2938ca1911b8bfd224fe67c434b958e11df7327ccd93e43d5"}},"current_runtime_machine_regression_validated":false,"reason":"The accepted 2026-07-31 result records a runtime commit but does not bind the source-file bundle consumed after the shared-runtime refactor."},"protocols":{"accepted_isolated_calibration":{"pose_sequence_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,78.0,78.0,78.0],[90.0,66.0,66.0,66.0],[90.0,90.0,90.0,90.0]],"candidate_start_angles_deg":[90.0,78.0,78.0,78.0],"candidate_goal_angles_deg":[90.0,66.0,66.0,66.0],"candidate_motion_contract":{"profile":"cubic_smoothstep_3u2_minus_2u3","start_angles_deg":[90.0,78.0,78.0,78.0],"goal_angles_deg":[90.0,66.0,66.0,66.0],"duration_s":2.0,"delta_angles_deg":[0.0,-12.0,-12.0,-12.0],"peak_velocity_deg_s":[0.0,9.0,9.0,9.0],"peak_acceleration_deg_s2":[0.0,18.0,18.0,18.0],"maximum_peak_velocity_deg_s":9.0,"maximum_peak_acceleration_deg_s2":18.0},"full_sequence_extrema":{"maximum_transition_delta_deg":24.0,"smoothstep_peak_velocity_deg_s":18.0,"smoothstep_peak_acceleration_deg_s2":36.0},"table_or_cube_spawned":false,"settle_velocity_threshold_deg_s":0.1,"settle_hold_ms":500,"settle_timeout_ms":5000,"sample_every_physics_step":true},"failed_integrated_direct_pregrasp":{"pose_sequence_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,66.0,66.0,66.0]],"candidate_start_angles_deg":[90.0,90.0,90.0,90.0],"candidate_goal_angles_deg":[90.0,66.0,66.0,66.0],"candidate_motion_contract":{"profile":"cubic_smoothstep_3u2_minus_2u3","start_angles_deg":[90.0,90.0,90.0,90.0],"goal_angles_deg":[90.0,66.0,66.0,66.0],"duration_s":2.0,"delta_angles_deg":[0.0,-24.0,-24.0,-24.0],"peak_velocity_deg_s":[0.0,18.0,18.0,18.0],"peak_acceleration_deg_s2":[0.0,36.0,36.0,36.0],"maximum_peak_velocity_deg_s":18.0,"maximum_peak_acceleration_deg_s2":36.0},"table_or_cube_spawned":true,"table_prim_path":"/World/ReachScene/Table","target_cube_prim_path":"/World/ReachScene/TargetCube","control_hz":5,"maximum_steps":60,"maximum_observation_horizon_s":12.0,"sample_every_physics_step":false}},"protocol_mismatches":{"candidate_start_angles":true,"candidate_transition_delta":true,"candidate_peak_velocity":true,"candidate_peak_acceleration":true,"preceding_pose_history":true,"scene_boxes":true,"settling_and_observation_protocol":true,"machine_validated_runtime_source_bundle":true},"analysis":{"checks":{"isolated_success_result_is_machine_passed":true,"isolated_candidate_goal_matches_integrated_goal":true,"isolated_candidate_starts_from_mid_load":true,"isolated_candidate_transition_is_twelve_degrees":true,"isolated_full_sequence_includes_twenty_four_degree_return":true,"integrated_direct_transition_is_twenty_four_degrees":true,"protocol_mismatch_is_detected":true,"direct_transition_machine_result_failed":true,"direct_transition_viewer_was_blocked":true,"accepted_result_source_bundle_gap_is_explicit":true,"gpu_not_started_by_audit":true},"audit_complete":true,"df_035_equivalence_claim_valid":false,"df_039_falsifies_direct_90_to_66_transition":true,"df_039_falsifies_safe_90_to_78_to_66_path":false,"accepted_isolated_result_transfers_to_current_runtime":false,"integrated_pregrasp_authorized":false,"viewer_authorized":false},"next_machine_matrix":{"paid_run_requires_fresh_quote_and_explicit_approval":true,"viewer_blocked":true,"cells":[{"id":"A","context":"current_shared_runtime_isolated_no_boxes","path_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,78.0,78.0,78.0],[90.0,66.0,66.0,66.0]],"role":"machine regression sentinel","fail_fast":true},{"id":"B","context":"current_shared_runtime_isolated_no_boxes","path_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,66.0,66.0,66.0]],"role":"path-history discriminator","requires":"A passes"},{"id":"C","context":"current_shared_runtime_isolated_with_static_boxes","path_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,78.0,78.0,78.0],[90.0,66.0,66.0,66.0]],"role":"static-scene discriminator","requires":"A passes"},{"id":"D","context":"integrated_pregrasp_with_static_boxes","path_angles_deg":[[90.0,90.0,90.0,90.0],[90.0,66.0,66.0,66.0]],"role":"existing failed reference; do not rerun","evidence":"artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json"}],"decision_rules":{"A_fails":"current shared runtime does not reproduce the accepted isolated result; stop before B/C","A_passes_B_fails":"direct transition or missing mid-load history is causal","A_passes_C_fails":"static scene context is causal","A_B_C_pass":"path and static boxes are insufficient separately; isolate the remaining integrated-runner context"}},"scope":{"gpu_started":false,"isaac_started":false,"controller_changed":false,"machine_claim_added":false,"viewer_started":false,"contact_or_grasp_authorized":false}}
+{
+  "schema_version": 1,
+  "experiment": "dofbot_pregrasp_context_transfer_audit",
+  "sources": {
+    "isolated_calibration_config": {
+      "path": "configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json",
+      "sha256": "59a4a0ece5bb78f6e54cc8f871980fbb14c8ada96f87ffdba4f4386a0bd1efef"
+    },
+    "pregrasp_pose_config": {
+      "path": "configs/dofbot/pregrasp/goal5_angled_pregrasp.json",
+      "sha256": "1f01c9437c2c8f38944364ad931e3eaf04cbf3f5b166c36a278f67dc9c0cd73f"
+    },
+    "pregrasp_scene_config": {
+      "path": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
+      "sha256": "16eafb64c8f98f2018089060e375ce6f7af7756cd8325966c30b2fb47b3d4949"
+    },
+    "accepted_isolated_machine_result": {
+      "path": "artifacts/dofbot/gravity_feed_forward_result_2026-07-31.json",
+      "sha256": "a837f2b77ba32bd10d357f9c6b36db826affab1174fbfd05bbdfe2427617a42f",
+      "runtime_fix_commit": "1cf25a0502e8f4c9fdd3ad321feae42736482561"
+    },
+    "failed_direct_machine_result": {
+      "path": "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json",
+      "sha256": "a8f92e436f469d2c7105c44763bec0b1dbd4d19a0781a48ae67ad13afcff1646"
+    }
+  },
+  "runtime_provenance": {
+    "accepted_machine_result_contains_source_bundle": false,
+    "accepted_machine_result_source_bundle": null,
+    "current_shared_runtime_bundle": {
+      "algorithm": "sha256(path_nul_sha256_newline_sorted_v1)",
+      "sha256": "d8ff8d6c8fd59a84b7076f9d119f581bb0e4a8ad99408bee5d5627e0745a998a",
+      "files": {
+        "tools/dofbot_actuator_calibration.py": "7eb77de48e410ac98bc608bf58843946517e20516ef644deb3873bba17d6b52e",
+        "tools/dofbot_contact_report.py": "aa1146b0724ccb3f868b0d0641b8bf7ca303e1e2635324e98765b7715afab65b",
+        "tools/dofbot_control_api.py": "ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035",
+        "tools/dofbot_gravity_feed_forward.py": "3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16",
+        "tools/dofbot_gravity_feed_forward_runtime.py": "0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669",
+        "tools/dofbot_pregrasp_scene_cfg.py": "6a1f4291507ee747a5aa32d11babcac1d2dedfb58160a1d486e6406087e1ed79",
+        "tools/dofbot_motion_plan.py": "fb4ab74662acce2200918f36e4372529629b068005953cf59a67a00cbc1b844b",
+        "tools/dofbot_reaching.py": "927fcdee6af232a0d5e5f4e0ebdd119bb8c52616f03e6b4008dbc96b74ddc466",
+        "tools/dofbot_scene_decomposition.py": "9b035c4948660241b1014d67d7f57a669fe92514319f17a6270c066d90e8e704",
+        "tools/dofbot_scene_cfg.py": "7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556",
+        "tools/run_dofbot_actuator_calibration.py": "4276a76d9a4b6334c1294c9e5be8e62b1ec1cf9b1d09b94c2096014de4b30e0b"
+      }
+    },
+    "current_integrated_consumer_bundle": {
+      "algorithm": "sha256(path_nul_sha256_newline_sorted_v1)",
+      "sha256": "cdfdee1cab9dbe6245007ccb889de77ef1f809c7b114eaf23ca4572d7914fa80",
+      "files": {
+        "tools/dofbot_actuator_calibration.py": "7eb77de48e410ac98bc608bf58843946517e20516ef644deb3873bba17d6b52e",
+        "tools/dofbot_contact_report.py": "aa1146b0724ccb3f868b0d0641b8bf7ca303e1e2635324e98765b7715afab65b",
+        "tools/dofbot_control_api.py": "ab9dea57c250142883ceab9f9777bd5c1bea01e9b8ff936b81b5e7085f57b035",
+        "tools/dofbot_gravity_feed_forward.py": "3bcce4771fae433de01e79e11beeb4e049da1d0cbbaac651be880683b820bc16",
+        "tools/dofbot_gravity_feed_forward_runtime.py": "0d62e9d73f1530e5cead6cbeb11aa23ce8013c81c396f63a539ccfafa0888669",
+        "tools/dofbot_pregrasp_scene_cfg.py": "6a1f4291507ee747a5aa32d11babcac1d2dedfb58160a1d486e6406087e1ed79",
+        "tools/dofbot_motion_plan.py": "fb4ab74662acce2200918f36e4372529629b068005953cf59a67a00cbc1b844b",
+        "tools/dofbot_reaching.py": "927fcdee6af232a0d5e5f4e0ebdd119bb8c52616f03e6b4008dbc96b74ddc466",
+        "tools/dofbot_scene_decomposition.py": "9b035c4948660241b1014d67d7f57a669fe92514319f17a6270c066d90e8e704",
+        "tools/dofbot_scene_cfg.py": "7f9f7a331c5ec4556eb5c4815bfcd876db7294e9089d36039d0fc89b31377556",
+        "tools/run_dofbot_actuator_calibration.py": "4276a76d9a4b6334c1294c9e5be8e62b1ec1cf9b1d09b94c2096014de4b30e0b",
+        "tools/run_dofbot_pregrasp.py": "f364d11360dee9e2938ca1911b8bfd224fe67c434b958e11df7327ccd93e43d5"
+      }
+    },
+    "current_runtime_machine_regression_validated": false,
+    "reason": "DF-046 validates the prior source-bound runtime, but DF-047 adds scene-cell instrumentation to that runner and spawner. The new source bundle requires its own no-scene S0 sentinel."
+  },
+  "protocols": {
+    "accepted_isolated_calibration": {
+      "pose_sequence_angles_deg": [
+        [
+          90.0,
+          90.0,
+          90.0,
+          90.0
+        ],
+        [
+          90.0,
+          78.0,
+          78.0,
+          78.0
+        ],
+        [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ],
+        [
+          90.0,
+          90.0,
+          90.0,
+          90.0
+        ]
+      ],
+      "candidate_start_angles_deg": [
+        90.0,
+        78.0,
+        78.0,
+        78.0
+      ],
+      "candidate_goal_angles_deg": [
+        90.0,
+        66.0,
+        66.0,
+        66.0
+      ],
+      "candidate_motion_contract": {
+        "profile": "cubic_smoothstep_3u2_minus_2u3",
+        "start_angles_deg": [
+          90.0,
+          78.0,
+          78.0,
+          78.0
+        ],
+        "goal_angles_deg": [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ],
+        "duration_s": 2.0,
+        "delta_angles_deg": [
+          0.0,
+          -12.0,
+          -12.0,
+          -12.0
+        ],
+        "peak_velocity_deg_s": [
+          0.0,
+          9.0,
+          9.0,
+          9.0
+        ],
+        "peak_acceleration_deg_s2": [
+          0.0,
+          18.0,
+          18.0,
+          18.0
+        ],
+        "maximum_peak_velocity_deg_s": 9.0,
+        "maximum_peak_acceleration_deg_s2": 18.0
+      },
+      "full_sequence_extrema": {
+        "maximum_transition_delta_deg": 24.0,
+        "smoothstep_peak_velocity_deg_s": 18.0,
+        "smoothstep_peak_acceleration_deg_s2": 36.0
+      },
+      "table_or_cube_spawned": false,
+      "settle_velocity_threshold_deg_s": 0.1,
+      "settle_hold_ms": 500,
+      "settle_timeout_ms": 5000,
+      "sample_every_physics_step": true
+    },
+    "failed_integrated_direct_pregrasp": {
+      "pose_sequence_angles_deg": [
+        [
+          90.0,
+          90.0,
+          90.0,
+          90.0
+        ],
+        [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ]
+      ],
+      "candidate_start_angles_deg": [
+        90.0,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "candidate_goal_angles_deg": [
+        90.0,
+        66.0,
+        66.0,
+        66.0
+      ],
+      "candidate_motion_contract": {
+        "profile": "cubic_smoothstep_3u2_minus_2u3",
+        "start_angles_deg": [
+          90.0,
+          90.0,
+          90.0,
+          90.0
+        ],
+        "goal_angles_deg": [
+          90.0,
+          66.0,
+          66.0,
+          66.0
+        ],
+        "duration_s": 2.0,
+        "delta_angles_deg": [
+          0.0,
+          -24.0,
+          -24.0,
+          -24.0
+        ],
+        "peak_velocity_deg_s": [
+          0.0,
+          18.0,
+          18.0,
+          18.0
+        ],
+        "peak_acceleration_deg_s2": [
+          0.0,
+          36.0,
+          36.0,
+          36.0
+        ],
+        "maximum_peak_velocity_deg_s": 18.0,
+        "maximum_peak_acceleration_deg_s2": 36.0
+      },
+      "table_or_cube_spawned": true,
+      "table_prim_path": "/World/ReachScene/Table",
+      "target_cube_prim_path": "/World/ReachScene/TargetCube",
+      "control_hz": 5,
+      "maximum_steps": 60,
+      "maximum_observation_horizon_s": 12.0,
+      "sample_every_physics_step": false
+    }
+  },
+  "protocol_mismatches": {
+    "candidate_start_angles": true,
+    "candidate_transition_delta": true,
+    "candidate_peak_velocity": true,
+    "candidate_peak_acceleration": true,
+    "preceding_pose_history": true,
+    "scene_boxes": true,
+    "settling_and_observation_protocol": true,
+    "machine_validated_runtime_source_bundle": true
+  },
+  "analysis": {
+    "checks": {
+      "isolated_success_result_is_machine_passed": true,
+      "isolated_candidate_goal_matches_integrated_goal": true,
+      "isolated_candidate_starts_from_mid_load": true,
+      "isolated_candidate_transition_is_twelve_degrees": true,
+      "isolated_full_sequence_includes_twenty_four_degree_return": true,
+      "integrated_direct_transition_is_twenty_four_degrees": true,
+      "protocol_mismatch_is_detected": true,
+      "direct_transition_machine_result_failed": true,
+      "direct_transition_viewer_was_blocked": true,
+      "accepted_result_source_bundle_gap_is_explicit": true,
+      "gpu_not_started_by_audit": true
+    },
+    "audit_complete": true,
+    "df_035_equivalence_claim_valid": false,
+    "df_039_falsifies_direct_90_to_66_transition": true,
+    "df_039_falsifies_safe_90_to_78_to_66_path": false,
+    "accepted_isolated_result_transfers_to_current_runtime": false,
+    "integrated_pregrasp_authorized": false,
+    "viewer_authorized": false
+  },
+  "next_machine_matrix": {
+    "status": "completed_by_df_046_and_superseded_by_df_047",
+    "next_discriminator": "DF-047 adaptive table/cube/collision/near-far decomposition",
+    "paid_run_requires_fresh_quote_and_explicit_approval": true,
+    "viewer_blocked": true,
+    "cells": [
+      {
+        "id": "A",
+        "context": "current_shared_runtime_isolated_no_boxes",
+        "path_angles_deg": [
+          [
+            90.0,
+            90.0,
+            90.0,
+            90.0
+          ],
+          [
+            90.0,
+            78.0,
+            78.0,
+            78.0
+          ],
+          [
+            90.0,
+            66.0,
+            66.0,
+            66.0
+          ]
+        ],
+        "role": "machine regression sentinel",
+        "fail_fast": true
+      },
+      {
+        "id": "B",
+        "context": "current_shared_runtime_isolated_no_boxes",
+        "path_angles_deg": [
+          [
+            90.0,
+            90.0,
+            90.0,
+            90.0
+          ],
+          [
+            90.0,
+            66.0,
+            66.0,
+            66.0
+          ]
+        ],
+        "role": "path-history discriminator",
+        "requires": "A passes"
+      },
+      {
+        "id": "C",
+        "context": "current_shared_runtime_isolated_with_static_boxes",
+        "path_angles_deg": [
+          [
+            90.0,
+            90.0,
+            90.0,
+            90.0
+          ],
+          [
+            90.0,
+            78.0,
+            78.0,
+            78.0
+          ],
+          [
+            90.0,
+            66.0,
+            66.0,
+            66.0
+          ]
+        ],
+        "role": "static-scene discriminator",
+        "requires": "A passes"
+      },
+      {
+        "id": "D",
+        "context": "integrated_pregrasp_with_static_boxes",
+        "path_angles_deg": [
+          [
+            90.0,
+            90.0,
+            90.0,
+            90.0
+          ],
+          [
+            90.0,
+            66.0,
+            66.0,
+            66.0
+          ]
+        ],
+        "role": "existing failed reference; do not rerun",
+        "evidence": "artifacts/dofbot/pregrasp_single_boundary_discriminator_2026-08-01.json"
+      }
+    ],
+    "decision_rules": {
+      "A_fails": "current shared runtime does not reproduce the accepted isolated result; stop before B/C",
+      "A_passes_B_fails": "direct transition or missing mid-load history is causal",
+      "A_passes_C_fails": "static scene context is causal",
+      "A_B_C_pass": "path and static boxes are insufficient separately; isolate the remaining integrated-runner context"
+    }
+  },
+  "scope": {
+    "gpu_started": false,
+    "isaac_started": false,
+    "controller_changed": false,
+    "machine_claim_added": false,
+    "viewer_started": false,
+    "contact_or_grasp_authorized": false
+  }
+}

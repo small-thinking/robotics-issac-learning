@@ -53,9 +53,11 @@ A/B/C matrix reproduced both split and direct paths within `0.0024 degrees`
 without boxes, while adding only the exact static table/cube context restored
 the `4.199411-degree` residual with zero monitored contact. **DF-046** records
 this causal localization. It does not yet distinguish table from cube,
-collision composition, or another scene-spawn side effect. There is no
-authorized next paid discriminator: first audit the scene composition offline
-and define a minimal one-factor decomposition. Viewer remains blocked.
+collision composition, or another scene-spawn side effect. The GPU-free audit
+and adaptive one-factor decomposition are now prepared by **DF-047**. This does
+not itself authorize compute: after its PR is merged, a fresh matching quote,
+authenticated `brev ls --json`, explicit user approval, and the unchanged
+retained-instance check are still required. Viewer remains blocked.
 
 ## Consolidated ledger
 
@@ -107,6 +109,7 @@ and define a minimal one-factor decomposition. Viewer remains blocked.
 | DF-044 | 2026-08-01 | Tested-object isolation | Extracting the integrated runner's static-box spawn into a shared helper changed its source SHA, so the existing 27-check preflight correctly rejected all downstream synthetic contracts before their own mutations could be tested. | RESOLVED | `artifacts/dofbot/pregrasp_command_space_contract.json`; `tools/run_dofbot_pregrasp.py` | Do not modify the integrated runner while building its context-transfer discriminator. Preserve its byte-identical spawn path and add optional scene context only to the isolated calibration runner. |
 | DF-045 | 2026-08-01 | PR publication quoting | Backticks in an inline `gh pr create --body` string were evaluated by the local shell, rerunning CPU CI and attempting the matrix command. SSH failed against the default stale instance alias before any remote command, and a follow-up `brev ls --all --json` proved the retained L4 remained `STOPPED`. | RESOLVED | PR #49; `docs/EXPERIMENTS.md` | Write Markdown PR bodies to a file and pass `--body-file`; never place command-formatted Markdown inside a shell-interpreted argument. Recheck live resource state after any accidental remote attempt. |
 | DF-046 | 2026-08-03 | Static scene context | On current `main@4b88d07`, A reproduced the split no-box pass at `0.002391 degrees` and B proved the direct no-box path at `0.002211 degrees`; C added only the exact static table/cube pair and failed at `4.199411 degrees` with zero monitored contact, matching target buffers, identical actuator/runtime source bindings, and a passing neutral return. | PARTIAL | `artifacts/dofbot/context_transfer_matrix_contract.json` | Do not revisit trajectory history, runtime provenance, API targets, drive tuning, or feed-forward as the primary cause. Before another paid run, audit scene composition offline and prepare a one-factor table/cube/collision-or-spawn decomposition; Viewer remains blocked. |
+| DF-047 | 2026-08-05 | Static scene decomposition | The GPU-free audit proved DF-046 changed table and cube together and that the historical spawner always authored collision, so neither object identity nor collision was independently tested. A strict adaptive matrix now starts with a new-source no-scene sentinel, then tests table-only, cube-only, or pair interaction with collision-off and far-away controls only on the selected failing branch. | OPEN | `artifacts/dofbot/scene_decomposition_plan.json` | Do not sweep all ten cells or change motion/drive/feed-forward/gates. After merge and a fresh approved quote, run at most the one adaptive branch (maximum six cells), retrieve readback/index/contact/clearance evidence, and stop before Viewer. |
 
 ## Current evidence boundary
 

@@ -103,7 +103,11 @@ lightweight VLA post-training, and optional real hardware.
   static table/cube context restores a `4.199411-degree` residual with zero
   monitored contact. `DF-046` therefore localizes the remaining failure family
   to static-scene composition, while its mechanism remains open. Viewer,
-  contact, and grasp remain blocked.
+  contact, and grasp remain blocked. The GPU-free `DF-047` preparation now
+  proves that `DF-046` changed table and cube together while collision was
+  always authored. Its adaptive matrix begins with a new-source no-scene
+  sentinel and follows only one table, cube, or pair branch with collision-off
+  and far-away controls.
 
 The manager-based task and `Isaac-Cartpole-Direct-v0` are different MDP and
 checkpoint contracts. Do not reuse checkpoints, reward comparisons, or PPO
@@ -153,9 +157,10 @@ The CartPole stage is complete. The canonical next-stage plan is
    a failure classification. The separate single-boundary headless gate ran
    and failed only final position and joint tracking. The context-transfer
    matrix is now complete: current runtime and direct path pass without boxes,
-   while the exact static scene reproduces the residual. A GPU-free scene-spawn
-   audit and one-factor decomposition must precede another paid run. Viewer
-   remains blocked.
+   while the exact static scene reproduces the residual. The GPU-free scene-
+   spawn audit and adaptive one-factor decomposition now pass preparation under
+   `DF-047`. A merge, authenticated instance/price check, and explicit approval
+   still precede any paid run. Viewer remains blocked.
 
 Do not introduce PPO, SFT, imitation learning, a CV training pipeline, grasping,
 or real hardware commands during Goal 4. The older
@@ -196,10 +201,12 @@ pre-grasp runner. The target/torque and projected-force reruns proved backend
 and live target propagation, complete force telemetry, and reliable remote
 semantic failure while reproducing the `4.177019°` residual. The later
 single-boundary run preserved that residual at `4.196145°`, closing DF-035
-through the falsified DF-039 hypothesis. Before another paid run, compare the
-isolated and integrated contexts offline, name one new ledger discriminator,
-then obtain a fresh quote and explicit approval. Do not open the Viewer until
-a complete machine artifact passes. Contact and grasping remain out of scope.
+through the falsified DF-039 hypothesis. The offline comparison and named
+`DF-047` discriminator are now prepared; the only next machine command is the
+adaptive `make dofbot-scene-decomposition-matrix`, after merge, a fresh quote,
+authenticated `brev ls --json`, and explicit approval. Do not open the Viewer
+until a complete integrated machine artifact passes. Contact and grasping
+remain out of scope.
 
 ## Sources of truth
 

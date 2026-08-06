@@ -377,3 +377,14 @@ identify table versus cube, collision composition, or another scene-spawn
 side effect. Integrated pre-grasp and Viewer remain unauthorized. The three
 multi-megabyte raw cell JSON files and logs remain ignored locally; the
 promoted contract binds each raw JSON by byte count and SHA-256.
+
+`scene_decomposition_plan.json` is the GPU-free DF-047 audit and paid-run
+preflight. It records that DF-046 changed table and cube together while the
+historical spawner unconditionally authored collision. It therefore defines
+strict no-scene, table-only, cube-only, and pair cells with collision-off and
+far-away controls, but executes only one adaptive branch after the current-
+source S0 sentinel. At most six cells may execute under a 20-minute matrix
+deadline. Future artifacts must read back prim/collision/static state, world
+transforms and bounds, articulation/DOF indices, gravity and target telemetry,
+contact-event actor pairs, and terminal-body/AABB clearance. This plan
+authorizes no GPU, integrated pre-grasp, Viewer, contact, or grasp.

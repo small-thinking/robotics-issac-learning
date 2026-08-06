@@ -197,6 +197,10 @@ class DofbotContextTransferAuditTest(unittest.TestCase):
     def test_matrix_is_fail_fast_and_does_not_repeat_direct_cell(self) -> None:
         result = build()
         matrix = result["next_machine_matrix"]
+        self.assertEqual(
+            matrix["status"],
+            "completed_by_df_046_and_superseded_by_df_047",
+        )
         cells = {cell["id"]: cell for cell in matrix["cells"]}  # type: ignore[index]
         self.assertEqual(set(cells), {"A", "B", "C", "D"})
         self.assertTrue(cells["A"]["fail_fast"])

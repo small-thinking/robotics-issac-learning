@@ -176,8 +176,10 @@ The detailed first-stage contract lives in
    direct paths within `0.0024 degrees` without boxes, while adding only the
    exact static table/cube context restores a `4.199411-degree` residual.
    Runtime and path are now rejected as primary causes; static-scene
-   composition is causal but still requires a GPU-free one-factor
-   decomposition before another paid run. Viewer, wrist
+   composition is causal. The GPU-free `DF-047` preparation separates table,
+   cube, pair interaction, collision state, and near/far placement in one
+   adaptive branch with a new-source sentinel and a six-cell cap. It still
+   requires merge, a fresh quote, and explicit paid approval. Viewer, wrist
    twist, gripper closing, target motion, contact, and grasp success remain
    unauthorized.
 

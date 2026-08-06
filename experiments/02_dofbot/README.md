@@ -30,13 +30,14 @@ falsified or partial correction, superseded diagnosis, runtime/telemetry
 incompatibility, artifact/transport defect, and paid-window failure must update
 that ledger in the same pull request.
 
-The current scientific item is `DF-042`. The offline audit corrected a prior
-equivalence error: the accepted isolated candidate entered through
-`90 -> 78 -> 66` (12 degrees, `9/18 degrees/s(/s)`), while `DF-039` tested
-direct `90 -> 66` (24 degrees, `18/36`). It also found that the historical
-isolated pass does not bind the current shared runtime source bundle. The next
-paid gate is therefore the fail-fast A/B/C context-transfer matrix, not another
-parameter tune or integrated Viewer attempt.
+The current scientific item is `DF-047`. `DF-046` completed the source-bound
+A/B/C matrix: both no-box paths passed within `0.0024 degrees`, while adding
+the exact table/cube pair restored a `4.199411-degree` residual. The GPU-free
+follow-up found that the historical spawner changed both objects together and
+always authored collision. The next paid gate, after merge, fresh quote, and
+explicit approval, is therefore one adaptive table/cube/pair, collision-off,
+and far-away branch behind a new-source S0 sentinel—not another parameter tune
+or integrated Viewer attempt.
 
 ## First stage: asset, motion, and camera
 
@@ -1730,3 +1731,56 @@ blocked**. The next work is GPU-free: audit the exact scene-spawn composition
 and prepare the smallest table/cube/collision-or-spawn decomposition before
 proposing another paid run. Drive, trajectory, API-target, feed-forward, and
 acceptance parameters must remain unchanged.
+
+## DF-047 GPU-free adaptive scene decomposition
+
+The offline audit closes the experiment-design gap left by DF-046. The exact
+historical helper iterated over table and cube together, constructed
+`CollisionPropertiesCfg()` unconditionally, and did not read an independent
+collision setting. Therefore DF-046 proves the static-scene family is causal,
+but not which object or mechanism is responsible.
+
+The strict config is
+`configs/dofbot/calibration/goal5_scene_decomposition.json`. Its ten declared
+cells are candidates for one adaptive branch, not a sweep:
+
+1. S0: current-source split path with no scene; fail-fast regression sentinel.
+2. T1: near table only with collision. If it fails, run T0 collision-off and
+   TF collision-on at a fixed 1.25-meter offset, then stop.
+3. If T1 passes, Q1 tests the near cube only. If it fails, run Q0/QF, then stop.
+4. If both single objects pass, P1 reproduces the near pair. If it fails, run
+   P0/PF, then stop. If it passes, record non-reproduction and stop.
+
+The maximum path contains six cells. Each cell has a 180-second timeout and the
+remote matrix has a 1200-second internal deadline. Every cell retains the
+split `90 -> 78 -> 66` path, force `1048/53/100`, external-force iteration,
+bounded gravity feed-forward, one-degree tracking threshold, and `0.5 N`
+contact threshold.
+
+The machine contract requires source/config hashes; authored and runtime prim,
+collision, static, transform, and AABB readback; articulation joint/body names,
+controlled DOF indices, and PhysX view shape; target/position/velocity/gravity
+telemetry; complete contact event counts and actor pairs; and terminal-body-
+center/AABB clearance. Analytical clearance and zero monitored contact remain
+explicitly insufficient to rule out broadphase, registration, indexing, or
+another spawn side effect.
+
+GPU-free command:
+
+```bash
+make dofbot-scene-decomposition-dry-run
+BREV_INSTANCE_NAME=preview-only make show-dofbot-scene-decomposition-matrix
+```
+
+Prepared future command, still blocked on merge, authenticated `brev ls`, a
+fresh matching quote/state check, and explicit approval:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-scene-decomposition-matrix
+```
+
+Evidence: `artifacts/dofbot/scene_decomposition_plan.json`. Preparation is
+**local passed / paid run unauthorized / Viewer blocked**. Integrated pre-
+grasp, contact, closing, grasping, lifting, placing, hardware, policy, and
+checkpoint remain out of scope.

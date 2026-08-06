@@ -37,6 +37,10 @@ from dofbot_actuator_calibration import (
 from dofbot_gravity_feed_forward import (
     evaluate_gravity_feed_forward_telemetry,
 )
+from dofbot_scene_decomposition import (
+    load_scene_decomposition_config,
+    minimum_body_center_aabb_clearances,
+)
 
 parser = argparse.ArgumentParser(
     description="Run one fail-closed DOFBOT actuator calibration case."
@@ -47,6 +51,17 @@ parser.add_argument(
     default=Path(
         "/workspace/robotics-issac-learning/artifacts/dofbot/asset_contract.json"
     ),
+)
+parser.add_argument(
+    "--scene-decomposition-config",
+    type=Path,
+    default=None,
+    help="Optional strict DF-047 scene-cell config; requires --scene-config.",
+)
+parser.add_argument(
+    "--scene-cell",
+    default=None,
+    help="One cell ID from --scene-decomposition-config.",
 )
 parser.add_argument(
     "--calibration-config",
@@ -75,6 +90,21 @@ preflight_config, preflight_config_sha256 = load_actuator_calibration_config(
     args_cli.calibration_config
 )
 preflight_case = preflight_config.case(args_cli.case_name)
+preflight_scene_decomposition = None
+preflight_scene_decomposition_sha256 = None
+preflight_scene_cell = None
+if (args_cli.scene_decomposition_config is None) != (args_cli.scene_cell is None):
+    parser.error(
+        "--scene-decomposition-config and --scene-cell must be supplied together"
+    )
+if args_cli.scene_decomposition_config is not None:
+    if args_cli.scene_config is None:
+        parser.error("--scene-decomposition-config requires --scene-config")
+    (
+        preflight_scene_decomposition,
+        preflight_scene_decomposition_sha256,
+    ) = load_scene_decomposition_config(args_cli.scene_decomposition_config)
+    preflight_scene_cell = preflight_scene_decomposition.cell(args_cli.scene_cell)
 
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
@@ -105,6 +135,8 @@ from dofbot_gravity_feed_forward_runtime import (
 from dofbot_pregrasp_scene_cfg import (
     CONTACT_BODY_PATHS,
     DofbotPregraspSceneCfg,
+    inspect_spawned_reaching_objects,
+    spawn_reaching_scene_cell,
     spawn_static_reaching_boxes,
 )
 from dofbot_reaching import load_reaching_config
@@ -252,20 +284,33 @@ class _CriticalContactReporter:
         self._physics_dt = physics_dt
         self._critical_paths = frozenset(CONTACT_BODY_PATHS)
         self._maximum_force_n_since_read = 0.0
+        self._callback_count = 0
+        self._header_count = 0
+        self._monitored_actor_pairs: set[tuple[str, str]] = set()
         self._subscription = (
             omni.physx.get_physx_simulation_interface()
             .subscribe_contact_report_events(self._on_contact_report)
         )
 
     def _on_contact_report(self, headers: Any, contact_data: Any) -> None:
+        headers = list(headers)
+        self._callback_count += 1
+        self._header_count += len(headers)
+
+        def decode(value: Any) -> str:
+            return str(PhysicsSchemaTools.intToSdfPath(value))
+
+        for header in headers:
+            actor0 = decode(header.actor0)
+            actor1 = decode(header.actor1)
+            if actor0 in self._critical_paths or actor1 in self._critical_paths:
+                self._monitored_actor_pairs.add((actor0, actor1))
         force_n = maximum_monitored_contact_force_n(
             headers=headers,
             contact_data=contact_data,
             critical_paths=self._critical_paths,
             physics_dt=self._physics_dt,
-            decode_path=lambda value: str(
-                PhysicsSchemaTools.intToSdfPath(value)
-            ),
+            decode_path=decode,
         )
         self._maximum_force_n_since_read = max(
             self._maximum_force_n_since_read,
@@ -276,6 +321,27 @@ class _CriticalContactReporter:
         maximum = self._maximum_force_n_since_read
         self._maximum_force_n_since_read = 0.0
         return maximum
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "callback_count": self._callback_count,
+            "contact_header_count": self._header_count,
+            "monitored_actor_pairs": [
+                list(value) for value in sorted(self._monitored_actor_pairs)
+            ],
+        }
+
+
+def _root_physx_view_shape(scene: InteractiveScene) -> dict[str, Any]:
+    view = scene["dofbot"].root_physx_view
+    result: dict[str, Any] = {}
+    for name in ("count", "max_links", "max_dofs", "num_links", "num_dofs"):
+        value = getattr(view, name, None)
+        if isinstance(value, (int, float, str, bool)) or value is None:
+            result[name] = value
+        else:
+            result[name] = str(value)
+    return result
 
 
 def _angles_deg_from_rad(values: list[float] | tuple[float, ...]) -> list[float]:
@@ -797,10 +863,35 @@ def main() -> None:
             args_cli.scene_config
         )
     scene = InteractiveScene(scene_cfg)
+    spawned_scene_objects: list[dict[str, Any]] = []
     if context_scene is not None:
-        spawn_static_reaching_boxes(context_scene)
+        if preflight_scene_cell is None:
+            spawn_static_reaching_boxes(context_scene)
+            spawned_scene_objects = [
+                {
+                    "name": name,
+                    "prim_path": box.prim_path,
+                    "center_world_m": list(box.center_world_m),
+                    "size_m": list(box.size_m),
+                    "collision_enabled": True,
+                    "rigid_body_authored": False,
+                }
+                for name, box in (
+                    ("table", context_scene.table),
+                    ("target_cube", context_scene.target_cube),
+                )
+            ]
+        else:
+            spawned_scene_objects = spawn_reaching_scene_cell(
+                context_scene,
+                preflight_scene_cell,
+            )
     sim.reset()
     scene.update(sim.get_physics_dt())
+    spawned_scene_readback = inspect_spawned_reaching_objects(
+        sim_utils.get_current_stage(),
+        spawned_scene_objects,
+    )
     assert_compatible_asset_contracts(
         recorded_contract,
         _live_asset_contract(scene),
@@ -998,6 +1089,21 @@ def main() -> None:
             if context_scene is not None
             else None
         ),
+        "scene_decomposition": (
+            {
+                "config_path": str(args_cli.scene_decomposition_config),
+                "config_sha256": preflight_scene_decomposition_sha256,
+                "cell": preflight_scene_cell.to_dict(),
+                "spawn_plan": spawned_scene_objects,
+                "runtime_readback": spawned_scene_readback,
+                "clearance": minimum_body_center_aabb_clearances(
+                    all_samples,
+                    spawned_scene_objects,
+                ),
+            }
+            if preflight_scene_cell is not None
+            else None
+        ),
         "case": case.to_dict(),
         "runtime": {
             "physics_dt_s": sim.get_physics_dt(),
@@ -1039,6 +1145,9 @@ def main() -> None:
         "physics_snapshot": {
             "joint_names": list(scene["dofbot"].joint_names),
             "body_names": list(scene["dofbot"].body_names),
+            "controlled_joint_ids": controlled_joint_ids,
+            "terminal_body_ids": body_ids,
+            "root_physx_view_shape": _root_physx_view_shape(scene),
             "controlled_joint_drives": controlled_drive_snapshot,
             "masses": _optional_physx_view_tensor(
                 scene,
@@ -1086,6 +1195,7 @@ def main() -> None:
             "implicit_torque_buffers_are_pd_estimates_not_solver_measurements": True,
             "zero_or_missing_implicit_torque_does_not_disprove_saturation": True,
             "gravity_feed_forward": gravity_feed_forward_telemetry,
+            "contact_events": contact_reporter.summary(),
         },
         "measurement": {
             "sample_every_physics_step": True,
@@ -1094,7 +1204,7 @@ def main() -> None:
         },
         "evaluation": evaluation,
         "scope": {
-            "table_or_cube_spawned": context_scene is not None,
+            "table_or_cube_spawned": bool(spawned_scene_objects),
             "viewer_started": False,
             "camera_tensor_captured": False,
             "real_hardware_commanded": False,
