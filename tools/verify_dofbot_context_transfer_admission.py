@@ -61,8 +61,9 @@ def verify_context_transfer_admission(
         raise ContextTransferAdmissionError("context-transfer audit is incomplete")
     if analysis.get("integrated_pregrasp_authorized") is not True:
         raise ContextTransferAdmissionError(
-            "integrated pre-grasp is blocked: run and promote the A/B/C "
-            "current-runtime context-transfer matrix first"
+            "integrated pre-grasp is blocked: complete and promote the DF-047 "
+            "adaptive scene-decomposition matrix, then define a separate "
+            "integrated machine re-acceptance gate"
         )
     return recorded
 

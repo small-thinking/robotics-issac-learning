@@ -2362,3 +2362,41 @@
   explicit `STOPPED` at `22:56:47 PDT`. The under-15-minute start-to-terminal-
   stop interval cost at most about `$0.40` at the live quote. No instance or
   disk was created, resized, reset, or deleted.
+
+## 2026-08-05 — DF-047 adaptive static-scene matrix prepared offline
+
+- Historical boundary: DF-046 changed the exact table and cube together. Its
+  shared spawner always constructed collision properties and never read an
+  independent collision flag. The `4.199411-degree` result therefore proves a
+  static-scene-family cause, not table, cube, collision, distance, or spawn
+  registration individually.
+- New discriminator: S0 revalidates the modified source with no scene. The
+  adaptive tree then tests table-only T1, cube-only Q1, and only if both pass
+  the table-plus-cube P1 interaction. A failing object/pair selects exactly its
+  collision-off (`0`) and 1.25-meter far collision-on (`F`) controls, then the
+  matrix stops.
+- Cost control: the longest branch has six cells, each timeout is 180 seconds,
+  and the remote internal deadline is 1200 seconds. This leaves startup,
+  evidence retrieval, and asynchronous shutdown inside the separate 30-minute
+  paid-window policy.
+- Fixed controls: split `90 -> 78 -> 66`, force drive `1048/53/100`, external-
+  force iteration, bounded gravity feed-forward, one-degree tracking, `0.5 N`
+  contact, and policy-free scope. Drive, path, API target, feed-forward, and
+  acceptance tuning are not revisited.
+- Evidence hardening: each artifact binds source/config hashes and records
+  runtime prim/collision/static/transform/AABB readback, articulation and DOF
+  indexing, PhysX view shape, target/position/velocity/gravity telemetry,
+  contact-event counts and actor pairs, and terminal-body-center/AABB distance.
+  Body-center clearance and zero monitored contact are not promoted into proof
+  that collision registration or broadphase had no effect.
+- Local result: the complete CPU gate passes Ruff, 267 tests, Python and shell
+  checks, strict parsing, mutation tests, adaptive classification, per-cell
+  verification, matrix summarization, remote command preview, and generated-
+  artifact validation. The deterministic artifact is
+  `artifacts/dofbot/scene_decomposition_plan.json`.
+- Infrastructure boundary: the required read-only Brev check found the CLI
+  session logged out. No start was attempted. Re-authentication, exact retained
+  instance/state/price verification, merge, and explicit approval remain
+  mandatory before `make dofbot-scene-decomposition-matrix`.
+- Authorization: **GPU false / Isaac false / paid run false / Viewer false /
+  integrated pre-grasp false / contact and grasp false**.

@@ -387,7 +387,16 @@ class DofbotActuatorCalibrationTest(unittest.TestCase):
         self.assertNotIn("_spawn_scene_boxes", runner)
         self.assertIn('"--scene-config"', runner)
         self.assertIn("spawn_static_reaching_boxes(context_scene)", runner)
-        self.assertIn('"table_or_cube_spawned": context_scene is not None', runner)
+        self.assertIn('"table_or_cube_spawned": bool(spawned_scene_objects)', runner)
+        for scene_field in (
+            "scene_decomposition",
+            "runtime_readback",
+            "root_physx_view_shape",
+            "controlled_joint_ids",
+            "contact_events",
+            "minimum_body_center_aabb_clearances",
+        ):
+            self.assertIn(scene_field, runner)
         self.assertNotIn("Arm_Lib", runner)
         self.assertNotIn("--livestream", run_script)
         self.assertNotIn("--viz", run_script)

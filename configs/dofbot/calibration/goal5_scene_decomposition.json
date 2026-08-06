@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "name": "goal5_scene_decomposition",
+  "source_scene_config": "configs/dofbot/reaching/goal5_angled_pregrasp_scene_candidate.json",
+  "calibration_config": "configs/dofbot/calibration/goal5_gravity_feed_forward_diagnostic.json",
+  "case_name": "bounded_gravity_feed_forward",
+  "far_translation_offset_world_m": [1.25, 0.0, 0.0],
+  "cells": [
+    {
+      "id": "S0",
+      "objects": [],
+      "collision_enabled": false,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "current-source no-scene regression sentinel"
+    },
+    {
+      "id": "T1",
+      "objects": ["table"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near table-only collision-on discriminator"
+    },
+    {
+      "id": "T0",
+      "objects": ["table"],
+      "collision_enabled": false,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near table-only collision-off discriminator"
+    },
+    {
+      "id": "TF",
+      "objects": ["table"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [1.25, 0.0, 0.0],
+      "role": "far table-only collision-on discriminator"
+    },
+    {
+      "id": "Q1",
+      "objects": ["target_cube"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near cube-only collision-on discriminator"
+    },
+    {
+      "id": "Q0",
+      "objects": ["target_cube"],
+      "collision_enabled": false,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near cube-only collision-off discriminator"
+    },
+    {
+      "id": "QF",
+      "objects": ["target_cube"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [1.25, 0.0, 0.0],
+      "role": "far cube-only collision-on discriminator"
+    },
+    {
+      "id": "P1",
+      "objects": ["table", "target_cube"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near table-plus-cube collision-on reproduction"
+    },
+    {
+      "id": "P0",
+      "objects": ["table", "target_cube"],
+      "collision_enabled": false,
+      "translation_offset_world_m": [0.0, 0.0, 0.0],
+      "role": "near table-plus-cube collision-off discriminator"
+    },
+    {
+      "id": "PF",
+      "objects": ["table", "target_cube"],
+      "collision_enabled": true,
+      "translation_offset_world_m": [1.25, 0.0, 0.0],
+      "role": "far table-plus-cube collision-on discriminator"
+    }
+  ],
+  "acceptance": {
+    "maximum_settled_tracking_error_deg": 1.0,
+    "maximum_contact_force_n": 0.5
+  },
+  "paid_window": {
+    "maximum_executed_cells": 6,
+    "case_timeout_seconds": 180,
+    "matrix_deadline_seconds": 1200,
+    "viewer_authorized": false
+  }
+}

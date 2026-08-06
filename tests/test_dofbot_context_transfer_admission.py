@@ -18,7 +18,7 @@ class DofbotContextTransferAdmissionTest(unittest.TestCase):
     def test_current_audit_is_fresh_but_blocks_integrated_runner(self) -> None:
         with self.assertRaisesRegex(
             ContextTransferAdmissionError,
-            "run and promote the A/B/C",
+            "DF-047",
         ):
             verify_context_transfer_admission(
                 contract_path=CONTRACT,

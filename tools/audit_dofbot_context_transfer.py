@@ -46,10 +46,15 @@ except ImportError:
 
 
 CURRENT_SHARED_RUNTIME_PATHS = (
+    "tools/dofbot_actuator_calibration.py",
+    "tools/dofbot_contact_report.py",
     "tools/dofbot_control_api.py",
     "tools/dofbot_gravity_feed_forward.py",
     "tools/dofbot_gravity_feed_forward_runtime.py",
     "tools/dofbot_pregrasp_scene_cfg.py",
+    "tools/dofbot_motion_plan.py",
+    "tools/dofbot_reaching.py",
+    "tools/dofbot_scene_decomposition.py",
     "tools/dofbot_scene_cfg.py",
     "tools/run_dofbot_actuator_calibration.py",
 )
@@ -353,9 +358,9 @@ def build_context_transfer_audit(
             ),
             "current_runtime_machine_regression_validated": False,
             "reason": (
-                "The accepted 2026-07-31 result records a runtime commit but "
-                "does not bind the source-file bundle consumed after the "
-                "shared-runtime refactor."
+                "DF-046 validates the prior source-bound runtime, but DF-047 "
+                "adds scene-cell instrumentation to that runner and spawner. "
+                "The new source bundle requires its own no-scene S0 sentinel."
             ),
         },
         "protocols": {
@@ -408,6 +413,10 @@ def build_context_transfer_audit(
             "viewer_authorized": False,
         },
         "next_machine_matrix": {
+            "status": "completed_by_df_046_and_superseded_by_df_047",
+            "next_discriminator": (
+                "DF-047 adaptive table/cube/collision/near-far decomposition"
+            ),
             "paid_run_requires_fresh_quote_and_explicit_approval": True,
             "viewer_blocked": True,
             "cells": [

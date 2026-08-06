@@ -418,3 +418,24 @@ The remote semantic verifier must use the installed
 `./_isaac_sim/python.sh`; generic `python3` is not present in the retained
 Launchable container. This is an orchestration repair only and does not change
 the scientific gate.
+
+## 2026-08-05 — Use an adaptive scene decomposition, not a Cartesian sweep
+
+DF-046 changed two objects and collision registration together. The next
+experiment must separate the smallest causal layer without paying for all ten
+declared controls. Start with a current-source no-scene sentinel, then test
+table only, cube only, and only if both pass the pair interaction. Once one
+branch fails, run only that branch's collision-off and far-away controls and
+stop.
+
+This hierarchical design gives every paid cell a decision and caps the longest
+path at six cells. It also preserves a source-bound S0 regression guard because
+the new instrumentation necessarily changes the isolated runner and scene
+helper. Do not skip S0 by citing the older DF-046 source bundle.
+
+Require runtime readback rather than trusting requested spawn arguments:
+actual collision and rigid-body APIs, prim type, transform, AABB, articulation
+and controlled-DOF indices, contact actor pairs, and terminal-body clearance
+must all be present. Hold the motion, drive, feed-forward, thresholds, and
+prohibited scope fixed. This decision prepares a machine discriminator only;
+it does not authorize GPU use, integrated pre-grasp, Viewer, or contact.

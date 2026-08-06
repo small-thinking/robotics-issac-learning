@@ -1,6 +1,6 @@
 # Status
 
-- Updated: 2026-08-03 America/Los_Angeles
+- Updated: 2026-08-05 America/Los_Angeles
 - Completed phase: Phase 2 — 27-cell controlled RL study
 - Current experiment: Phase 3 / `02_dofbot`; Goal 4 corrected front-side,
   no-contact reaching passed all gates; the first lower/farther world-down
@@ -39,11 +39,15 @@
   static table/cube context restores a `4.199411°` residual with zero monitored
   contact; `DF-046` localizes the remaining failure family to static-scene
   composition without yet distinguishing table, cube, collision, or another
-  spawn-side effect; 46 historical failure, falsification, partial-fix, and
+  spawn-side effect; the GPU-free `DF-047` audit now proves the old spawner
+  changed both objects while always authoring collision and prepares one
+  adaptive table/cube/pair, collision-off, and far-away branch behind a new-
+  source S0 sentinel; 47 historical failure, falsification, partial-fix, and
   operational cases are consolidated in
   `experiments/02_dofbot/FAILURE_LEDGER.md`; no further paid discriminator is
-  authorized until a GPU-free one-factor scene decomposition is prepared;
-  Viewer remains blocked
+  authorized by preparation alone; after merge the next paid discriminator
+  still requires Brev re-authentication, a fresh matching quote and STOPPED
+  instance check, and explicit user approval; Viewer remains blocked
 - Brev instance: `isaac-launchable-f150a5` (`92xbacz46`)
 - Instance state: `STOPPED`, re-verified with `brev ls --all --json` at
   2026-08-03 22:56:47 PDT after the DF-042 artifacts and logs were retrieved
@@ -1372,13 +1376,19 @@
 
 ## Exact next action
 
-Keep the Brev instance stopped. `DF-042` is complete: A and B pass on current
-code without boxes, while C adds the exact static table/cube context and
-reproduces the residual. Do not rerun path, duration, drive, target-buffer,
-feed-forward, or integrated Viewer cases. First perform a GPU-free audit of the
-scene-spawn boundary and prepare the smallest one-factor table/cube/collision-
-or-spawn decomposition. Record that plan under a new ledger discriminator
-before requesting another quote or paid run. `make dofbot-pregrasp-view`
+Keep the Brev instance stopped. `DF-047` completes the free preparation for
+the smallest adaptive scene decomposition. Do not rerun path, duration, drive,
+target-buffer, feed-forward, or integrated Viewer cases. After this branch is
+reviewed and merged, re-authenticate Brev, verify the exact retained instance
+is `STOPPED`, refresh the quote, and obtain explicit approval before running:
+
+```bash
+BREV_INSTANCE_NAME=isaac-launchable-f150a5 \
+  make dofbot-scene-decomposition-matrix
+```
+
+The matrix runs S0 first and then only one table, cube, or pair branch, capped
+at six cells and a 20-minute internal deadline. `make dofbot-pregrasp-view`
 remains blocked. Contact, closing, grasping, lifting, and placing remain
 unauthorized.
 
@@ -1537,3 +1547,39 @@ unauthorized.
   The under-15-minute start-to-terminal-stop interval cost at most about
   `$0.40` at the live quote. No instance or disk was created, resized, reset,
   or deleted.
+
+## DF-047 adaptive scene-decomposition preparation
+
+- Scope: GPU-free source audit, strict config, Isaac runner instrumentation,
+  semantic verifiers, adaptive wrapper, deterministic artifact, tests, and
+  remote-command preview only. No Brev start, Isaac execution, Viewer,
+  integrated pre-grasp, contact, gripper, hardware, policy, or checkpoint ran.
+- Located experiment-design gap: the DF-046 spawner iterated over table and
+  cube together, unconditionally constructed collision properties, and never
+  read the source config's collision flag. DF-046 is still valid for the
+  static-scene family but cannot identify the responsible object or mechanism.
+- New strict cells: S0 no scene; near table-only T1/T0 and far table TF; near
+  cube-only Q1/Q0 and far cube QF; near pair P1/P0 and far pair PF. `1` means
+  collision enabled, `0` disabled, and `F` collision enabled plus a fixed
+  1.25-meter translation.
+- Adaptive execution: S0 must run first. A table failure selects only T0/TF;
+  otherwise a cube failure selects only Q0/QF; otherwise a reproduced pair
+  failure selects only P0/PF. A branch ends immediately after classification.
+  At most six cells run, each has a 180-second timeout, and the matrix has a
+  1200-second internal deadline.
+- Controls held fixed: split `90 -> 78 -> 66` path, bounded gravity feed-
+  forward case, force `1048/53/100`, external-force iteration, one-degree
+  tracking gate, and `0.5 N` contact gate.
+- Required machine evidence: exact source/config hashes, authored prim and
+  collision state, runtime collision/static/type/transform/AABB readback,
+  11-joint/12-body articulation and controlled-DOF indices, PhysX view shape,
+  target/position/velocity/gravity telemetry, full contact-event counts and
+  actor pairs, and terminal-body-center/AABB clearance.
+- Local artifact: `artifacts/dofbot/scene_decomposition_plan.json`; the complete
+  CPU gate passes Ruff, 267 tests, Python/shell checks, deterministic previews,
+  and generated-artifact validation. Paid run, integrated pre-grasp, Viewer,
+  contact, and grasp authorization remain false.
+- Operational boundary: the mandatory read-only `brev ls --json` check was
+  attempted but the CLI session is logged out. Because no remote action is in
+  this scope, preparation continued locally. Re-authentication and a fresh
+  exact instance/state/price check are hard blockers before any paid command.
